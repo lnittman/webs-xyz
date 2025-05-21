@@ -1,0 +1,29 @@
+@import "../styles/globals.css";
+
+:root {
+  --theme-overlay: rgba(0,0,0,0.4);
+  --theme-background: var(--color-blue-80, #002d9c);
+  --theme-background-input: var(--color-blue-60, #0f62fe);
+  --theme-border: var(--color-blue-70, #0043ce);
+  --theme-text: var(--color-blue-10, #edf5ff);
+  --theme-button-foreground: var(--color-blue-60, #0f62fe);
+  --theme-button-background: var(--color-blue-70, #0043ce);
+  --theme-focused-foreground: var(--color-blue-50, #4589ff);
+  --font-family-mono: 'GeistMono-Regular', monospace;
+  --font-size: 16px;
+  --theme-line-height-base: 1.25;
+}
+
+/* Basic styling for sacred components */
+.displayed {
+  @apply overflow-hidden whitespace-nowrap pointer-events-none bg-background-input shadow-inner shadow-border;
+}
+
+/* ActionListItem styles */
+.icon {
+  @apply bg-foreground text-background flex items-center justify-center w-6 h-6 mr-2;
+}
+.text {
+  @apply bg-background flex-1 px-1;
+}
+
