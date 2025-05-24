@@ -27,7 +27,7 @@
     "@repo/typescript-config": "workspace:*",
     "@turbo/gen": "^2.5.0",
     "@types/node": "^22.14.1",
-    "tsup": "^8.4.0",
+    "tsup": "^8.5.0",
     "turbo": "^2.5.0",
     "typescript": "^5.8.3",
     "ultracite": "^4.2.1",
