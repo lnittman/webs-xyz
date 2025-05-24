@@ -29,7 +29,7 @@ export function CodeHeader() {
   // Handle creating a new workspace
   const handleCreateWorkspace = () => {
     setWorkspaceMenuOpen(false);
-    router.push('/code/settings?tab=workspaces&action=create');
+    router.push('/settings?tab=workspaces&action=create');
   };
 
   // Define workspace menu groups
@@ -125,7 +125,7 @@ export function CodeHeader() {
         {/* Center - 'arbor code' title */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <button
-            onClick={() => router.push('/code')}
+            onClick={() => router.push('/')}
             className="text-lg font-medium text-foreground select-none transition-all duration-200 hover:opacity-70 active:opacity-50 active:scale-[0.98] rounded-md px-2 py-1 -mx-2 -my-1"
           >
             arbor code
