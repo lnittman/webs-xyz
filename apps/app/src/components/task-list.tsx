@@ -4,12 +4,12 @@ import { Task } from '@/hooks/code/task/queries';
 import { cn } from '@repo/design/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { 
-  CheckCircle2, 
+  CheckCircle, 
   Clock, 
-  AlertCircle, 
-  Loader2,
-  ChevronRight
-} from 'lucide-react';
+  Warning,
+  Spinner,
+  CaretRight
+} from '@phosphor-icons/react/dist/ssr';
 
 interface TaskListProps {
   tasks: Task[];
@@ -24,21 +24,21 @@ const statusConfig = {
     animate: false,
   },
   processing: {
-    icon: Loader2,
+    icon: Spinner,
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
     label: 'Processing',
     animate: true,
   },
   completed: {
-    icon: CheckCircle2,
+    icon: CheckCircle,
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
     label: 'Completed',
     animate: false,
   },
   failed: {
-    icon: AlertCircle,
+    icon: Warning,
     color: 'text-red-500',
     bgColor: 'bg-red-500/10',
     label: 'Failed',
@@ -72,8 +72,9 @@ export function TaskList({ tasks }: TaskListProps) {
                 )}
               >
                 <Icon
+                  size={16}
+                  weight="duotone"
                   className={cn(
-                    'h-4 w-4',
                     config.color,
                     config.animate && 'animate-spin',
                   )}
@@ -86,7 +87,7 @@ export function TaskList({ tasks }: TaskListProps) {
                   <p className="text-sm font-medium leading-relaxed">
                     {task.prompt}
                   </p>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <CaretRight size={16} weight="duotone" className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
 
                 {/* Task metadata */}
