@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'next-view-transitions';
 import { useWeb } from '@/hooks/code/web/queries';
@@ -10,9 +9,9 @@ import { cn } from '@repo/design/lib/utils';
 import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon } from '@phosphor-icons/react/dist/ssr';
 
 interface WebDetailPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 interface AIInsights {
@@ -47,9 +46,13 @@ function formatDate(date: string): string {
 }
 
 export default function WebDetailPage({ params }: WebDetailPageProps) {
-    const router = useRouter();
-    const { web, isLoading, isError } = useWeb(params.id);
+    const [id, setId] = useState<string | null>(null);
+    const { web, isLoading, isError } = useWeb(id || '');
     const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'raw' | 'insights'>('overview');
+
+    useEffect(() => {
+        params.then(({ id }) => setId(id));
+    }, [params]);
 
     // Mock AI insights (in real app, this would come from the backend)
     const aiInsights: AIInsights = {

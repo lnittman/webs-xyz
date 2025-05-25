@@ -10,7 +10,7 @@ import { promptFocusedAtom } from '@/atoms/chat';
 import { useWebs } from '@/hooks/code/web/queries';
 import { useCreateWeb } from '@/hooks/code/web/mutations';
 import { cn } from '@repo/design/lib/utils';
-import { Brain, Sparkle, Clock, ChartLine, Globe, Lightning } from '@phosphor-icons/react/dist/ssr';
+import { Brain, Sparkle, Clock, Globe, Lightning } from '@phosphor-icons/react/dist/ssr';
 
 // Helper to extract domain from URL
 function extractDomain(url: string): string {

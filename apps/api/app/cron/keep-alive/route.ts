@@ -1,15 +1,16 @@
 import { database } from '@repo/database';
 
 export const GET = async () => {
-  const newPage = await database.page.create({
+  const newWeb = await database.web.create({
     data: {
-      name: 'cron-temp',
+      url: 'https://cron-temp.example.com',
+      title: 'cron-temp',
     },
   });
 
-  await database.page.delete({
+  await database.web.delete({
     where: {
-      id: newPage.id,
+      id: newWeb.id,
     },
   });
 

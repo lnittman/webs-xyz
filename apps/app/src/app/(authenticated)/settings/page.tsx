@@ -1,11 +1,11 @@
 'use client';
 
-import { useIsMobile } from '@repo/design/hooks/use-is-mobile';
+import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import { cn } from '@repo/design/lib/utils';
 
-import { CodeSettings } from '@/components/code/settings';
+import { Settings } from '@/components/settings';
 
-export default function CodeSettingsPage() {
+export default function SettingsPage() {
   const isMobile = useIsMobile();
   
   return (
@@ -19,7 +19,7 @@ export default function CodeSettingsPage() {
       
       <div className="flex-1 overflow-hidden flex justify-center">
         <div className="w-full max-w-2xl h-full">
-          <CodeSettings />
+          <Settings />
         </div>
       </div>
     </div>

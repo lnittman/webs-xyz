@@ -21,6 +21,7 @@ const statusConfig = {
     color: 'text-muted-foreground',
     bgColor: 'bg-muted/50',
     label: 'Pending',
+    animate: false,
   },
   processing: {
     icon: Loader2,
@@ -34,12 +35,14 @@ const statusConfig = {
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
     label: 'Completed',
+    animate: false,
   },
   failed: {
     icon: AlertCircle,
     color: 'text-red-500',
     bgColor: 'bg-red-500/10',
     label: 'Failed',
+    animate: false,
   },
 };
 

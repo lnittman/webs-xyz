@@ -6,6 +6,12 @@ import {
   clerkClient,
 } from '@repo/auth/server';
 
+interface UserInfo {
+  name: string;
+  picture: string;
+  color: string;
+}
+
 const getName = (user: OrganizationMembership): string | undefined => {
   let name = user.publicUserData?.firstName;
 
@@ -42,7 +48,7 @@ export const getUsers = async (
   userIds: string[]
 ): Promise<
   | {
-      data: Liveblocks['UserMeta']['info'][];
+      data: UserInfo[];
     }
   | {
       error: unknown;
@@ -62,7 +68,7 @@ export const getUsers = async (
       limit: 100,
     });
 
-    const data: Liveblocks['UserMeta']['info'][] = members.data
+    const data: UserInfo[] = members.data
       .filter(
         (user) =>
           user.publicUserData?.userId &&
