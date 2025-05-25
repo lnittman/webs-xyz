@@ -51,8 +51,9 @@ export function ClientLayout({
                 {children}
             </main>
 
-            {/* Terminal scanline effect */}
+            {/* Terminal scanline effect
             <div className="terminal-scanlines" aria-hidden="true" />
+            */}
         </div>
     );
 } 

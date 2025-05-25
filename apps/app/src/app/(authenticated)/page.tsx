@@ -47,12 +47,6 @@ interface AIActivity {
   icon?: any;
 }
 
-const models = [
-  { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', short: 'C4S' },
-  { id: 'gpt-4', name: 'GPT-4', short: 'GP4' },
-  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', short: 'G35' },
-];
-
 export default function RootPage() {
   const { webs } = useWebs();
   const { createWeb } = useCreateWeb();

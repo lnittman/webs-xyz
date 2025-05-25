@@ -10,9 +10,6 @@ export default function UnauthenticatedLayout({ children }: UnauthenticatedLayou
       <div className="w-full max-w-md px-6">
         {children}
       </div>
-
-      {/* Terminal scanline effect */}
-      <div className="terminal-scanlines" aria-hidden="true" />
     </div>
   );
 }

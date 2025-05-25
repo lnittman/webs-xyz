@@ -23,12 +23,18 @@ export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const open = <P,>(component: ModalComponent<P>, props: P): string => {
     const key = `modal-${Date.now()}-${Math.random()}`;
     const newModal: ModalState<P> = { key, component, props };
-    setModalStack((prev) => [...prev, newModal as ModalState<any>]);
+    // Only allow one modal at a time - replace existing modals
+    setModalStack([newModal as ModalState<any>]);
     return key;
   };
 
   const close = (key?: string): void => {
-    setModalStack((prev) => (key ? prev.filter((modal) => modal.key !== key) : prev.slice(0, -1)));
+    if (key) {
+      setModalStack((prev) => prev.filter((modal) => modal.key !== key));
+    } else {
+      // Close all modals if no key specified
+      setModalStack([]);
+    }
   };
 
   return <ModalContext.Provider value={{ modalStack, open, close }}>{children}</ModalContext.Provider>;

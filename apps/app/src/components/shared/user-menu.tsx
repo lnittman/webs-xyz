@@ -53,7 +53,7 @@ export function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     className={cn(
-                        "flex items-center p-2 transition-all duration-150 relative group rounded-none",
+                        "flex items-center p-1 transition-all duration-150 relative group rounded-none",
                         "hover:bg-accent/50",
                         menuOpen && "bg-accent/40"
                     )}

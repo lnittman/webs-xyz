@@ -4,26 +4,23 @@ import { useModals } from './page/ModalContext';
 import { cn } from '../../lib/utils';
 
 export const ModalStack: React.FC = () => {
-  const { modalStack } = useModals();
-  const total = modalStack.length;
+  const { modalStack, close } = useModals();
+  const currentModal = modalStack[0]; // Only show the first (and only) modal
+
+  if (!currentModal) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-      {modalStack.map((modal, index) => {
-        const offset = total - 1 - index;
-        const translateY = -offset * 40;
-        const blur = offset * 1.1;
-        const ModalComponent = modal.component as React.ComponentType<any>;
-        return (
-          <div
-            key={modal.key}
-            className="absolute pointer-events-auto transition-opacity transition-transform"
-            style={{ zIndex: 10 + index, transform: `translateY(${translateY}px)`, filter: `blur(${blur}px)` }}
-          >
-            <ModalComponent {...modal.props} />
-          </div>
-        );
-      })}
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={() => close()}
+      />
+
+      {/* Modal Content */}
+      <div className="relative pointer-events-auto z-10 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200">
+        {React.createElement(currentModal.component as React.ComponentType<any>, currentModal.props)}
+      </div>
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { cn } from '@repo/design/lib/utils';
 import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText, Question } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ContextBar } from './context-bar';
+import { BrowserTabsModal } from './browser-tabs-modal';
+import { useModals } from '@repo/design/sacred';
 
 interface PromptBarProps {
   onSubmit: (prompt: string) => void | Promise<void>;
@@ -75,13 +77,13 @@ function getDomain(url: string): string {
   }
 }
 
-// Helper to get browser tabs (with fallback for unsupported browsers)
+// Enhanced browser tabs detection
 async function getBrowserTabs(): Promise<BrowserTab[]> {
   try {
     // Check if we're in a browser extension context or have tab permissions
     if (typeof window !== 'undefined' && 'chrome' in window && (window as any).chrome?.tabs) {
       const chrome = (window as any).chrome;
-      const tabs = await chrome.tabs.query({ active: false, currentWindow: true });
+      const tabs = await chrome.tabs.query({ currentWindow: true });
       return tabs.map((tab: any) => ({
         url: tab.url || '',
         title: tab.title || '',
@@ -89,12 +91,38 @@ async function getBrowserTabs(): Promise<BrowserTab[]> {
       })).filter((tab: BrowserTab) => tab.url.startsWith('http'));
     }
 
-    // Fallback: try to get current tab info
+    // Fallback: try to get current tab info and some mock tabs for demo
     if (typeof window !== 'undefined') {
-      return [{
+      const currentTab = {
         url: window.location.href,
         title: document.title,
-      }];
+      };
+
+      // Add some mock tabs for demonstration
+      const mockTabs: BrowserTab[] = [
+        {
+          url: 'https://github.com/vercel/next.js',
+          title: 'GitHub - vercel/next.js: The React Framework',
+          favIconUrl: 'https://github.com/favicon.ico'
+        },
+        {
+          url: 'https://news.ycombinator.com',
+          title: 'Hacker News',
+          favIconUrl: 'https://news.ycombinator.com/favicon.ico'
+        },
+        {
+          url: 'https://stackoverflow.com/questions/tagged/javascript',
+          title: 'Newest \'javascript\' Questions - Stack Overflow',
+          favIconUrl: 'https://stackoverflow.com/favicon.ico'
+        },
+        {
+          url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+          title: 'JavaScript | MDN',
+          favIconUrl: 'https://developer.mozilla.org/favicon.ico'
+        }
+      ];
+
+      return [currentTab, ...mockTabs];
     }
   } catch (error) {
     console.log('Browser tabs not accessible:', error);
@@ -116,11 +144,11 @@ export function PromptBar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [detectedUrls, setDetectedUrls] = useState<DetectedUrl[]>([]);
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
-  const [showTabSuggestions, setShowTabSuggestions] = useState(false);
   const [showHelpTooltip, setShowHelpTooltip] = useState(false);
   const [aiStatus, setAiStatus] = useState<AIStatus>({ type: 'idle', message: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectedModel = models.find(m => m.id === selectedModelId) || models[0];
+  const { open } = useModals();
 
   const hasUrl = containsUrl(input);
   const parsed = parseInput(input);
@@ -196,16 +224,15 @@ export function PromptBar({
       textareaRef.current?.blur();
     }
 
-    // Show tab suggestions on Ctrl/Cmd + T
+    // Show tab modal on Ctrl/Cmd + T
     if ((e.ctrlKey || e.metaKey) && e.key === 't') {
       e.preventDefault();
-      setShowTabSuggestions(!showTabSuggestions);
+      openTabsModal();
     }
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-    setIsExpanded(e.target.value.length > 0 || isFocused);
   };
 
   const handleFocus = () => {
@@ -214,9 +241,6 @@ export function PromptBar({
   };
 
   const handleBlur = () => {
-    if (!input.trim()) {
-      setIsExpanded(false);
-    }
     onFocusChange?.(false);
   };
 
@@ -231,8 +255,21 @@ export function PromptBar({
   const addTabUrl = (tab: BrowserTab) => {
     const newInput = input ? `${input} ${tab.url}` : tab.url;
     setInput(newInput);
-    setShowTabSuggestions(false);
     textareaRef.current?.focus();
+  };
+
+  const addMultipleTabUrls = (tabs: BrowserTab[]) => {
+    const urls = tabs.map(tab => tab.url).join(' ');
+    const newInput = input ? `${input} ${urls}` : urls;
+    setInput(newInput);
+    textareaRef.current?.focus();
+  };
+
+  const openTabsModal = () => {
+    open(BrowserTabsModal, {
+      onSelectTab: addTabUrl,
+      onSelectMultipleTabs: addMultipleTabUrls
+    });
   };
 
   return (
@@ -282,7 +319,7 @@ export function PromptBar({
         )}
       >
         {/* Model selector bar */}
-        <div className="flex items-center justify-between border-b border-border bg-card/50 px-3 py-2">
+        <div className="flex items-center justify-between bg-card/50 px-3 py-2">
           <div className="flex items-center gap-3">
             <div className="relative">
               <button
@@ -333,13 +370,8 @@ export function PromptBar({
           <div className="flex items-center gap-2 text-xs">
             {browserTabs.length > 0 && (
               <button
-                onClick={() => setShowTabSuggestions(!showTabSuggestions)}
-                className={cn(
-                  'flex items-center gap-1 px-2 py-1 font-mono transition-all duration-200',
-                  showTabSuggestions
-                    ? 'text-blue-600 bg-blue-600/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                )}
+                onClick={openTabsModal}
+                className="flex items-center gap-1 px-2 py-1 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 <Plus size={10} weight="duotone" />
                 TABS
@@ -352,44 +384,6 @@ export function PromptBar({
             )}
           </div>
         </div>
-
-        {/* Tab suggestions dropdown */}
-        <AnimatePresence>
-          {showTabSuggestions && browserTabs.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="border-b border-border bg-card/30 overflow-hidden"
-            >
-              <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                  BROWSER TABS
-                </div>
-                {browserTabs.slice(0, 5).map((tab, index) => (
-                  <motion.button
-                    key={tab.url}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => addTabUrl(tab)}
-                    className="w-full flex items-center gap-2 p-2 text-left hover:bg-accent transition-all duration-200 rounded"
-                  >
-                    {tab.favIconUrl && (
-                      <img src={tab.favIconUrl} alt="" className="w-4 h-4" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium truncate">{tab.title}</div>
-                      <div className="text-xs text-muted-foreground truncate font-mono">
-                        {getDomain(tab.url)}
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Input area */}
         <div className="p-3">
@@ -413,14 +407,12 @@ export function PromptBar({
         </div>
 
         {/* Bottom status bar */}
-        <div className="flex items-center justify-between border-t border-border bg-card/50 px-3 py-2">
+        <div className="flex items-center justify-between bg-card/50 px-3 py-2">
           {/* Character count */}
           <div className="flex items-center gap-3">
-            {input.length > 0 && (
-              <span className="text-xs text-muted-foreground font-mono">
-                {input.length}
-              </span>
-            )}
+            <span className="text-xs text-muted-foreground font-mono">
+              {input.length}
+            </span>
           </div>
 
           {/* ENTER button */}

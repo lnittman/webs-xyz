@@ -17,7 +17,7 @@ export function Header({ showStatus = true, children }: HeaderProps) {
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm">
             <div className="h-14 px-2 flex items-center justify-between">
                 <div className="flex items-center">
                     <WebsAsciiLogo
@@ -34,10 +34,6 @@ export function Header({ showStatus = true, children }: HeaderProps) {
                 )}
 
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                        {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-
                     <UserMenu />
                 </div>
             </div>

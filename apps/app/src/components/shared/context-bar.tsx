@@ -29,7 +29,7 @@ export function ContextBar({ detectedUrls, onRemoveUrl }: ContextBarProps) {
 
     return (
         <div className="mt-2">
-            <div className="border border-border bg-card/30 p-3 text-xs font-mono">
+            <div className="border-border bg-card/30 p-2 text-xs font-mono">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}

@@ -5,6 +5,7 @@ import { AuthProvider } from '@repo/auth/provider';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ThemeProvider } from './providers/theme';
+import { ModalProvider, ModalStack } from './sacred';
 
 type DesignSystemProviderProperties = ThemeProviderProps;
 
@@ -14,8 +15,11 @@ export const DesignSystemProvider = ({
 }: DesignSystemProviderProperties) => (
   <ThemeProvider {...properties}>
     <AuthProvider>
-      <TooltipProvider>{children}</TooltipProvider>
-      <Toaster />
+      <ModalProvider>
+        <TooltipProvider>{children}</TooltipProvider>
+        <ModalStack />
+        <Toaster />
+      </ModalProvider>
     </AuthProvider>
   </ThemeProvider>
 );
