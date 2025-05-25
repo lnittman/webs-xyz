@@ -53,3 +53,29 @@
 - Design approach: Mastra agent with memory store.
 - Implementation challenges: Handling large content and asynchronous processing.
 - Integration considerations: Possibly move to queue-based workflow in future.
+
+### 2025-05-25: Expanded Browser Tabs Modal
+- **Type**: Feature
+- **Scope**: App
+- **Author(s)**: Luke Nittmann
+- **PR/Commit**: [50ea4f3](https://example.com/commit/50ea4f3)
+
+#### Description
+Added advanced browser tabs modal component allowing category sorting and multi-select actions.
+
+#### Technical Details
+- **Files Changed**: 1
+- **Lines Added/Removed**: +351/-169
+- **Components Affected**:
+  - `BrowserTabsModal`: added trending, favorites and history sections
+
+#### Architectural Impact
+- **Pattern Changes**: Enhances modal pattern with motion animations.
+- **New Dependencies**: None
+- **API Changes**: None
+- **Breaking Changes**: No
+
+#### Integration Impact
+- **Affected Integrations**: Frontend only
+- **Migration Required**: No
+- **Backward Compatible**: Yes

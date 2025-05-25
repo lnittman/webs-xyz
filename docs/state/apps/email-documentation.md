@@ -6,6 +6,20 @@
 - **Development Status**: Maintenance with occasional new templates.
 - **Responsible Team/Owner**: Growth/Marketing team.
 
+## Quick Reference
+```yaml
+name: email
+version: N/A
+status: maintenance
+primary_stack:
+  - React Email
+  - TypeScript
+key_dependencies:
+  - @repo/email
+  - @react-email/components
+  - resend
+```
+
 ## Core Architecture
 
 ### Architectural Pattern

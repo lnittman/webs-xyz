@@ -6,6 +6,21 @@
 - **Development Status**: Active; supports current features with incremental updates.
 - **Responsible Team/Owner**: Webs backend team.
 
+## Quick Reference
+```yaml
+name: api
+version: N/A
+status: active
+primary_stack:
+  - Next.js 15
+  - Node.js
+  - TypeScript
+key_dependencies:
+  - @repo/database
+  - @repo/auth
+  - @repo/webhooks
+```
+
 ## Core Architecture
 
 ### Architectural Pattern
