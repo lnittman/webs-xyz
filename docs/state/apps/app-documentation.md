@@ -6,6 +6,21 @@
 - **Development Status**: Active development with ongoing UI improvements.
 - **Responsible Team/Owner**: Webs frontend team.
 
+## Quick Reference
+```yaml
+name: app
+version: N/A
+status: active
+primary_stack:
+  - Next.js 15
+  - React 19
+  - TypeScript
+key_dependencies:
+  - @repo/design
+  - @repo/auth
+  - @repo/analytics
+```
+
 ## Core Architecture
 
 ### Architectural Pattern

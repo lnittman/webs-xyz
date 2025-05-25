@@ -84,3 +84,8 @@
    - **Current State**: Limited manual testing.
    - **Target State**: Automated tests validating API and package interactions.
    - **Suggested Approach**: Use Vitest with `@repo/testing` across apps.
+
+## Recent Integration Changes
+- Deprecated packages `storage` and `internationalization` removed from the codebase.
+- Updated design components require new props, affecting `app` and `email` templates.
+- `app` gained a browser tabs modal component improving navigation between saved pages.

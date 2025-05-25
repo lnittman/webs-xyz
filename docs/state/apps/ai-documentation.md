@@ -6,6 +6,20 @@
 - **Development Status**: Active but lighter development compared to frontend.
 - **Responsible Team/Owner**: AI/ML team.
 
+## Quick Reference
+```yaml
+name: ai
+version: N/A
+status: active
+primary_stack:
+  - Mastra
+  - TypeScript
+key_dependencies:
+  - @mastra/core
+  - @mastra/memory
+  - zod
+```
+
 ## Core Architecture
 
 ### Architectural Pattern
