@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 
 import { auth, currentUser } from '@repo/auth/server';
-import { SidebarProvider } from '@repo/design/components/ui/sidebar';
 import { secure } from '@repo/security';
 
 import { env } from '../../../env';
@@ -30,10 +29,10 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
   }
 
   return (
-    <SidebarProvider>
+    <>
       {children}
       <PostHogIdentifier />
-    </SidebarProvider>
+    </>
   );
 };
 

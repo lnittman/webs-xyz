@@ -2,7 +2,7 @@
 
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { cn } from '@repo/design/lib/utils';
-import { X, ArrowSquareOut, Plus } from '@phosphor-icons/react/dist/ssr';
+import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PromptBarProps {
@@ -25,6 +25,12 @@ interface BrowserTab {
   url: string;
   title: string;
   favIconUrl?: string;
+}
+
+interface AIStatus {
+  type: 'idle' | 'analyzing' | 'extracting' | 'summarizing' | 'indexing';
+  message: string;
+  progress?: number;
 }
 
 const models = [
@@ -110,6 +116,7 @@ export function PromptBar({
   const [detectedUrls, setDetectedUrls] = useState<DetectedUrl[]>([]);
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
   const [showTabSuggestions, setShowTabSuggestions] = useState(false);
+  const [aiStatus, setAiStatus] = useState<AIStatus>({ type: 'idle', message: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectedModel = models.find(m => m.id === selectedModelId) || models[0];
 
@@ -138,6 +145,31 @@ export function PromptBar({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]);
+
+  // Simulate AI status updates when submitting
+  useEffect(() => {
+    if (isSubmitting) {
+      const statusSequence: AIStatus[] = [
+        { type: 'analyzing', message: 'ANALYZING URL STRUCTURE', progress: 25 },
+        { type: 'extracting', message: 'EXTRACTING CONTENT', progress: 50 },
+        { type: 'summarizing', message: 'GENERATING AI SUMMARY', progress: 75 },
+        { type: 'indexing', message: 'INDEXING FOR SEARCH', progress: 90 }
+      ];
+
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < statusSequence.length) {
+          setAiStatus(statusSequence[index]);
+          index++;
+        } else {
+          clearInterval(interval);
+          setAiStatus({ type: 'idle', message: '' });
+        }
+      }, 1500);
+
+      return () => clearInterval(interval);
+    }
+  }, [isSubmitting]);
 
   const handleSubmit = async () => {
     if (!input.trim() || isSubmitting) return;
@@ -213,13 +245,67 @@ export function PromptBar({
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-1"
+            className="flex items-center gap-2"
           >
-            <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" />
-            <span className="text-xs text-blue-500">PROCESSING</span>
+            <div className="flex items-center gap-1">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Brain size={12} weight="duotone" className="text-blue-500" />
+              </motion.div>
+              <Pulse size={12} weight="duotone" className="text-blue-500 animate-pulse" />
+            </div>
+            <span className="text-xs text-blue-500 font-mono uppercase">
+              {aiStatus.message}
+            </span>
+            {aiStatus.progress && (
+              <div className="w-16 h-1 bg-border rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-blue-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${aiStatus.progress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            )}
           </motion.div>
         )}
       </div>
+
+      {/* AI Agent Status Bar */}
+      <AnimatePresence>
+        {(aiStatus.type !== 'idle' || detectedUrls.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-2"
+          >
+            <div className="border border-border bg-card/30 p-2 text-xs font-mono">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-muted-foreground uppercase">AI AGENT:</span>
+                  <span className="text-foreground">{selectedModel.name}</span>
+                  <span className="text-muted-foreground">|</span>
+                  <span className="text-muted-foreground uppercase">MODE:</span>
+                  <span className="text-foreground">
+                    {parsed.prompt ? 'GUIDED ANALYSIS' : 'AUTO SUMMARY'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {detectedUrls.length > 0 && (
+                    <>
+                      <Eye size={12} weight="duotone" className="text-green-600" />
+                      <span className="text-green-600">{detectedUrls.length} URL{detectedUrls.length > 1 ? 'S' : ''} DETECTED</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main input container */}
       <div
