@@ -1,12 +1,6 @@
 {
-  "name": "next-forge",
-  "version": "4.2.16",
-  "bin": {
-    "next-forge": "dist/index.js"
-  },
-  "files": [
-    "dist/index.js"
-  ],
+  "name": "webs-xyz",
+  "version": "0.0.1",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
@@ -36,10 +30,5 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@10.8.0",
-  "dependencies": {
-    "@clack/prompts": "^0.10.1",
-    "commander": "^13.1.0"
-  },
-  "type": "module"
+  "packageManager": "pnpm@10.8.0"
 }
