@@ -1,8 +1,12 @@
 export * from './page';
 export * from './posthog-identifier';
-export * from './prompt-bar';
-export * from './header';
+export { PromptBar } from './prompt-bar';
+export { ContextBar } from './context-bar';
+export { UserMenu } from './user-menu';
+export { ThemeSwitcher } from './theme-switcher';
+export { BrowserTabsModal } from './browser-tabs-modal';
+export { ClientLayout } from './client-layout';
+export { Header } from './header';
+export { Navigation } from './navigation';
 export * from './footer';
-export * from './client-layout';
-export * from './user-menu';
 export * from './webs-ascii'; 

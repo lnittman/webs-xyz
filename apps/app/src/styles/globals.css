@@ -1,5 +1,56 @@
 @import '@repo/design/styles/globals.css';
 
+/* Custom Fonts */
+@font-face {
+  font-family: 'CommitMono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/3fecb478-80cf-41c5-b834-8562ab0baae0.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DepartureMono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/2ed59eb2-a4a6-490c-8d70-757b68af681d.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'FiraCode-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/6cf7752d-f7c3-48b2-8149-2d0d39bc008a.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'FragmentMono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/102755cd-b36a-4db8-907e-c915b322107a.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'GeistMono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/996b00fb-4b7a-403d-8da2-ce2225450681.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IosevkaTerm-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/6397be61-3ea4-459d-8a3e-fd95168cb214.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrainsMono-Regular';
+  src: url('https://next-s3-public.s3.us-west-2.amazonaws.com/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'SFMonoSquare-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/d94a73b5-d1c5-4a97-9b2d-18e5941833f6.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'ServerMono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/6c8ad1f3-2ad9-44a9-88db-46ff3f19c4f3.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'TX02Mono-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/e049dfb6-9c5d-4ac4-97c2-eb6e95c61d09.woff2') format('woff2');
+}
+
 /* Sacred-inspired terminal aesthetic enhancements */
 @layer base {
   :root {
@@ -16,12 +67,101 @@
     /* Terminal effects */
     --glow-strength: 0.5;
     --scan-line-opacity: 0.03;
+
+    /* Default to Iosevka */
+    --font-mono: 'IosevkaTerm-Regular', 'GeistMono-Regular', Consolas, monaco, monospace;
   }
   
   /* Monospace grid alignment */
   body {
     line-height: var(--line-height);
     font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+    font-family: var(--font-mono);
+  }
+
+  /* Apply font family to all elements and override font-mono with higher specificity */
+  *, 
+  *::before, 
+  *::after,
+  .font-mono,
+  button.font-mono,
+  input.font-mono,
+  textarea.font-mono,
+  select.font-mono,
+  label.font-mono,
+  span.font-mono,
+  div.font-mono,
+  p.font-mono,
+  h1.font-mono,
+  h2.font-mono,
+  h3.font-mono,
+  h4.font-mono,
+  h5.font-mono,
+  h6.font-mono {
+    font-family: var(--font-mono) !important;
+  }
+
+  /* Exception: Keep logo with fixed TX02 Mono font */
+  .webs-logo-fixed-font,
+  .webs-logo-fixed-font *,
+  pre.webs-logo-fixed-font {
+    font-family: 'TX02Mono-Regular', Consolas, monaco, monospace !important;
+  }
+
+  /* Exception: Unauthenticated pages use TX02 Mono font consistently */
+  .unauthenticated-layout,
+  .unauthenticated-layout *,
+  .unauthenticated-layout input,
+  .unauthenticated-layout button,
+  .unauthenticated-layout label,
+  .unauthenticated-layout p,
+  .unauthenticated-layout h1,
+  .unauthenticated-layout h2,
+  .unauthenticated-layout h3,
+  .unauthenticated-layout span,
+  .unauthenticated-layout div {
+    font-family: 'TX02Mono-Regular', Consolas, monaco, monospace !important;
+  }
+
+  /* Font selection classes */
+  .font-commit-mono {
+    --font-mono: 'CommitMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-departure-mono {
+    --font-mono: 'DepartureMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-fira-code {
+    --font-mono: 'FiraCode-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-fragment-mono {
+    --font-mono: 'FragmentMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-geist-mono {
+    --font-mono: 'GeistMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-iosevka-term {
+    --font-mono: 'IosevkaTerm-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-jetbrains-mono {
+    --font-mono: 'JetBrainsMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-sfmono-square {
+    --font-mono: 'SFMonoSquare-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-server-mono {
+    --font-mono: 'ServerMono-Regular', Consolas, monaco, monospace;
+  }
+
+  .font-tx02-mono {
+    --font-mono: 'TX02Mono-Regular', Consolas, monaco, monospace;
   }
   
   /* Terminal glow effect for focused elements */
@@ -92,6 +232,16 @@
     background: var(--muted-foreground);
   }
   
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
   /* ASCII art decorations */
   .ascii-border {
     position: relative;
@@ -148,4 +298,14 @@
 
 .terminal-fade {
   animation: terminal-fade-in 0.3s ease-out;
+}
+
+/* HIGHEST PRIORITY: Logo font override - must be at the very end */
+html .webs-logo-fixed-font,
+html .webs-logo-fixed-font *,
+html pre.webs-logo-fixed-font,
+body .webs-logo-fixed-font,
+body .webs-logo-fixed-font *,
+body pre.webs-logo-fixed-font {
+  font-family: 'TX02Mono-Regular', Consolas, monaco, monospace !important;
 }

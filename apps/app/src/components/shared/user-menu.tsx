@@ -53,18 +53,12 @@ export function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     className={cn(
-                        "flex items-center p-1 transition-all duration-150 relative group rounded-none",
-                        "hover:bg-accent/50",
-                        menuOpen && "bg-accent/40"
+                        "h-8 w-8 bg-muted text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border group-hover:border-foreground/30 transition-all duration-200 rounded-md",
+                        "group-hover:bg-background",
+                        menuOpen ? "bg-accent/40 border-foreground/20" : "border-border bg-background"
                     )}
                 >
-                    <div
-                        className={cn(
-                            "h-6 w-6 bg-background text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-accent/40 group-hover:border-accent transition-all duration-150 rounded-none",
-                        )}
-                    >
-                        {initials}
-                    </div>
+                    {initials}
                 </button>
             </DropdownMenuTrigger>
 
@@ -73,7 +67,7 @@ export function UserMenu() {
                 side="bottom"
                 sideOffset={8}
                 className={cn(
-                    "min-w-[220px] bg-popover/95 backdrop-blur-sm border-border/20 rounded-none font-mono"
+                    "min-w-[220px] bg-popover/95 backdrop-blur-sm border-border/20 rounded-lg font-mono"
                 )}
             >
                 <motion.div
@@ -87,17 +81,17 @@ export function UserMenu() {
                         mass: 0.8
                     }}
                 >
-                    <div className="px-2 py-1.5 mb-1 border-b border-slate-500/10">
+                    <div className="px-3 py-2 mb-1 border-b border-border">
                         <p className="text-sm font-medium text-foreground">{user?.fullName || user?.firstName || "User"}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{user?.emailAddresses?.[0]?.emailAddress}</p>
                     </div>
 
                     <DropdownMenuItem
                         onClick={handleOpenSettings}
-                        className="rounded-none"
+                        className="rounded-md mx-1"
                     >
-                        <Gear className="w-4 h-4 mr-1" weight="duotone" />
-                        <span>settings</span>
+                        <Gear className="w-4 h-4 mr-2" weight="duotone" />
+                        <span>Settings</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator className="my-1.5" />
@@ -110,10 +104,10 @@ export function UserMenu() {
                             onValueChange={handleThemeChange}
                             className="flex flex-col"
                         >
-                            <TabsList className="bg-accent/30 w-full h-9 p-1 grid grid-cols-3 gap-1 relative rounded-none">
+                            <TabsList className="bg-muted w-full h-9 p-1 grid grid-cols-3 gap-1 relative rounded-lg">
                                 <TabsTrigger
                                     value="light"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-none"
+                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
                                 >
                                     <Sun
                                         weight="duotone"
@@ -125,7 +119,7 @@ export function UserMenu() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="dark"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-none"
+                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
                                 >
                                     <Moon
                                         weight="duotone"
@@ -137,7 +131,7 @@ export function UserMenu() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="system"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-none"
+                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
                                 >
                                     <Desktop
                                         weight="duotone"
@@ -156,10 +150,10 @@ export function UserMenu() {
                     <SignOutButton>
                         <DropdownMenuItem
                             variant="destructive"
-                            className="rounded-none"
+                            className="rounded-md mx-1"
                         >
-                            <SignOut className="w-4 h-4 mr-1" weight="duotone" />
-                            <span>log out</span>
+                            <SignOut className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Sign out</span>
                         </DropdownMenuItem>
                     </SignOutButton>
                 </motion.div>

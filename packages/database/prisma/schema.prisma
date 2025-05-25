@@ -39,6 +39,41 @@ model Message {
   @@index([webId])
 }
 
+model Feedback {
+  id        String         @id @default(uuid())
+  topic     FeedbackTopic
+  message   String
+  userAgent String? // Browser/device info
+  url       String? // Page where feedback was submitted
+  userId    String? // Optional user ID if authenticated
+  status    FeedbackStatus @default(OPEN)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([topic])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model UserSettings {
+  id                       String   @id @default(uuid())
+  userId                   String   @unique // Clerk user ID or similar
+  // Appearance settings
+  fontFamily               String   @default("iosevka-term")
+  // Notification settings
+  notifyProcessingComplete Boolean  @default(true)
+  notifyProcessingFailed   Boolean  @default(true)
+  notifyWeeklySummary      Boolean  @default(false)
+  notifyFeatureUpdates     Boolean  @default(false)
+  // General settings
+  workspaceName            String?
+  defaultModel             String   @default("claude-4-sonnet")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([userId])
+}
+
 enum WebStatus {
   PENDING
   PROCESSING
@@ -51,4 +86,19 @@ enum MessageType {
   TOOL
   SYSTEM
   AI
+}
+
+enum FeedbackTopic {
+  BUG
+  FEATURE
+  UI
+  PERFORMANCE
+  GENERAL
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }

@@ -35,13 +35,13 @@ export function WebsAsciiLogo({
         <Component
             onClick={onClick}
             className={cn(
-                "font-mono text-foreground select-none",
+                "webs-logo-fixed-font text-foreground select-none",
                 sizeClasses[size],
                 onClick && "transition-all duration-200 hover:opacity-80 active:opacity-60 active:scale-[0.98]",
                 className
             )}
         >
-            <pre className="whitespace-pre select-none">{asciiArt}</pre>
+            <pre className="whitespace-pre select-none webs-logo-fixed-font">{asciiArt}</pre>
         </Component>
     );
 } 

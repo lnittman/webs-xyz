@@ -130,7 +130,7 @@ export function SearchModal({ isOpen, onClose, webs }: SearchModalProps) {
                     initial={{ opacity: 0, scale: 0.95, y: -20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                    className="relative w-full max-w-2xl mx-4 bg-background border border-border"
+                    className="relative w-full max-w-2xl mx-4 bg-background border border-border rounded-md"
                 >
                     {/* Header */}
                     <div className="flex items-center gap-3 p-4 border-b border-border bg-card/50">

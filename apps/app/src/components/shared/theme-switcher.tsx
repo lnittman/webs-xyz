@@ -20,10 +20,10 @@ export function ThemeSwitcher() {
             onValueChange={handleThemeChange}
             className="w-fit"
         >
-            <TabsList className="bg-card/50 border border-border w-fit h-8 p-0.5 grid grid-cols-3 gap-0.5 rounded-none">
+            <TabsList className="bg-muted/50 border border-border w-fit h-8 p-0.5 grid grid-cols-3 gap-0.5 rounded-lg">
                 <TabsTrigger
                     value="light"
-                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-none data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground"
                     title="Light theme"
                 >
                     <Sun
@@ -33,7 +33,7 @@ export function ThemeSwitcher() {
                 </TabsTrigger>
                 <TabsTrigger
                     value="dark"
-                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-none data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground"
                     title="Dark theme"
                 >
                     <Moon
@@ -43,7 +43,7 @@ export function ThemeSwitcher() {
                 </TabsTrigger>
                 <TabsTrigger
                     value="system"
-                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-none data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    className="h-full w-7 px-0 transition-all duration-200 hover:bg-background/80 focus:outline-none flex items-center justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground"
                     title="System theme"
                 >
                     <Desktop

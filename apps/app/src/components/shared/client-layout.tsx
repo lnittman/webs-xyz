@@ -2,23 +2,22 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { Header } from './header';
+import { Navigation } from './navigation';
 import { SearchModal } from './search-modal';
+import { FontLoader } from './font-loader';
 import { useWebs } from '@/hooks/code/web/queries';
 import { searchModalOpenAtom } from '@/atoms/search';
 
 interface ClientLayoutProps {
     children: ReactNode;
-    workspaceId?: string;
-    webCount?: number;
-    showStatus?: boolean;
+    webTitle?: string;
+    webId?: string;
 }
 
 export function ClientLayout({
     children,
-    workspaceId = 'default',
-    webCount = 0,
-    showStatus = true
+    webTitle,
+    webId
 }: ClientLayoutProps) {
     const [isSearchModalOpen, setIsSearchModalOpen] = useAtom(searchModalOpenAtom);
     const { webs } = useWebs();
@@ -38,7 +37,8 @@ export function ClientLayout({
 
     return (
         <div className="min-h-screen bg-background antialiased font-mono flex flex-col">
-            <Header showStatus={showStatus} />
+            <FontLoader />
+            <Navigation webTitle={webTitle} webId={webId} />
 
             {/* Global Search Modal */}
             <SearchModal
@@ -47,7 +47,7 @@ export function ClientLayout({
                 webs={webs || []}
             />
 
-            <main className="pt-14 flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col pt-14">
                 {children}
             </main>
 

@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, useRef, KeyboardEvent, useEffect } from 'react';
+import { useState, KeyboardEvent, useEffect } from 'react';
+import { useAtom } from 'jotai';
 import { cn } from '@repo/design/lib/utils';
-import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText, Question } from '@phosphor-icons/react/dist/ssr';
+import { Plus, Pulse, Eye, Question } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ContextBar } from './context-bar';
+import { SyntaxHighlightedTextarea } from './syntax-highlighted-textarea';
 import { BrowserTabsModal } from './browser-tabs-modal';
 import { useModals } from '@repo/design/sacred';
+import {
+  inputTextAtom,
+  hasUrlsAtom,
+  updateStableUrlsAtom
+} from '@/atoms/urls';
 
 interface PromptBarProps {
   onSubmit: (prompt: string) => void | Promise<void>;
@@ -18,64 +25,24 @@ interface PromptBarProps {
   placeholder?: string;
 }
 
-interface DetectedUrl {
-  url: string;
-  id: string;
-  isFromTabs?: boolean;
-}
-
 interface BrowserTab {
   url: string;
   title: string;
   favIconUrl?: string;
 }
 
-interface AIStatus {
-  type: 'idle' | 'analyzing' | 'extracting' | 'summarizing' | 'indexing';
+interface ProcessingStatus {
+  type: 'idle' | 'extracting' | 'processing' | 'summarizing' | 'complete';
   message: string;
   progress?: number;
 }
 
 const models = [
   { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', short: 'C4S' },
-  { id: 'gpt-4', name: 'GPT-4', short: 'GP4' },
-  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', short: 'G35' },
+  { id: 'gpt-4o', name: 'GPT-4o', short: 'GP4' },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', short: 'GM4' },
+  { id: 'gemini-pro', name: 'Gemini Pro', short: 'GEM' },
 ];
-
-// Helper to detect if input contains a URL
-function containsUrl(text: string): boolean {
-  const urlRegex = /(https?:\/\/[^\s]+)/;
-  return urlRegex.test(text);
-}
-
-// Helper to extract URLs from text
-function extractUrls(text: string): string[] {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.match(urlRegex) || [];
-}
-
-// Helper to extract URL and prompt
-function parseInput(text: string): { url?: string; prompt?: string } {
-  const urlRegex = /(https?:\/\/[^\s]+)/;
-  const match = text.match(urlRegex);
-
-  if (match) {
-    const url = match[1];
-    const prompt = text.replace(urlRegex, '').trim();
-    return { url, prompt: prompt || undefined };
-  }
-
-  return { prompt: text };
-}
-
-// Helper to get domain from URL
-function getDomain(url: string): string {
-  try {
-    return new URL(url).hostname.replace('www.', '');
-  } catch {
-    return url;
-  }
-}
 
 // Enhanced browser tabs detection
 async function getBrowserTabs(): Promise<BrowserTab[]> {
@@ -140,77 +107,57 @@ export function PromptBar({
   onModelChange,
   placeholder = 'https://example.com [optional: summarize the main points]',
 }: PromptBarProps) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useAtom(inputTextAtom);
+  const [hasUrls] = useAtom(hasUrlsAtom);
+  const [, updateStableUrls] = useAtom(updateStableUrlsAtom);
+
   const [isExpanded, setIsExpanded] = useState(false);
-  const [detectedUrls, setDetectedUrls] = useState<DetectedUrl[]>([]);
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
   const [showHelpTooltip, setShowHelpTooltip] = useState(false);
-  const [aiStatus, setAiStatus] = useState<AIStatus>({ type: 'idle', message: '' });
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({ type: 'idle', message: '' });
+
   const selectedModel = models.find(m => m.id === selectedModelId) || models[0];
   const { open } = useModals();
-
-  const hasUrl = containsUrl(input);
-  const parsed = parseInput(input);
 
   // Load browser tabs on mount
   useEffect(() => {
     getBrowserTabs().then(setBrowserTabs);
   }, []);
 
-  // Update detected URLs when input changes
+  // Update stable URLs when input changes
   useEffect(() => {
-    const urls = extractUrls(input);
-    const newDetectedUrls = urls.map(url => ({
-      url,
-      id: Math.random().toString(36).substr(2, 9),
-      isFromTabs: false,
-    }));
-    setDetectedUrls(newDetectedUrls);
-  }, [input]);
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [input]);
-
-  // Simulate AI status updates when submitting
-  useEffect(() => {
-    if (isSubmitting) {
-      const statusSequence: AIStatus[] = [
-        { type: 'analyzing', message: 'ANALYZING URL STRUCTURE', progress: 25 },
-        { type: 'extracting', message: 'EXTRACTING CONTENT', progress: 50 },
-        { type: 'summarizing', message: 'GENERATING AI SUMMARY', progress: 75 },
-        { type: 'indexing', message: 'INDEXING FOR SEARCH', progress: 90 }
-      ];
-
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < statusSequence.length) {
-          setAiStatus(statusSequence[index]);
-          index++;
-        } else {
-          clearInterval(interval);
-          setAiStatus({ type: 'idle', message: '' });
-        }
-      }, 1500);
-
-      return () => clearInterval(interval);
-    }
-  }, [isSubmitting]);
+    updateStableUrls();
+  }, [input, updateStableUrls]);
 
   const handleSubmit = async () => {
     if (!input.trim() || isSubmitting) return;
 
-    await onSubmit(input.trim());
-    setInput('');
-    setIsExpanded(false);
-    setDetectedUrls([]);
+    // Simulate processing status updates when submitting
+    setProcessingStatus({ type: 'extracting', message: 'EXTRACTING CONTENT', progress: 25 });
 
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+    const statusSequence: ProcessingStatus[] = [
+      { type: 'processing', message: 'PROCESSING CONTENT', progress: 50 },
+      { type: 'summarizing', message: 'GENERATING SUMMARY', progress: 75 },
+    ];
+
+    // Update status every 800ms
+    statusSequence.forEach((status, index) => {
+      setTimeout(() => {
+        setProcessingStatus(status);
+      }, (index + 1) * 800);
+    });
+
+    // Reset status after completion
+    setTimeout(() => {
+      setProcessingStatus({ type: 'idle', message: '' });
+    }, statusSequence.length * 800 + 1000);
+
+    try {
+      await onSubmit(input.trim());
+      setInput('');
+      setIsExpanded(false);
+    } catch (error) {
+      setProcessingStatus({ type: 'idle', message: '' });
     }
   };
 
@@ -221,7 +168,7 @@ export function PromptBar({
     }
 
     if (e.key === 'Escape') {
-      textareaRef.current?.blur();
+      e.currentTarget.blur();
     }
 
     // Show tab modal on Ctrl/Cmd + T
@@ -229,10 +176,6 @@ export function PromptBar({
       e.preventDefault();
       openTabsModal();
     }
-  };
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
   };
 
   const handleFocus = () => {
@@ -244,25 +187,15 @@ export function PromptBar({
     onFocusChange?.(false);
   };
 
-  const removeUrl = (urlId: string) => {
-    const urlToRemove = detectedUrls.find(u => u.id === urlId);
-    if (urlToRemove) {
-      const newInput = input.replace(urlToRemove.url, '').trim();
-      setInput(newInput);
-    }
-  };
-
   const addTabUrl = (tab: BrowserTab) => {
     const newInput = input ? `${input} ${tab.url}` : tab.url;
     setInput(newInput);
-    textareaRef.current?.focus();
   };
 
   const addMultipleTabUrls = (tabs: BrowserTab[]) => {
     const urls = tabs.map(tab => tab.url).join(' ');
     const newInput = input ? `${input} ${urls}` : urls;
     setInput(newInput);
-    textareaRef.current?.focus();
   };
 
   const openTabsModal = () => {
@@ -273,61 +206,24 @@ export function PromptBar({
   };
 
   return (
-    <div className="w-full">
-      {/* Command prompt indicator */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {isSubmitting && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 ml-4"
-            >
-              <div className="flex items-center gap-1">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <Brain size={12} weight="duotone" className="text-blue-500" />
-                </motion.div>
-                <Pulse size={12} weight="duotone" className="text-blue-500 animate-pulse" />
-              </div>
-              <span className="text-xs text-blue-500 font-mono uppercase">
-                {aiStatus.message}
-              </span>
-              {aiStatus.progress && (
-                <div className="w-16 h-1 bg-border rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-blue-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${aiStatus.progress}%` }}
-                    transition={{ duration: 0.5 }}
-                  />
-                </div>
-              )}
-            </motion.div>
-          )}
-        </div>
-      </div>
-
-      {/* Main input container */}
+    <>
       <div
         className={cn(
-          'relative border bg-background transition-all duration-300',
+          'relative border bg-background transition-all duration-200 rounded-lg overflow-hidden',
           isFocused ? 'border-foreground/30 shadow-sm' : 'border-border',
           isSubmitting && 'border-blue-500/30'
         )}
       >
         {/* Model selector bar */}
-        <div className="flex items-center justify-between bg-card/50 px-3 py-2">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-b border-border">
+          <div className="flex items-center gap-4">
             <div className="relative">
               <button
                 onMouseEnter={() => setShowHelpTooltip(true)}
                 onMouseLeave={() => setShowHelpTooltip(false)}
-                className="p-1 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-md hover:bg-background"
               >
-                <Question size={12} weight="duotone" />
+                <Question size={14} weight="duotone" />
               </button>
               <AnimatePresence>
                 {showHelpTooltip && (
@@ -335,103 +231,104 @@ export function PromptBar({
                     initial={{ opacity: 0, y: -5, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                    className="absolute left-0 top-6 z-50 w-64 p-2 bg-popover border border-border text-xs text-popover-foreground shadow-lg"
+                    className="absolute left-0 top-8 z-50 w-64 p-3 bg-popover border border-border text-xs text-popover-foreground shadow-lg rounded-lg"
                   >
                     Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
                     {browserTabs.length > 0 && (
-                      <span className="block mt-1 font-mono">Ctrl+T for browser tabs.</span>
+                      <span className="block mt-2 font-mono text-muted-foreground">⌘T for browser tabs</span>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">
-              MODEL
-            </span>
-            <div className="flex gap-1">
-              {models.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => onModelChange?.(model.id)}
-                  className={cn(
-                    'px-2 py-1 text-xs font-mono transition-all duration-200',
-                    selectedModelId === model.id
-                      ? 'bg-foreground text-background'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  )}
-                >
-                  {model.short}
-                </button>
-              ))}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                Model
+              </span>
+              <div className="flex gap-1">
+                {models.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => onModelChange?.(model.id)}
+                    className={cn(
+                      'px-3 py-1.5 text-xs font-mono transition-all duration-200 rounded-md',
+                      selectedModelId === model.id
+                        ? 'bg-foreground text-background'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                    )}
+                  >
+                    {model.short}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Input status indicators */}
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-3 text-xs">
             {browserTabs.length > 0 && (
               <button
                 onClick={openTabsModal}
-                className="flex items-center gap-1 px-2 py-1 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent"
+                className="flex items-center gap-1.5 px-3 py-1.5 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-background rounded-md"
               >
-                <Plus size={10} weight="duotone" />
-                TABS
+                <Plus size={12} weight="duotone" />
+                <span className="uppercase tracking-wider">Tabs</span>
               </button>
             )}
-            {hasUrl && (
-              <span className="text-green-600 font-mono">
-                [URL]
-              </span>
+            {hasUrls && (
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-green-600/10 border border-green-600/20 text-green-600 rounded-md">
+                <Eye size={12} weight="duotone" />
+                <span className="font-mono uppercase text-xs">URL</span>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Input area */}
-        <div className="p-3">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            disabled={isSubmitting}
-            className={cn(
-              'w-full resize-none bg-transparent font-mono text-sm',
-              'placeholder:text-muted-foreground focus:outline-none',
-              'min-h-[24px] max-h-[120px] leading-relaxed',
-              'transition-all duration-200'
-            )}
-            rows={1}
-          />
-        </div>
+        {/* Input area with syntax highlighting */}
+        <SyntaxHighlightedTextarea
+          value={input}
+          onChange={setInput}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          disabled={isSubmitting}
+        />
 
         {/* Bottom status bar */}
-        <div className="flex items-center justify-between bg-card/50 px-3 py-2">
-          {/* Character count */}
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-t border-border">
+          {/* Character count and status */}
+          <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground font-mono">
-              {input.length}
+              {input.length} chars
             </span>
+            {processingStatus.type !== 'idle' && (
+              <div className="flex items-center gap-2">
+                <Pulse size={12} weight="duotone" className="text-blue-600 animate-pulse" />
+                <span className="text-xs text-blue-600 font-mono uppercase tracking-wider">
+                  {processingStatus.message}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* ENTER button */}
+          {/* Submit indicator */}
           <motion.div
             animate={{
               opacity: input.trim() && !isSubmitting ? 1 : 0.5,
             }}
-            className="flex items-center gap-1 text-xs text-muted-foreground transition-all duration-200"
+            className="flex items-center gap-2 text-xs text-muted-foreground transition-all duration-200"
           >
-            <span className="font-mono">ENTER</span>
+            <kbd className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono">
+              ⏎
+            </kbd>
+            <span className="font-mono uppercase tracking-wider">Submit</span>
           </motion.div>
         </div>
       </div>
 
       {/* Context Bar */}
-      <ContextBar
-        detectedUrls={detectedUrls}
-        onRemoveUrl={removeUrl}
-      />
-    </div>
+      <ContextBar />
+    </>
   );
 } 

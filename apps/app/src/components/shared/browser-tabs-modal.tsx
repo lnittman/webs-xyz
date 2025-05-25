@@ -337,13 +337,13 @@ export function BrowserTabsModal({ onSelectTab, onSelectMultipleTabs }: BrowserT
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.02, duration: 0.15 }}
                     onClick={() => handleSelectTab(tab)}
-                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent transition-all duration-150 border border-border hover:border-foreground/30 group cursor-pointer"
+                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent transition-all duration-200 border border-border hover:border-foreground/30 group cursor-pointer"
                 >
                     {/* Selection checkbox */}
                     <button
                         onClick={(e) => handleToggleTab(tab, e)}
                         className={cn(
-                            "w-4 h-4 border border-border flex items-center justify-center transition-all duration-150",
+                            "w-4 h-4 border border-border flex items-center justify-center transition-all duration-200",
                             selectedTabs.has(tab.url)
                                 ? "bg-green-600 border-green-600 text-white"
                                 : "hover:border-foreground/50"
