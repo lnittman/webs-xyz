@@ -1,7 +1,7 @@
 # AGENTS
 
 ## Overview
-This repository "webs" is a turborepo monorepo containing all services and packages required to build the project. It is intended as a minimal AI-native web research platform that replaces a traditional browser. Apps provide the user interface, API layer, and AI integrations. Packages provide shared libraries such as design-system, analytics and auth.
+This repository "webs" is a turborepo monorepo containing all services and packages required to build the project. It is intended as a minimal AI-native web research platform that replaces a traditional browser. Apps provide the user interface, API layer, and AI integrations. Packages provide shared libraries such as design, analytics and auth.
 
 ## Dev Environment
 - **Node**: `>=18`

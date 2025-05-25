@@ -4,14 +4,14 @@
 Adds a keyboard-triggered command menu for navigating the Webs interface. It relies on the sacred modal system for consistent behavior.
 
 ## Prerequisites
-- `@repo/design-system` installed
+- `@repo/design` installed
 - Next.js 13+ environment
 
 ## Integration Steps
 
 ### Step 1: Setup the modal context
 ```tsx
-import { ModalProvider, ModalStack } from '@repo/design-system/sacred'
+import { ModalProvider, ModalStack } from '@repo/design/sacred'
 import { CommandPalette } from 'path/to/CommandPalette'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -92,7 +92,7 @@
 - Documentation for API contracts could be expanded.
 
 ## Recent Developments
-- Added additional design-system components used in API documentation pages.
+- Added additional design components used in API documentation pages.
 - Updated Prisma schema for new user fields.
 - Minor refactoring of middleware for Next.js 15.
 - Preparing support for new AI workflow triggers.

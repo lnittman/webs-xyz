@@ -106,9 +106,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@repo/design-system':
+      '@repo/design':
         specifier: workspace:*
-        version: link:../../packages/design-system
+        version: link:../../packages/design
       '@repo/next-config':
         specifier: workspace:*
         version: link:../../packages/next-config
@@ -164,6 +164,9 @@ importers:
 
   apps/app:
     dependencies:
+      '@phosphor-icons/react':
+        specifier: ^2.1.10
+        version: 2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@repo/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
@@ -173,18 +176,15 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@repo/design-system':
+      '@repo/design':
         specifier: workspace:*
-        version: link:../../packages/design-system
+        version: link:../../packages/design
       '@repo/feature-flags':
         specifier: workspace:*
         version: link:../../packages/feature-flags
       '@repo/next-config':
         specifier: workspace:*
         version: link:../../packages/next-config
-      '@repo/notifications':
-        specifier: workspace:*
-        version: link:../../packages/notifications
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -203,6 +203,12 @@ importers:
       '@t3-oss/env-nextjs':
         specifier: ^0.12.0
         version: 0.12.0(typescript@5.8.3)(zod@3.24.2)
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
+      framer-motion:
+        specifier: ^12.12.2
+        version: 12.12.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
@@ -230,6 +236,9 @@ importers:
       require-in-the-middle:
         specifier: ^7.5.2
         version: 7.5.2
+      swr:
+        specifier: ^2.3.3
+        version: 2.3.3(react@19.1.0)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -428,7 +437,7 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/design-system:
+  packages/design:
     dependencies:
       '@hookform/resolvers':
         specifier: ^5.0.1
@@ -657,9 +666,9 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../auth
-      '@repo/design-system':
+      '@repo/design':
         specifier: workspace:*
-        version: link:../design-system
+        version: link:../design
       '@t3-oss/env-nextjs':
         specifier: ^0.12.0
         version: 0.12.0(typescript@5.8.3)(zod@3.24.2)
@@ -1418,6 +1427,7 @@ packages:
   '@clerk/backend@1.27.3':
     resolution: {integrity: sha512-Epuhej19VcBnPfDenQoDvj+MpExs/OhJRsFM0jM1TmTt75tE6UFJwJHD5byAPX0TuGvncHKqv5FjcuPEF8zu5Q==}
     engines: {node: '>=18.17.0'}
+    deprecated: Incorrect parsing of the experimental JWT v2 claims. Please update to the latest version. For more information about JWT v2, see https://clerk.com/docs/backend-requests/resources/session-tokens
     peerDependencies:
       svix: ^1.62.0
     peerDependenciesMeta:
@@ -1434,6 +1444,7 @@ packages:
   '@clerk/nextjs@6.14.3':
     resolution: {integrity: sha512-HMZPn8Rv9waatoKihH0HcRjiZKzTO1OmrZxkFdFwbLlyQBeOYe5u85qgTZR0elvIp6zD5kGjj+l3b6HVLqrMrw==}
     engines: {node: '>=18.17.0'}
+    deprecated: Incorrect parsing of the experimental JWT v2 claims. Please update to the latest version. For more information about JWT v2, see https://clerk.com/docs/backend-requests/resources/session-tokens
     peerDependencies:
       next: ^13.5.7 || ^14.2.25 || ^15.2.3
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
@@ -3012,6 +3023,13 @@ packages:
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
+
+  '@phosphor-icons/react@2.1.10':
+    resolution: {integrity: sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>= 16.8'
+      react-dom: '>= 16.8'
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -6749,6 +6767,20 @@ packages:
   fp-ts@2.16.9:
     resolution: {integrity: sha512-+I2+FnVB+tVaxcYyQkHUq7ZdKScaBlX53A41mxQtpIccsfyv8PzdzP7fzp2AY832T4aoK6UZ5WRX/ebGd8uZuQ==}
 
+  framer-motion@12.12.2:
+    resolution: {integrity: sha512-qCszZCiGWkilL40E3VuhIJJC/CS3SIBl2IHyGK8FU30nOUhTmhBNWPrNFyozAWH/bXxwzi19vJHIGVdALF0LCg==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   framework-utils@1.1.0:
     resolution: {integrity: sha512-KAfqli5PwpFJ8o3psRNs8svpMGyCSAe8nmGcjQ0zZBWN2H6dZDnq+ABp3N3hdUmFeMrLtjOCTXD4yplUJIWceg==}
 
@@ -7810,6 +7842,12 @@ packages:
 
   module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
+
+  motion-dom@12.12.1:
+    resolution: {integrity: sha512-GXq/uUbZBEiFFE+K1Z/sxdPdadMdfJ/jmBALDfIuHGi0NmtealLOfH9FqT+6aNPgVx8ilq0DtYmyQlo6Uj9LKQ==}
+
+  motion-utils@12.12.1:
+    resolution: {integrity: sha512-f9qiqUHm7hWSLlNW8gS9pisnsN7CRFRD58vNjptKdsqFLpkVnX00TNeD6Q0d27V9KzT7ySFyK1TZ/DShfVOv6w==}
 
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -12792,6 +12830,11 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
 
+  '@phosphor-icons/react@2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -16825,6 +16868,15 @@ snapshots:
 
   fp-ts@2.16.9: {}
 
+  framer-motion@12.12.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      motion-dom: 12.12.1
+      motion-utils: 12.12.1
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   framework-utils@1.1.0: {}
 
   fresh@2.0.0: {}
@@ -17924,6 +17976,12 @@ snapshots:
   modern-ahocorasick@1.1.0: {}
 
   module-details-from-path@1.0.3: {}
+
+  motion-dom@12.12.1:
+    dependencies:
+      motion-utils: 12.12.1
+
+  motion-utils@12.12.1: {}
 
   mrmime@2.0.1: {}
 

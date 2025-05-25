@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useModals } from "@repo/design-system/sacred"
+import { useModals } from "@repo/design/sacred"
 import { CommandPaletteModal } from "./CommandPaletteModal"
 
 /**

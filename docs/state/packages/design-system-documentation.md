@@ -1,4 +1,4 @@
-# Package Documentation: design-system
+# Package Documentation: design
 
 ## Overview
 - **Purpose**: Shared React component library implementing design tokens and shadcn/ui primitives.
@@ -14,7 +14,7 @@
 - **Purpose**: Reusable UI components styled with Tailwind.
 - **Usage Pattern**:
   ```tsx
-  import { Button } from '@repo/design-system'
+  import { Button } from '@repo/design'
   ```
 - **Implementation Notes**: Components built on Radix primitives.
 

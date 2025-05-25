@@ -12,7 +12,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "editor.codeActionsOnSave": {
     "quickfix.biome": "explicit",
@@ -24,5 +24,5 @@
   "emmet.showExpandedAbbreviation": "never",
   "prettier.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "tailwindCSS.experimental.configFile": "packages/design-system/styles/globals.css"
+  "tailwindCSS.experimental.configFile": "packages/design/styles/globals.css"
 }

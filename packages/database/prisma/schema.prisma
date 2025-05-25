@@ -12,28 +12,36 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Task {
-  id        String       @id @default(uuid())
-  url       String
-  prompt    String?
-  status    TaskStatus   @default(PENDING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  messages  Message[]
+model Web {
+  id          String    @id @default(uuid())
+  url         String
+  domain      String? // Extracted domain for grouping
+  title       String? // Page title
+  description String? // Meta description or AI summary
+  prompt      String? // Optional user prompt
+  status      WebStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+
+  @@index([domain])
+  @@index([createdAt])
 }
 
 model Message {
-  id        String       @id @default(uuid())
-  taskId    String?
-  task      Task?        @relation(fields: [taskId], references: [id])
-  type      MessageType  @default(TEXT)
+  id        String      @id @default(uuid())
+  webId     String?
+  web       Web?        @relation(fields: [webId], references: [id])
+  type      MessageType @default(TEXT)
   content   String
-  createdAt DateTime     @default(now())
+  createdAt DateTime    @default(now())
+
+  @@index([webId])
 }
 
-enum TaskStatus {
+enum WebStatus {
   PENDING
-  RUNNING
+  PROCESSING
   COMPLETE
   FAILED
 }

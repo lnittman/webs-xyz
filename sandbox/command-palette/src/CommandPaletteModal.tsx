@@ -1,7 +1,7 @@
 "use client"
 
-import { CommandDialog, CommandInput, CommandList, CommandItem, CommandGroup, CommandSeparator } from "@repo/design-system/components/ui/command"
-import { useModals } from "@repo/design-system/sacred"
+import { CommandDialog, CommandInput, CommandList, CommandItem, CommandGroup, CommandSeparator } from "@repo/design/components/ui/command"
+import { useModals } from "@repo/design/sacred"
 
 interface CommandPaletteModalProps {
   onSelect: (path: string) => void

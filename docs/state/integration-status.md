@@ -30,8 +30,8 @@
 
 ## App-to-Package Integration
 
-### app → design-system
-- **Usage patterns and approach**: All UI built with design-system components.
+### app → design
+- **Usage patterns and approach**: All UI built with design components.
 - **Customization patterns**: Tailwind classes for variants.
 - **Integration effectiveness**: High; ensures consistent UI.
 - **Pain points or concerns**: Component coverage still expanding.
@@ -46,10 +46,10 @@
 
 ## Package-to-Package Integration
 
-### auth → design-system
-- **Dependency relationship**: Auth components styled using design-system.
+### auth → design
+- **Dependency relationship**: Auth components styled using design.
 - **API consumption patterns**: Re-export of UI components.
-- **Coupling assessment**: Low; design-system optional.
+- **Coupling assessment**: Low; design optional.
 - **Recent changes or improvements**: Theme support enhancements.
 
 ### analytics → auth

@@ -26,7 +26,7 @@
 - Recent merges improved UI components, indirectly affecting `app` integration.
 
 ### Packages Utilization
-- Packages under `packages/` provide shared functionality such as UI (`design-system`), authentication (`auth`), analytics, and more.
+- Packages under `packages/` provide shared functionality such as UI (`design`), authentication (`auth`), analytics, and more.
 - Apps consistently consume these packages via workspace protocol.
 - Some packages like `testing` and `typescript-config` act purely as configuration utilities.
 - API boundaries are well defined but deeper documentation is required.
@@ -35,7 +35,7 @@
 - All apps depend on Next.js 15.3 and React 19.1 ensuring version consistency.
 - Many packages share `@t3-oss/env-nextjs` for environment validation.
 - No major duplicate dependencies observed beyond expected workspace references.
-- Ongoing updates to design-system components may introduce new dependencies.
+- Ongoing updates to design components may introduce new dependencies.
 
 ## Architecture Assessment
 - Modular structure with clear separation between apps and packages.
@@ -57,7 +57,7 @@
 
 ## Recent Developments
 - Merge of pull request #15 introduced additional UI components.
-- Continuous work on design-system suggests a focus on UI consistency.
+- Continuous work on design suggests a focus on UI consistency.
 - No major architectural changes detected since last merge.
 - Mastra agents in `ai` appear stable but require further review for upcoming features.
 

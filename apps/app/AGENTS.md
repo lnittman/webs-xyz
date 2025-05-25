@@ -13,7 +13,7 @@ Run `pnpm --filter app test` when necessary. Tests use Vitest and Testing Librar
 
 ## Code Standards
 - Components live under `app/` using the `/routes` convention.
-- Use the shared `@repo/design-system` components where possible.
+- Use the shared `@repo/design` components where possible.
 
 ## PR Instructions
 Document UI changes in `apps/app/docs`. Include screenshots or wireframes when relevant.

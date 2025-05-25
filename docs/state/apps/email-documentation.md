@@ -88,5 +88,5 @@
 ## Recent Developments
 - Basic README added for template documentation.
 - Additional templates planned for onboarding emails.
-- Aligning styles with design-system updates.
+- Aligning styles with design updates.
 - Considering integration with feature flags for targeted emails.

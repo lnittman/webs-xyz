@@ -51,7 +51,7 @@
 |-----------|---------------|-------|
 | @repo/analytics | Tracking flag usage | |
 | @repo/auth | Determine user ID | |
-| @repo/design-system | Optional UI for flags | |
+| @repo/design | Optional UI for flags | |
 
 ## Consumption Patterns
 

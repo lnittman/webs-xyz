@@ -3,8 +3,8 @@
 ## Recent Significant Changes
 
 ### 2025-05-21: Added sacred UI components
-- **Description**: Merge of pull request #15 introduced new components within design-system.
-- **Components Affected**: design-system package, app frontend.
+- **Description**: Merge of pull request #15 introduced new components within design.
+- **Components Affected**: design package, app frontend.
 - **Architectural Impact**: Expanded UI toolkit for consistent design.
 - **Integration Implications**: Frontend now relies on new components; no API changes.
 - **Developer Experience Impact**: Improved component reusability.
@@ -20,7 +20,7 @@
 
 ### Pattern: Workspace Packages
 - Description of emerging pattern: Increasing reliance on shared packages for cross-cutting concerns.
-- Where it's being implemented: analytics, auth, design-system used by all apps.
+- Where it's being implemented: analytics, auth, design used by all apps.
 - Benefits observed: Reduced duplication and improved consistency.
 - Potential concerns: Need to maintain version compatibility.
 
@@ -33,7 +33,7 @@
 ## Architectural Evolution
 
 ### From Custom Components to Design System
-- Description of architectural shift: Migration to unified design-system components across apps.
+- Description of architectural shift: Migration to unified design components across apps.
 - Motivation for change: Consistency and maintainability.
 - Implementation progress: Most core pages updated, ongoing expansion.
 - Observed benefits and drawbacks: Easier theming but initial migration overhead.

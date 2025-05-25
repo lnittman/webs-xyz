@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "mastra dev -p 1905"
+    "dev": "mastra dev -p 2100"
   },
   "keywords": [],
   "author": "",

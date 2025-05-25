@@ -42,7 +42,7 @@
 ### Internal Package Dependencies
 | Package | Usage Pattern | Integration Points | Notes |
 |-----------|---------------|-------------------|-------|
-| @repo/design-system | Components | UI components and theme providers | |
+| @repo/design | Components | UI components and theme providers | |
 | @repo/auth | Authentication hooks | Clerk provider, session data | |
 | @repo/analytics | Analytics tracking | Wraps pages in AnalyticsProvider | |
 | @repo/feature-flags | Feature toggles | Conditional rendering of beta features | |
