@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'next-view-transitions';
 import { PromptBar } from '@/components/shared/prompt-bar';
+import { SearchModal } from '@/components/shared/search-modal';
 import { ClientLayout } from '@/components/shared/client-layout';
 import { promptFocusedAtom } from '@/atoms/chat';
 import { useWebs } from '@/hooks/code/web/queries';
 import { useCreateWeb } from '@/hooks/code/web/mutations';
 import { cn } from '@repo/design/lib/utils';
-import { Brain, Sparkle, Clock, Globe, Lightning } from '@phosphor-icons/react/dist/ssr';
+import { Brain, Sparkle, Clock, Globe, Lightning, Sliders, Pulse, Database, MagnifyingGlass, FunnelSimple, SortAscending } from '@phosphor-icons/react/dist/ssr';
 
 // Helper to extract domain from URL
 function extractDomain(url: string): string {
@@ -46,6 +47,12 @@ interface AIActivity {
   icon?: any;
 }
 
+const models = [
+  { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', short: 'C4S' },
+  { id: 'gpt-4', name: 'GPT-4', short: 'GP4' },
+  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', short: 'G35' },
+];
+
 export default function RootPage() {
   const { webs } = useWebs();
   const { createWeb } = useCreateWeb();
@@ -53,6 +60,8 @@ export default function RootPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPromptFocused, setIsPromptFocused] = useAtom(promptFocusedAtom);
   const [selectedModelId, setSelectedModelId] = useState('claude-4-sonnet');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Mock AI activities (in real app, this would come from a subscription/polling)
   const [aiActivities] = useState<AIActivity[]>([
@@ -109,14 +118,76 @@ export default function RootPage() {
     return acc;
   }, {} as Record<string, typeof webs>);
 
+  // Filter webs based on search query
+  const filteredWebs = (webs || []).filter(web => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      web.title?.toLowerCase().includes(query) ||
+      web.url.toLowerCase().includes(query) ||
+      web.prompt?.toLowerCase().includes(query) ||
+      extractDomain(web.url).toLowerCase().includes(query)
+    );
+  });
+
   // Get recent activity for context tile
   const recentWebs = (webs || []).slice(0, 5);
   const topDomains = Object.entries(websByDomain)
     .sort(([, a], [, b]) => (b?.length || 0) - (a?.length || 0))
     .slice(0, 3);
 
+  // Handle command-k to open search modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const processingCount = aiActivities.filter(a => a.type === 'processing').length;
+
   return (
     <ClientLayout workspaceId={workspaceId} webCount={webs?.length || 0}>
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        webs={webs || []}
+      />
+
+      {/* AI Activity Banner - Sticky under header */}
+      {processingCount > 0 && (
+        <div className="sticky top-14 z-40 border-b border-border bg-blue-900/10 backdrop-blur supports-[backdrop-filter]:bg-blue-900/10">
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-3xl px-6 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Lightning size={14} weight="duotone" className="text-blue-500 animate-pulse" />
+                  <span className="text-xs font-mono text-blue-500 uppercase">
+                    PROCESSING {processingCount} WEB{processingCount > 1 ? 'S' : ''}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {aiActivities.filter(a => a.type === 'processing').map((activity) => (
+                    <span
+                      key={activity.id}
+                      className="text-xs font-mono text-muted-foreground"
+                    >
+                      [{extractDomain(activity.target)}]
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Command interface */}
       <div className="border-b border-border bg-card/50">
         <div className="w-full flex justify-center">
@@ -134,42 +205,55 @@ export default function RootPage() {
         </div>
       </div>
 
-      {/* AI Activity Banner */}
-      <AnimatePresence>
-        {aiActivities.filter(a => a.type === 'processing').length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-b border-border bg-blue-900/10"
-          >
-            <div className="w-full flex justify-center">
-              <div className="w-full max-w-3xl px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Lightning size={14} weight="duotone" className="text-blue-500 animate-pulse" />
-                    <span className="text-xs font-mono text-blue-500 uppercase">
-                      PROCESSING {aiActivities.filter(a => a.type === 'processing').length} WEB{aiActivities.filter(a => a.type === 'processing').length > 1 ? 'S' : ''}
-                    </span>
+      {/* Navigation Toolbar */}
+      <div className={cn(
+        "border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky z-30",
+        processingCount > 0 ? "top-[113px]" : "top-14"
+      )}>
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-7xl px-6">
+            <div className="flex h-12 items-center justify-between gap-4">
+              {/* Left section - Search */}
+              <div className="flex-1 max-w-md">
+                <button
+                  onClick={() => setIsSearchModalOpen(true)}
+                  className="relative w-full text-left"
+                >
+                  <MagnifyingGlass size={16} weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <div className="w-full h-8 pl-9 pr-16 text-sm bg-background border border-border font-mono flex items-center text-muted-foreground">
+                    Search webs...
                   </div>
-                  <div className="flex items-center gap-2">
-                    {aiActivities.filter(a => a.type === 'processing').map((activity) => (
-                      <motion.div
-                        key={activity.id}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-xs font-mono text-muted-foreground"
-                      >
-                        [{extractDomain(activity.target)}]
-                      </motion.div>
-                    ))}
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <kbd className="px-1 py-0.5 text-xs bg-border text-muted-foreground font-mono">⌘</kbd>
+                    <kbd className="px-1 py-0.5 text-xs bg-border text-muted-foreground font-mono">K</kbd>
                   </div>
+                </button>
+              </div>
+
+              {/* Right section - Controls */}
+              <div className="flex items-center gap-2">
+                {/* Filters */}
+                <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-background border border-border font-mono">
+                  <FunnelSimple size={14} weight="duotone" />
+                  <span className="hidden sm:inline uppercase">Filters</span>
+                </button>
+
+                {/* Sort */}
+                <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-background border border-border font-mono">
+                  <SortAscending size={14} weight="duotone" />
+                  <span className="hidden sm:inline uppercase">Sort</span>
+                </button>
+
+                {/* Results count */}
+                <div className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground bg-background border border-border font-mono">
+                  <Database size={14} weight="duotone" />
+                  <span>{filteredWebs.length}</span>
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      </div>
 
       {/* Responsive webs dashboard - centered */}
       <div className="flex-1 py-8">
@@ -180,19 +264,10 @@ export default function RootPage() {
               <div className="grid grid-cols-12 gap-8">
                 {/* Main content - 8 columns */}
                 <div className="col-span-8">
-                  {/* Stats bar */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-6 text-xs text-muted-foreground">
-                      <span>[TOTAL: {webs?.length || 0}]</span>
-                      <span>[DOMAINS: {Object.keys(websByDomain).length}]</span>
-                      <span>[MODEL: {selectedModelId}]</span>
-                    </div>
-                  </div>
-
                   {/* Webs grid */}
-                  {webs && webs.length > 0 ? (
+                  {filteredWebs && filteredWebs.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {webs.map((web) => (
+                      {filteredWebs.map((web) => (
                         <Link
                           key={web.id}
                           href={`/w/${web.id}`}
@@ -229,6 +304,21 @@ export default function RootPage() {
                           </div>
                         </Link>
                       ))}
+                    </div>
+                  ) : searchQuery ? (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="text-center">
+                        <MagnifyingGlass size={48} weight="duotone" className="mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          No webs found for "{searchQuery}"
+                        </p>
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Clear search
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center py-24">
@@ -392,19 +482,10 @@ export default function RootPage() {
         <div className="hidden md:block 2xl:hidden">
           <div className="w-full flex justify-center">
             <div className="w-full max-w-3xl px-6">
-              {/* Stats bar */}
-              <div className="flex items-center justify-center mb-8">
-                <div className="flex items-center gap-6 text-xs text-muted-foreground">
-                  <span>[TOTAL: {webs?.length || 0}]</span>
-                  <span>[DOMAINS: {Object.keys(websByDomain).length}]</span>
-                  <span>[MODEL: {selectedModelId}]</span>
-                </div>
-              </div>
-
               {/* Webs grid */}
-              {webs && webs.length > 0 ? (
+              {filteredWebs && filteredWebs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {webs.map((web) => (
+                  {filteredWebs.map((web) => (
                     <Link
                       key={web.id}
                       href={`/w/${web.id}`}
@@ -442,6 +523,21 @@ export default function RootPage() {
                     </Link>
                   ))}
                 </div>
+              ) : searchQuery ? (
+                <div className="flex items-center justify-center py-24">
+                  <div className="text-center">
+                    <MagnifyingGlass size={48} weight="duotone" className="mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      No webs found for "{searchQuery}"
+                    </p>
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Clear search
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="flex items-center justify-center py-24">
                   <div className="text-center">
@@ -466,18 +562,10 @@ export default function RootPage() {
         <div className="block md:hidden">
           <div className="w-full flex justify-center">
             <div className="w-full max-w-3xl px-6">
-              {/* Stats bar */}
-              <div className="flex items-center justify-center mb-8">
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>[{webs?.length || 0}]</span>
-                  <span>[{Object.keys(websByDomain).length} DOMAINS]</span>
-                </div>
-              </div>
-
               {/* Webs list */}
-              {webs && webs.length > 0 ? (
+              {filteredWebs && filteredWebs.length > 0 ? (
                 <div className="space-y-2">
-                  {webs.map((web) => (
+                  {filteredWebs.map((web) => (
                     <Link
                       key={web.id}
                       href={`/w/${web.id}`}
@@ -515,16 +603,31 @@ export default function RootPage() {
                     </Link>
                   ))}
                 </div>
+              ) : searchQuery ? (
+                <div className="flex items-center justify-center py-24">
+                  <div className="text-center">
+                    <MagnifyingGlass size={48} weight="duotone" className="mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      No webs found for "{searchQuery}"
+                    </p>
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Clear search
+                    </button>
+                  </div>
+                </div>
               ) : (
-                  <div className="flex items-center justify-center py-24">
-                    <div className="text-center">
-                      <pre className="inline-block text-xs text-muted-foreground mb-6 font-mono">
-                        {`╔═══════════════════════╗
+                    <div className="flex items-center justify-center py-24">
+                      <div className="text-center">
+                        <pre className="inline-block text-xs text-muted-foreground mb-6 font-mono">
+                          {`╔═══════════════════════╗
 ║                       ║
 ║    ∅ NO WEBS YET     ║
 ║                       ║
 ╚═══════════════════════╝`}
-                      </pre>
+                        </pre>
                     <p className="text-sm text-muted-foreground">
                       Enter a URL above to create your first web.
                     </p>

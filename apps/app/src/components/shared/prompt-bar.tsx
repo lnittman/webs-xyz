@@ -2,7 +2,7 @@
 
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { cn } from '@repo/design/lib/utils';
-import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText } from '@phosphor-icons/react/dist/ssr';
+import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText, Question } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PromptBarProps {
@@ -116,6 +116,7 @@ export function PromptBar({
   const [detectedUrls, setDetectedUrls] = useState<DetectedUrl[]>([]);
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
   const [showTabSuggestions, setShowTabSuggestions] = useState(false);
+  const [showHelpTooltip, setShowHelpTooltip] = useState(false);
   const [aiStatus, setAiStatus] = useState<AIStatus>({ type: 'idle', message: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectedModel = models.find(m => m.id === selectedModelId) || models[0];
@@ -236,41 +237,67 @@ export function PromptBar({
   return (
     <div className="w-full">
       {/* Command prompt indicator */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs text-muted-foreground font-mono">{'>'}</span>
-        <span className="text-xs text-muted-foreground uppercase tracking-wider">
-          COMMAND INPUT
-        </span>
-        {isSubmitting && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
-          >
-            <div className="flex items-center gap-1">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <Brain size={12} weight="duotone" className="text-blue-500" />
-              </motion.div>
-              <Pulse size={12} weight="duotone" className="text-blue-500 animate-pulse" />
-            </div>
-            <span className="text-xs text-blue-500 font-mono uppercase">
-              {aiStatus.message}
-            </span>
-            {aiStatus.progress && (
-              <div className="w-16 h-1 bg-border rounded-full overflow-hidden">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground font-mono">{'>'}</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">
+            COMMAND INPUT
+          </span>
+          {isSubmitting && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-2 ml-4"
+            >
+              <div className="flex items-center gap-1">
                 <motion.div
-                  className="h-full bg-blue-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${aiStatus.progress}%` }}
-                  transition={{ duration: 0.5 }}
-                />
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                  <Brain size={12} weight="duotone" className="text-blue-500" />
+                </motion.div>
+                <Pulse size={12} weight="duotone" className="text-blue-500 animate-pulse" />
               </div>
+              <span className="text-xs text-blue-500 font-mono uppercase">
+                {aiStatus.message}
+              </span>
+              {aiStatus.progress && (
+                <div className="w-16 h-1 bg-border rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${aiStatus.progress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              )}
+            </motion.div>
+          )}
+        </div>
+        <div className="relative">
+          <button
+            onMouseEnter={() => setShowHelpTooltip(true)}
+            onMouseLeave={() => setShowHelpTooltip(false)}
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            <Question size={12} weight="duotone" />
+          </button>
+          <AnimatePresence>
+            {showHelpTooltip && (
+              <motion.div
+                initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                className="absolute right-0 top-6 z-50 w-64 p-2 bg-popover border border-border text-xs text-popover-foreground shadow-lg"
+              >
+                Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
+                {browserTabs.length > 0 && (
+                  <span className="block mt-1 font-mono">Ctrl+T for browser tabs.</span>
+                )}
+              </motion.div>
             )}
-          </motion.div>
-        )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* AI Agent Status Bar */}
@@ -555,19 +582,6 @@ export function PromptBar({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Help text */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mt-2 text-xs text-muted-foreground"
-      >
-        Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
-        {browserTabs.length > 0 && (
-          <span className="ml-2 font-mono">Ctrl+T for browser tabs.</span>
-        )}
-      </motion.div>
     </div>
   );
 } 
