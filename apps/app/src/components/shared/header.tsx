@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Person } from '@phosphor-icons/react/dist/ssr';
+import { Person } from '@phosphor-icons/react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@repo/design/components/ui/tooltip';
 
 interface HeaderProps {

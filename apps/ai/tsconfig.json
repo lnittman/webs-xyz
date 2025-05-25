@@ -12,12 +12,14 @@
   "include": [
     "next-env.d.ts",
     "next.config.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
     ".mastra",
-    "dist"
+    "dist",
+    "docs/**/*.ts",
+    "docs/**/*.tsx",
   ]
 }
