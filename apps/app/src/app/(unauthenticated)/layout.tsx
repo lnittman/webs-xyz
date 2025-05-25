@@ -1,29 +1,18 @@
-import { ModeToggle } from '@repo/design/components/mode-toggle';
-import { Terminal } from '@phosphor-icons/react/dist/ssr';
 import type { ReactNode } from 'react';
 
-type AuthLayoutProps = {
-  readonly children: ReactNode;
-};
+interface UnauthenticatedLayoutProps {
+  children: ReactNode;
+}
 
-const AuthLayout = ({ children }: AuthLayoutProps) => (
-  <div className="container relative grid h-dvh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
-    <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-      <div className="absolute inset-0 bg-zinc-900" />
-      <div className="relative z-20 flex items-center font-medium text-lg">
-        <Terminal size={24} weight="duotone" className="mr-2" />
-      </div>
-      <div className="absolute top-4 right-4">
-        <ModeToggle />
-      </div>
-      <div className="relative z-20 mt-auto" />
-    </div>
-    <div className="lg:p-8">
-      <div className="mx-auto flex w-full max-w-[400px] flex-col justify-center space-y-6">
+export default function UnauthenticatedLayout({ children }: UnauthenticatedLayoutProps) {
+  return (
+    <div className="min-h-screen bg-background antialiased font-mono flex flex-col items-center justify-center">
+      <div className="w-full max-w-md px-6">
         {children}
       </div>
-    </div>
-  </div>
-);
 
-export default AuthLayout;
+      {/* Terminal scanline effect */}
+      <div className="terminal-scanlines" aria-hidden="true" />
+    </div>
+  );
+}

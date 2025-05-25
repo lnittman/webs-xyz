@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Person } from '@phosphor-icons/react';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@repo/design/components/ui/tooltip';
+import { useTransitionRouter } from 'next-view-transitions';
+import { UserMenu } from './user-menu';
+import { WebsAsciiLogo } from './webs-ascii';
 
 interface HeaderProps {
     showStatus?: boolean;
@@ -10,11 +10,21 @@ interface HeaderProps {
 }
 
 export function Header({ showStatus = true, children }: HeaderProps) {
+    const router = useTransitionRouter();
+
+    const handleLogoClick = () => {
+        router.push('/');
+    };
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-            <div className="h-14 px-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-sm font-medium tracking-tight">WEBS</h1>
+            <div className="h-14 px-2 flex items-center justify-between">
+                <div className="flex items-center">
+                    <WebsAsciiLogo
+                        size="small"
+                        onClick={handleLogoClick}
+                        className="scale-75"
+                    />
                 </div>
 
                 {children && (
@@ -23,27 +33,12 @@ export function Header({ showStatus = true, children }: HeaderProps) {
                     </div>
                 )}
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
                         {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
 
-                    {showStatus && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <motion.div
-                                    className="flex items-center gap-2 cursor-pointer"
-                                    animate={{ opacity: [0.5, 1, 0.5] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                >
-                                    <Person size={14} weight="duotone" className="text-green-600" />
-                                </motion.div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <span className="text-xs font-mono">ONLINE</span>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                    <UserMenu />
                 </div>
             </div>
         </header>

@@ -3,7 +3,6 @@
 import { ReactNode, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { Header } from './header';
-import { Footer } from './footer';
 import { SearchModal } from './search-modal';
 import { useWebs } from '@/hooks/code/web/queries';
 import { searchModalOpenAtom } from '@/atoms/search';
@@ -12,7 +11,6 @@ interface ClientLayoutProps {
     children: ReactNode;
     workspaceId?: string;
     webCount?: number;
-    showFooter?: boolean;
     showStatus?: boolean;
 }
 
@@ -20,7 +18,6 @@ export function ClientLayout({
     children,
     workspaceId = 'default',
     webCount = 0,
-    showFooter = true,
     showStatus = true
 }: ClientLayoutProps) {
     const [isSearchModalOpen, setIsSearchModalOpen] = useAtom(searchModalOpenAtom);
@@ -53,10 +50,6 @@ export function ClientLayout({
             <main className="pt-14 flex-1 flex flex-col">
                 {children}
             </main>
-
-            {showFooter && (
-                <Footer workspaceId={workspaceId} webCount={webCount} />
-            )}
 
             {/* Terminal scanline effect */}
             <div className="terminal-scanlines" aria-hidden="true" />

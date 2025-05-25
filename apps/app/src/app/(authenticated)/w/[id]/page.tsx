@@ -70,7 +70,7 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
 
     if (isLoading) {
         return (
-            <ClientLayout showFooter={false}>
+            <ClientLayout>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                         <div className="text-xs text-muted-foreground mb-2">LOADING WEB...</div>
@@ -85,7 +85,7 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
 
     if (isError || !web) {
         return (
-            <ClientLayout showFooter={false}>
+            <ClientLayout>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                         <pre className="inline-block text-xs text-muted-foreground mb-4">
@@ -442,19 +442,6 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                     </div>
                 </div>
             </div>
-
-            {/* Custom footer for this page */}
-            <footer className="border-t border-border bg-background/80 backdrop-blur-sm">
-                <div className="h-8 px-6 flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-4">
-                        <span>[WEB: {web.id.slice(0, 8)}...]</span>
-                        <span>[STATUS: {web.status}]</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span>WEBS v1.0.0</span>
-                    </div>
-                </div>
-            </footer>
         </ClientLayout>
     );
 } 

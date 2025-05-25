@@ -33,9 +33,9 @@ export function ContextBar({ detectedUrls, onRemoveUrl }: ContextBarProps) {
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="flex items-center gap-2 px-2 py-1 -mx-2 -my-1 rounded transition-all duration-200 hover:bg-accent/50 active:bg-accent group"
+                        className="flex items-center gap-2 px-2 py-1 -mx-2 -my-1 rounded-none transition-all duration-200 hover:bg-accent/50 active:bg-accent group"
                     >
-                        <div className="p-1 text-muted-foreground group-hover:text-foreground transition-colors duration-200">
+                        <div className="text-muted-foreground group-hover:text-foreground transition-colors duration-200">
                             <AnimatePresence mode="wait">
                                 {isExpanded ? (
                                     <motion.div

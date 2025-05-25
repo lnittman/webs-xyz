@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@clerk/elements": "^0.23.29",
     "@phosphor-icons/react": "^2.1.10",
     "@repo/analytics": "workspace:*",
     "@repo/auth": "workspace:*",
@@ -24,6 +25,7 @@
     "@repo/webhooks": "workspace:*",
     "@sentry/nextjs": "^9.12.0",
     "@t3-oss/env-nextjs": "^0.12.0",
+    "common@latest": "link:@clerk/elements/common@latest",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.12.2",
     "fuse.js": "^7.1.0",
@@ -36,6 +38,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "require-in-the-middle": "^7.5.2",
+    "sign-up": "link:@clerk/elements/sign-up",
+    "sign-up@latest": "link:@clerk/elements/sign-up@latest",
     "swr": "^2.3.3",
     "zod": "^3.24.2"
   },
