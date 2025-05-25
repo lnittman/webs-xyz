@@ -5,9 +5,9 @@ import { useAtom } from 'jotai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'next-view-transitions';
 import { PromptBar } from '@/components/shared/prompt-bar';
-import { SearchModal } from '@/components/shared/search-modal';
 import { ClientLayout } from '@/components/shared/client-layout';
 import { promptFocusedAtom } from '@/atoms/chat';
+import { searchModalOpenAtom } from '@/atoms/search';
 import { useWebs } from '@/hooks/code/web/queries';
 import { useCreateWeb } from '@/hooks/code/web/mutations';
 import { cn } from '@repo/design/lib/utils';
@@ -61,7 +61,7 @@ export default function RootPage() {
   const [isPromptFocused, setIsPromptFocused] = useAtom(promptFocusedAtom);
   const [selectedModelId, setSelectedModelId] = useState('claude-4-sonnet');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [, setIsSearchModalOpen] = useAtom(searchModalOpenAtom);
 
   // Mock AI activities (in real app, this would come from a subscription/polling)
   const [aiActivities] = useState<AIActivity[]>([
@@ -136,60 +136,12 @@ export default function RootPage() {
     .sort(([, a], [, b]) => (b?.length || 0) - (a?.length || 0))
     .slice(0, 3);
 
-  // Handle command-k to open search modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchModalOpen(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   const processingCount = aiActivities.filter(a => a.type === 'processing').length;
 
   return (
     <ClientLayout workspaceId={workspaceId} webCount={webs?.length || 0}>
-      {/* Search Modal */}
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        webs={webs || []}
-      />
-
-      {/* AI Activity Banner - Sticky under header */}
-      {processingCount > 0 && (
-        <div className="sticky top-14 z-40 border-b border-border bg-blue-900/10 backdrop-blur supports-[backdrop-filter]:bg-blue-900/10">
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-3xl px-6 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Lightning size={14} weight="duotone" className="text-blue-500 animate-pulse" />
-                  <span className="text-xs font-mono text-blue-500 uppercase">
-                    PROCESSING {processingCount} WEB{processingCount > 1 ? 'S' : ''}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {aiActivities.filter(a => a.type === 'processing').map((activity) => (
-                    <span
-                      key={activity.id}
-                      className="text-xs font-mono text-muted-foreground"
-                    >
-                      [{extractDomain(activity.target)}]
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Command interface */}
-      <div className="border-b border-border bg-card/50">
+      <div className="bg-card/50">
         <div className="w-full flex justify-center">
           <div className="w-full max-w-3xl px-6 py-8">
             <PromptBar
@@ -207,11 +159,11 @@ export default function RootPage() {
 
       {/* Navigation Toolbar */}
       <div className={cn(
-        "border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky z-30",
+        "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky z-30",
         processingCount > 0 ? "top-[113px]" : "top-14"
       )}>
         <div className="w-full flex justify-center">
-          <div className="w-full max-w-7xl px-6">
+          <div className="w-full max-w-3xl px-6">
             <div className="flex h-12 items-center justify-between gap-4">
               {/* Left section - Search */}
               <div className="flex-1 max-w-md">

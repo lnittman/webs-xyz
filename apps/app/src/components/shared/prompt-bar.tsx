@@ -4,6 +4,7 @@ import { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { cn } from '@repo/design/lib/utils';
 import { X, ArrowSquareOut, Plus, Brain, Pulse, Eye, FileText, Question } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ContextBar } from './context-bar';
 
 interface PromptBarProps {
   onSubmit: (prompt: string) => void | Promise<void>;
@@ -239,10 +240,6 @@ export function PromptBar({
       {/* Command prompt indicator */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground font-mono">{'>'}</span>
-          <span className="text-xs text-muted-foreground uppercase tracking-wider">
-            COMMAND INPUT
-          </span>
           {isSubmitting && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -274,65 +271,7 @@ export function PromptBar({
             </motion.div>
           )}
         </div>
-        <div className="relative">
-          <button
-            onMouseEnter={() => setShowHelpTooltip(true)}
-            onMouseLeave={() => setShowHelpTooltip(false)}
-            className="p-1 text-muted-foreground hover:text-foreground transition-colors duration-200"
-          >
-            <Question size={12} weight="duotone" />
-          </button>
-          <AnimatePresence>
-            {showHelpTooltip && (
-              <motion.div
-                initial={{ opacity: 0, y: -5, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                className="absolute right-0 top-6 z-50 w-64 p-2 bg-popover border border-border text-xs text-popover-foreground shadow-lg"
-              >
-                Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
-                {browserTabs.length > 0 && (
-                  <span className="block mt-1 font-mono">Ctrl+T for browser tabs.</span>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
-
-      {/* AI Agent Status Bar */}
-      <AnimatePresence>
-        {(aiStatus.type !== 'idle' || detectedUrls.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-2"
-          >
-            <div className="border border-border bg-card/30 p-2 text-xs font-mono">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-muted-foreground uppercase">AI AGENT:</span>
-                  <span className="text-foreground">{selectedModel.name}</span>
-                  <span className="text-muted-foreground">|</span>
-                  <span className="text-muted-foreground uppercase">MODE:</span>
-                  <span className="text-foreground">
-                    {parsed.prompt ? 'GUIDED ANALYSIS' : 'AUTO SUMMARY'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {detectedUrls.length > 0 && (
-                    <>
-                      <Eye size={12} weight="duotone" className="text-green-600" />
-                      <span className="text-green-600">{detectedUrls.length} URL{detectedUrls.length > 1 ? 'S' : ''} DETECTED</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Main input container */}
       <div
@@ -345,6 +284,30 @@ export function PromptBar({
         {/* Model selector bar */}
         <div className="flex items-center justify-between border-b border-border bg-card/50 px-3 py-2">
           <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                onMouseEnter={() => setShowHelpTooltip(true)}
+                onMouseLeave={() => setShowHelpTooltip(false)}
+                className="p-1 text-muted-foreground hover:text-foreground transition-colors duration-200"
+              >
+                <Question size={12} weight="duotone" />
+              </button>
+              <AnimatePresence>
+                {showHelpTooltip && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                    className="absolute left-0 top-6 z-50 w-64 p-2 bg-popover border border-border text-xs text-popover-foreground shadow-lg"
+                  >
+                    Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
+                    {browserTabs.length > 0 && (
+                      <span className="block mt-1 font-mono">Ctrl+T for browser tabs.</span>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <span className="text-xs text-muted-foreground uppercase tracking-wider">
               MODEL
             </span>
@@ -383,26 +346,8 @@ export function PromptBar({
               </button>
             )}
             {hasUrl && (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-green-600 font-mono"
-              >
+              <span className="text-green-600 font-mono">
                 [URL]
-              </motion.span>
-            )}
-            {parsed.prompt && (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-blue-600 font-mono"
-              >
-                [PROMPT]
-              </motion.span>
-            )}
-            {input.length > 0 && (
-              <span className="text-muted-foreground font-mono">
-                {input.length}
               </span>
             )}
           </div>
@@ -467,121 +412,34 @@ export function PromptBar({
           />
         </div>
 
-        {/* Expanded info panel */}
-        <AnimatePresence>
-          {isExpanded && input.length > 0 && (parsed.url || parsed.prompt) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="border-t border-border bg-card/30 overflow-hidden"
-            >
-              <div className="p-3 space-y-2">
-                {parsed.url && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start gap-2"
-                  >
-                    <span className="text-xs text-green-600 font-mono uppercase shrink-0">
-                      URL:
-                    </span>
-                    <span className="text-xs text-foreground font-mono break-all">
-                      {parsed.url}
-                    </span>
-                  </motion.div>
-                )}
-                {parsed.prompt && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 }}
-                    className="flex items-start gap-2"
-                  >
-                    <span className="text-xs text-blue-600 font-mono uppercase shrink-0">
-                      PROMPT:
-                    </span>
-                    <span className="text-xs text-foreground">
-                      "{parsed.prompt}"
-                    </span>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Bottom status bar */}
+        <div className="flex items-center justify-between border-t border-border bg-card/50 px-3 py-2">
+          {/* Character count */}
+          <div className="flex items-center gap-3">
+            {input.length > 0 && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {input.length}
+              </span>
+            )}
+          </div>
 
-        {/* Submit indicator */}
-        <div className="absolute bottom-2 right-2">
+          {/* ENTER button */}
           <motion.div
             animate={{
               opacity: input.trim() && !isSubmitting ? 1 : 0.5,
-              scale: input.trim() && !isSubmitting ? 1 : 0.9,
             }}
             className="flex items-center gap-1 text-xs text-muted-foreground transition-all duration-200"
           >
             <span className="font-mono">ENTER</span>
-            <div className={cn(
-              'w-1 h-3 border border-current transition-all duration-200',
-              input.trim() && !isSubmitting && 'bg-current'
-            )} />
           </motion.div>
         </div>
       </div>
 
-      {/* URL Tiles */}
-      <AnimatePresence>
-        {detectedUrls.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mt-4 space-y-2"
-          >
-            {detectedUrls.map((detectedUrl, index) => (
-              <motion.div
-                key={detectedUrl.id}
-                initial={{ opacity: 0, x: -20, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                transition={{ delay: index * 0.1 }}
-                className="group flex items-center gap-3 p-3 border border-border bg-card hover:border-foreground/30 transition-all duration-200"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-green-600 font-mono uppercase">
-                      DETECTED URL
-                    </span>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {getDomain(detectedUrl.url)}
-                    </span>
-                  </div>
-                  <div className="text-sm font-mono text-foreground truncate">
-                    {detectedUrl.url}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                  <button
-                    onClick={() => window.open(detectedUrl.url, '_blank')}
-                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
-                    title="Open in new tab"
-                  >
-                    <ArrowSquareOut size={14} weight="duotone" />
-                  </button>
-                  <button
-                    onClick={() => removeUrl(detectedUrl.id)}
-                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
-                    title="Remove URL"
-                  >
-                    <X size={14} weight="duotone" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Context Bar */}
+      <ContextBar
+        detectedUrls={detectedUrls}
+        onRemoveUrl={removeUrl}
+      />
     </div>
   );
 } 
