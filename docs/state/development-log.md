@@ -79,3 +79,73 @@ Added advanced browser tabs modal component allowing category sorting and multi-
 - **Affected Integrations**: Frontend only
 - **Migration Required**: No
 - **Backward Compatible**: Yes
+
+### 2025-05-25: Theme Switcher Added to Auth Flow
+- **Type**: Feature
+- **Scope**: App
+- **Author(s)**: Luke Nittmann
+- **PR/Commit**: [6bf2eb2](https://example.com/commit/6bf2eb2)
+#### Description
+Integrated theme toggle into sign-in and sign-up pages allowing dark and light modes.
+#### Technical Details
+- **Files Changed**: 2
+- **Lines Added/Removed**: +69/-3
+- **Components Affected**:
+  - `layout.tsx` for unauthenticated pages
+  - `theme-switcher.tsx` improvements
+#### Architectural Impact
+- **Pattern Changes**: None
+- **New Dependencies**: None
+- **API Changes**: None
+- **Breaking Changes**: No
+#### Integration Impact
+- **Affected Integrations**: Frontend only
+- **Migration Required**: No
+- **Backward Compatible**: Yes
+
+### 2025-05-25: Dashboard Refactor and User Settings
+- **Type**: Feature/Refactor
+- **Scope**: App & API
+- **Author(s)**: Luke Nittmann
+- **PR/Commit**: [e1bd515](https://example.com/commit/e1bd515)
+#### Description
+Major overhaul of dashboard with context sidebar and previews, plus new user settings and feedback endpoints.
+#### Technical Details
+- **Files Changed**: 51
+- **Lines Added/Removed**: +3301/-1175
+- **Components Affected**:
+  - `dashboard` components
+  - API routes for feedback and user settings
+  - Prisma schema
+#### Architectural Impact
+- **Pattern Changes**: Modular dashboard pattern introduced
+- **New Dependencies**: None
+- **API Changes**: Added new REST routes
+- **Breaking Changes**: No
+#### Integration Impact
+- **Affected Integrations**: API ↔ app
+- **Migration Required**: Database migration
+- **Backward Compatible**: Yes
+
+### 2025-05-25: Dashboard Polishing and Sidebar Updates
+- **Type**: Refactor
+- **Scope**: App
+- **Author(s)**: Luke Nittmann
+- **PR/Commit**: [d76583a](https://example.com/commit/d76583a)
+#### Description
+Continued refinement of dashboard components, improving layout and adding context sidebar interactions.
+#### Technical Details
+- **Files Changed**: 13
+- **Lines Added/Removed**: +696/-297
+- **Components Affected**:
+  - `activity-feed` and sidebar components
+  - `dashboard-layout` adjustments
+#### Architectural Impact
+- **Pattern Changes**: Enhanced modular widget design
+- **New Dependencies**: None
+- **API Changes**: None
+- **Breaking Changes**: No
+#### Integration Impact
+- **Affected Integrations**: Frontend only
+- **Migration Required**: No
+- **Backward Compatible**: Yes

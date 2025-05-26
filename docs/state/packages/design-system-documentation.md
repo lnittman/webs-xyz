@@ -74,3 +74,5 @@
 ## Recent Developments
 - Added sacred components in recent PR.
 - Refined theme provider and dark mode support.
+- Improved `ToggleGroup` accessibility and alignment
+- Simplified `Tooltip` positioning logic

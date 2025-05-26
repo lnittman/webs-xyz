@@ -73,3 +73,4 @@
 ## Recent Developments
 - Schema updated for new user fields.
 - Added script to generate Prisma client during build.
+- Added `Feedback` and `UserSettings` models with enumerations for topics and status

@@ -117,3 +117,6 @@ key_dependencies:
 - Refactored middleware to align with Next.js 15 conventions.
 - Ongoing work on improving search functionality.
 - Preparing for deeper integration with AI summaries.
+- Introduced theme switcher in sign-in and sign-up pages
+- Added dashboard layout with context sidebar and preview sections
+- New settings and feedback API routes powered by Prisma models

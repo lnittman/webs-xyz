@@ -89,3 +89,5 @@
 - Deprecated packages `storage` and `internationalization` removed from the codebase.
 - Updated design components require new props, affecting `app` and `email` templates.
 - `app` gained a browser tabs modal component improving navigation between saved pages.
+- New API routes `/api/feedback` and `/api/user-settings` handle form submissions
+- Database updated with `Feedback` and `UserSettings` models consumed by `api`
