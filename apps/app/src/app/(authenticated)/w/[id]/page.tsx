@@ -118,7 +118,7 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
             {/* Web status bar */}
             <div className="border-b border-border bg-card/50">
                 <div className="w-full flex justify-center">
-                    <div className="w-full max-w-4xl px-6 py-3">
+                    <div className="w-full max-w-3xl px-6 py-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
             {/* Main content */}
             <div className="flex-1 py-8">
                 <div className="w-full flex justify-center">
-                    <div className="w-full max-w-4xl px-6">
+                    <div className="w-full max-w-3xl px-6">
                         {/* Web header */}
                         <div className="mb-8">
                             <div className="space-y-6">

@@ -1,3 +1,6 @@
+import { useAtom } from 'jotai';
+import { motion, AnimatePresence } from 'framer-motion';
+import { viewModeAtom } from '@/atoms/dashboard';
 import { WebCard } from './web-card';
 import { EmptyState } from './empty-state';
 import { SearchEmptyState } from './search-empty-state';
@@ -11,6 +14,8 @@ interface WebsGridProps {
 }
 
 export function WebsGrid({ webs, searchQuery, onClearSearch, layout }: WebsGridProps) {
+    const [viewMode] = useAtom(viewModeAtom);
+
     // Show search empty state if there's a search query but no results
     if (searchQuery && webs.length === 0) {
         return <SearchEmptyState searchQuery={searchQuery} onClearSearch={onClearSearch} />;
@@ -21,27 +26,42 @@ export function WebsGrid({ webs, searchQuery, onClearSearch, layout }: WebsGridP
         return <EmptyState />;
     }
 
-    // Mobile layout - list view
-    if (layout === 'mobile') {
-        return (
-            <div className="space-y-2">
-                {webs.map((web) => (
-                    <WebCard key={web.id} web={web} variant="list" />
-                ))}
-            </div>
-        );
-    }
+    // Force list view on mobile or when list mode is selected
+    const shouldShowList = layout === 'mobile' || viewMode === 'list';
 
-    // Desktop and wide layouts - grid view
-    const gridCols = layout === 'wide'
-        ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-        : 'grid-cols-1 md:grid-cols-2';
+    const fadeTransition = {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.2, ease: 'easeInOut' }
+    };
 
     return (
-        <div className={`grid ${gridCols} gap-4`}>
-            {webs.map((web) => (
-                <WebCard key={web.id} web={web} variant="grid" />
-            ))}
-        </div>
+        <AnimatePresence mode="wait">
+            {shouldShowList ? (
+                <motion.div
+                    key="list-view"
+                    {...fadeTransition}
+                    className="space-y-2"
+                >
+                    {webs.map((web) => (
+                        <WebCard key={web.id} web={web} variant="list" />
+                    ))}
+                </motion.div>
+            ) : (
+                <motion.div
+                    key="grid-view"
+                    {...fadeTransition}
+                    className={`grid ${layout === 'wide'
+                        ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                            : 'grid-cols-1 md:grid-cols-2'
+                            } gap-4`}
+                    >
+                        {webs.map((web) => (
+                            <WebCard key={web.id} web={web} variant="grid" />
+                        ))}
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 } 

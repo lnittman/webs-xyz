@@ -4,6 +4,7 @@ export { EmptyState } from './empty-state';
 export { SearchEmptyState } from './search-empty-state';
 export { NavigationToolbar } from './navigation-toolbar';
 export { ContextSidebar } from './context-sidebar';
+export { CollapsiblePreviewSection } from './collapsible-preview-section';
 export { ActivityFeed } from './activity-feed';
 export { RecentWebsPanel } from './recent-webs-panel';
 export { TopDomainsPanel } from './top-domains-panel';

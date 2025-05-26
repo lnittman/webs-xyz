@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
-import { SignOut, Gear, Moon, Sun, Desktop } from "@phosphor-icons/react";
+import { SignOut, Gear, Moon, Sun, Desktop, House, Users, Command, Palette, CaretUpDown, Plus } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useTransitionRouter } from "next-view-transitions";
@@ -15,7 +15,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@repo/design/components/ui/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger } from "@repo/design/components/ui/tabs";
 import { cn } from "@repo/design/lib/utils";
 
 export function UserMenu() {
@@ -46,6 +45,12 @@ export function UserMenu() {
         router.push('/settings');
     };
 
+    // Navigate to dashboard
+    const handleOpenDashboard = () => {
+        setMenuOpen(false);
+        router.push('/');
+    };
+
     if (!isLoaded) return null;
 
     return (
@@ -53,9 +58,10 @@ export function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     className={cn(
-                        "h-8 w-8 bg-muted text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border group-hover:border-foreground/30 transition-all duration-200 rounded-md",
-                        "group-hover:bg-background",
-                        menuOpen ? "bg-accent/40 border-foreground/20" : "border-border bg-background"
+                        "h-8 w-8 bg-muted text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border transition-all duration-200 rounded-md",
+                        "hover:bg-accent hover:border-foreground/20",
+                        "focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:ring-offset-2 focus:ring-offset-background",
+                        menuOpen ? "bg-accent border-foreground/20" : ""
                     )}
                 >
                     {initials}
@@ -67,7 +73,7 @@ export function UserMenu() {
                 side="bottom"
                 sideOffset={8}
                 className={cn(
-                    "min-w-[220px] bg-popover/95 backdrop-blur-sm border-border/20 rounded-lg font-mono"
+                    "w-[240px] p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden"
                 )}
             >
                 <motion.div
@@ -81,81 +87,132 @@ export function UserMenu() {
                         mass: 0.8
                     }}
                 >
-                    <div className="px-3 py-2 mb-1 border-b border-border">
-                        <p className="text-sm font-medium text-foreground">{user?.fullName || user?.firstName || "User"}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{user?.emailAddresses?.[0]?.emailAddress}</p>
+                    {/* User info section */}
+                    <div className="px-3 py-2.5">
+                        <p className="text-sm font-medium text-foreground truncate">{user?.fullName || user?.firstName || "User"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{user?.emailAddresses?.[0]?.emailAddress}</p>
                     </div>
 
-                    <DropdownMenuItem
-                        onClick={handleOpenSettings}
-                        className="rounded-md mx-1"
-                    >
-                        <Gear className="w-4 h-4 mr-2" weight="duotone" />
-                        <span>Settings</span>
-                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="my-0" />
 
-                    <DropdownMenuSeparator className="my-1.5" />
-
-                    {/* Theme selector using Tabs component */}
-                    <div className="p-1">
-                        <Tabs
-                            defaultValue={theme}
-                            value={theme}
-                            onValueChange={handleThemeChange}
-                            className="flex flex-col"
-                        >
-                            <TabsList className="bg-muted w-full h-9 p-1 grid grid-cols-3 gap-1 relative rounded-lg">
-                                <TabsTrigger
-                                    value="light"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
-                                >
-                                    <Sun
-                                        weight="duotone"
-                                        className={cn(
-                                            "h-4 w-4 transition-colors duration-300",
-                                            theme === 'light' ? "text-foreground" : "text-muted-foreground"
-                                        )}
-                                    />
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="dark"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
-                                >
-                                    <Moon
-                                        weight="duotone"
-                                        className={cn(
-                                            "h-4 w-4 transition-colors duration-300",
-                                            theme === 'dark' ? "text-foreground" : "text-muted-foreground"
-                                        )}
-                                    />
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="system"
-                                    className="h-full w-full transition-all duration-300 hover:bg-background/60 focus:outline-none flex items-center justify-center z-10 rounded-md"
-                                >
-                                    <Desktop
-                                        weight="duotone"
-                                        className={cn(
-                                            "h-4 w-4 transition-colors duration-300",
-                                            theme === 'system' ? "text-foreground" : "text-muted-foreground"
-                                        )}
-                                    />
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </div>
-
-                    <DropdownMenuSeparator className="my-1.5" />
-
-                    <SignOutButton>
+                    {/* Main menu items */}
+                    <div className="py-1">
                         <DropdownMenuItem
-                            variant="destructive"
-                            className="rounded-md mx-1"
+                            onClick={handleOpenDashboard}
+                            className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer"
                         >
-                            <SignOut className="w-4 h-4 mr-2" weight="duotone" />
-                            <span>Sign out</span>
+                            <House className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Dashboard</span>
                         </DropdownMenuItem>
-                    </SignOutButton>
+
+                        <DropdownMenuItem
+                            onClick={handleOpenSettings}
+                            className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer"
+                        >
+                            <Gear className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Account Settings</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                            className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer"
+                        >
+                            <Users className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Create Team</span>
+                            <div className="ml-auto">
+                                <Plus className="w-3 h-3" weight="duotone" />
+                            </div>
+                        </DropdownMenuItem>
+                    </div>
+
+                    <DropdownMenuSeparator className="my-0" />
+
+                    {/* Command menu and theme section */}
+                    <div className="py-1">
+                        <DropdownMenuItem
+                            className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer"
+                        >
+                            <Command className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Command Menu</span>
+                            <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">⌘K</kbd>
+                        </DropdownMenuItem>
+
+                        {/* Theme selector - inline style */}
+                        <div className="flex items-center justify-between px-3 py-1.5 text-sm">
+                            <div className="flex items-center gap-2">
+                                <Palette className="w-4 h-4" weight="duotone" />
+                                <span>Theme</span>
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-md">
+                                <button
+                                    onClick={() => handleThemeChange('light')}
+                                    className={cn(
+                                        "p-1 rounded transition-all duration-200",
+                                        theme === 'light'
+                                            ? "bg-background text-foreground shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                    title="Light theme"
+                                >
+                                    <Sun size={14} weight="duotone" />
+                                </button>
+                                <button
+                                    onClick={() => handleThemeChange('dark')}
+                                    className={cn(
+                                        "p-1 rounded transition-all duration-200",
+                                        theme === 'dark'
+                                            ? "bg-background text-foreground shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                    title="Dark theme"
+                                >
+                                    <Moon size={14} weight="duotone" />
+                                </button>
+                                <button
+                                    onClick={() => handleThemeChange('system')}
+                                    className={cn(
+                                        "p-1 rounded transition-all duration-200",
+                                        theme === 'system'
+                                            ? "bg-background text-foreground shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                    title="System theme"
+                                >
+                                    <Desktop size={14} weight="duotone" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DropdownMenuSeparator className="my-0" />
+
+                    {/* Bottom section with different background */}
+                    <div className="py-1">
+                        <DropdownMenuItem
+                            className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer"
+                        >
+                            <CaretUpDown className="w-4 h-4 mr-2" weight="duotone" />
+                            <span>Home Page</span>
+                        </DropdownMenuItem>
+                    </div>
+
+                    {/* Sign out section with subtle background */}
+                    <div className="bg-muted/30 border-t border-border p-1">
+                        <SignOutButton>
+                            <DropdownMenuItem
+                                className="rounded-md text-sm cursor-pointer px-2 py-1.5"
+                            >
+                                <SignOut className="w-4 h-4 mr-2" weight="duotone" />
+                                <span>Log Out</span>
+                            </DropdownMenuItem>
+                        </SignOutButton>
+                    </div>
+
+                    {/* Upgrade section */}
+                    <div className="bg-muted/50 border-t border-border p-2">
+                        <button className="w-full bg-foreground text-background hover:bg-foreground/90 transition-colors duration-200 rounded-md px-3 py-1.5 text-sm font-medium">
+                            Upgrade to Pro
+                        </button>
+                    </div>
                 </motion.div>
             </DropdownMenuContent>
         </DropdownMenu>
