@@ -111,3 +111,4 @@ key_dependencies:
 - Updated Prisma schema for new user fields.
 - Minor refactoring of middleware for Next.js 15.
 - Preparing support for new AI workflow triggers.
+\n_Last Reviewed: 2025-06-04_

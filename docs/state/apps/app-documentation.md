@@ -120,3 +120,4 @@ key_dependencies:
 - Introduced theme switcher in sign-in and sign-up pages
 - Added dashboard layout with context sidebar and preview sections
 - New settings and feedback API routes powered by Prisma models
+\n_Last Reviewed: 2025-06-04_
