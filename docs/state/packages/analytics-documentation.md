@@ -78,3 +78,4 @@
 ## Recent Developments
 - Provider updated to support Vercel Analytics.
 - Added Zod validation for environment keys.
+\n_Last Reviewed: 2025-06-04_
