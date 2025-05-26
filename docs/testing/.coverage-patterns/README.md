@@ -11,6 +11,7 @@ This document collects effective patterns and utilities discovered while expandi
 ## Testing Utilities
 - **Mock Setup Helpers**: Simplify mocking of third-party services like Sentry or Svix.
 - **Env Reset Helper**: Restore environment variables after each test.
+- **Dynamic Module Reload**: Use `vi.resetModules()` to re-import modules when mocks depend on environment values.
 
 ## Coverage Strategies
 - **Edge Case Focus**: Prioritize boundary conditions such as missing environment variables.
