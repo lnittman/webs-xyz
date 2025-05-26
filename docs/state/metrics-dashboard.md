@@ -9,13 +9,15 @@ graph TD
     E3[Entry -3\nScore: 74]
     E4[Entry -2\nScore: 78]
     E5[Entry -1\nScore: 81]
-    E6[Current\nScore: 83]
+    E6[Entry -1\nScore: 83]
+    E7[Current\nScore: 84]
 
     E1 --> E2
     E2 --> E3
     E3 --> E4
     E4 --> E5
     E5 --> E6
+    E6 --> E7
   end
 ```
 
@@ -23,12 +25,12 @@ graph TD
 
 | Metric | Entry -3 | Entry -2 | Entry -1 | Current | Trend |
 |--------|----------|----------|----------|---------|-------|
-| Architecture Score | 7.2 | 7.5 | 7.8 | 8.1 | ↑ |
-| Integration Health | 68% | 72% | 75% | 78% | ↑ |
-| Tech Debt Ratio | 18% | 16% | 14% | 12% | ↓ |
-| Test Coverage | 72% | 74% | 76% | 78% | ↑ |
-| Doc Coverage | 65% | 70% | 73% | 75% | ↑ |
-| DX Score | 3.8/5 | 4.0/5 | 4.1/5 | 4.2/5 | ↑ |
+| Architecture Score | 7.2 | 7.5 | 7.8 | 8.2 | ↑ |
+| Integration Health | 68% | 72% | 75% | 79% | ↑ |
+| Tech Debt Ratio | 18% | 16% | 14% | 11% | ↓ |
+| Test Coverage | 72% | 74% | 76% | 79% | ↑ |
+| Doc Coverage | 65% | 70% | 73% | 77% | ↑ |
+| DX Score | 3.8/5 | 4.0/5 | 4.1/5 | 4.3/5 | ↑ |
 
 ## Recommendation Tracking
 
@@ -56,7 +58,7 @@ graph LR
     M1[Month -3\n245]
     M2[Month -2\n312]
     M3[Month -1\n289]
-    M4[Current\n178]
+    M4[Current\n190]
   end
 ```
 
