@@ -149,3 +149,26 @@ Continued refinement of dashboard components, improving layout and adding contex
 - **Affected Integrations**: Frontend only
 - **Migration Required**: No
 - **Backward Compatible**: Yes
+
+### 2025-05-26: Integration Testing Framework
+- **Type**: Feature
+- **Scope**: Repo
+- **Author(s)**: ChatGPT
+- **PR/Commit**: pending
+#### Description
+Introduced a basic integration testing setup using Vitest. Added shared configuration and an example test covering the API health endpoint.
+#### Technical Details
+- **Files Changed**: `vitest.integration.config.ts`, `tests/integration/api-health.test.ts`, `package.json`
+- **Lines Added/Removed**: +24/-0
+- **Components Affected**:
+  - `api` health route via integration test
+#### Architectural Impact
+- **Pattern Changes**: New integration testing workflow
+- **New Dependencies**: None
+- **API Changes**: None
+- **Breaking Changes**: No
+#### Integration Impact
+- **Affected Integrations**: app ↔ api
+- **Migration Required**: No
+- **Backward Compatible**: Yes
+
