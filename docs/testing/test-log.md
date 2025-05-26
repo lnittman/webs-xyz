@@ -2,9 +2,9 @@
 
 ## Summary
 - Coverage Before: ~0%
-- Coverage After: ~75% (estimated)
-- Files Tested: 20
-- Tests Added: 27
+- Coverage After: ~78% (estimated)
+- Files Tested: 23
+- Tests Added: 32
 
 ## Implemented Tests
 - **@repo/observability** (unit): Verified `parseError` and Sentry helpers; tested logging behavior.
@@ -19,6 +19,8 @@
 - **@repo/email** (unit): Validated Resend is constructed with token.
 - **@repo/next-config** (unit): Exercised analyzer wrapper and default config.
 - **@repo/notifications** (unit): Created Knock instance using secret key.
+- **@repo/notifications** (unit): Tested provider and trigger components for env fallbacks.
+- **apps/ai** (unit): Covered `loadPrompt` utility and template filling logic.
 - **@repo/seo** (unit): Tested metadata creation and JSON-LD rendering.
 - **@repo/testing** (unit): Confirmed Vitest config uses jsdom environment.
 - **@repo/typescript-config** (unit): Checked base config strict mode.
