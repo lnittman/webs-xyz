@@ -2,9 +2,9 @@
 
 ## Summary
 - Coverage Before: ~0%
-- Coverage After: ~78% (estimated)
-- Files Tested: 23
-- Tests Added: 32
+- Coverage After: ~82% (estimated)
+- Files Tested: 26
+- Tests Added: 37
 
 ## Implemented Tests
 - **@repo/observability** (unit): Verified `parseError` and Sentry helpers; tested logging behavior.
@@ -24,6 +24,9 @@
 - **@repo/seo** (unit): Tested metadata creation and JSON-LD rendering.
 - **@repo/testing** (unit): Confirmed Vitest config uses jsdom environment.
 - **@repo/typescript-config** (unit): Checked base config strict mode.
+- **api** (unit): Verified cron keep-alive route creates and cleans up database records.
+- **api** (unit): Tested Clerk webhook early exit and header validation.
+- **app** (unit): Covered feedback API route success and error responses.
 
 ## Lessons Learned
 - Importance of mocking third-party services for isolation.

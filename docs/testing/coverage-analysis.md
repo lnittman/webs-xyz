@@ -13,3 +13,5 @@ Overall test coverage was previously at 0% with many untested files. Coverage no
 3. Validate error handling in observability utilities.
 4. Extend coverage to configuration and utility packages.
 5. Add unit tests for Mastra helpers such as `loadPrompt`.
+6. Cover API cron tasks like `keep-alive` to ensure database connections are exercised.
+7. Exercise webhook verification and frontend API endpoints for feedback and settings.
