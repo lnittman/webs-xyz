@@ -1,4 +1,4 @@
-<!-- Last Updated: 2025-06-10 -->
+<!-- Last Updated: 2025-06-12 -->
 # Development Log
 
 ## Recent Significant Changes
@@ -8,6 +8,13 @@
 - **Architectural Impact**: Smaller client bundle.
 - **Integration Implications**: None.
 - **Developer Experience Impact**: Easier performance tracking.
+
+### 2025-06-12: Automated bundle size check
+- **Description**: Added `scripts/check-bundle-size.js` and `bundle:check` script to enforce the 500KB limit.
+- **Components Affected**: root package scripts and workflow docs.
+- **Architectural Impact**: Encourages consistent performance checks.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Faster feedback on bundle sizes.
 
 ### 2025-06-05: Reverted integration test framework
 - **Description**: Removed `@repo/integration-tests` package per updated priorities.

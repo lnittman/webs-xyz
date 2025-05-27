@@ -14,3 +14,7 @@ This guide describes how to monitor client bundle size for the Next.js apps and 
 - Check `client.html` for large dependencies and convert them to dynamic imports when possible.
 
 Keeping bundles under **500KB** helps maintain fast page loads.
+
+## Automated Check
+
+Run `pnpm bundle:check` to build the `app` with analysis enabled and verify the bundle size. The script fails if `client.html` exceeds **500KB**.
