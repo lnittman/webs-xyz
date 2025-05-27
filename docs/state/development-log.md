@@ -1,7 +1,14 @@
-<!-- Last Updated: 2025-06-04 -->
+<!-- Last Updated: 2025-06-05 -->
 # Development Log
 
 ## Recent Significant Changes
+### 2025-06-05: Reverted integration test framework
+- **Description**: Removed `@repo/integration-tests` package per updated priorities.
+- **Components Affected**: none; package deleted.
+- **Architectural Impact**: Focus returns to core app functionality.
+- **Integration Implications**: Integration testing deferred.
+- **Developer Experience Impact**: Reduced tooling overhead.
+
 
 ### 2025-05-21: Added sacred UI components
 - **Description**: Merge of pull request #15 introduced new components within design.

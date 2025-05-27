@@ -1,4 +1,4 @@
-<!-- Last Updated: 2025-06-04 -->
+<!-- Last Updated: 2025-06-05 -->
 # Integration Status Assessment
 
 ## Overall Integration Health
@@ -80,11 +80,6 @@
    - **Current State**: `api` performs synchronous calls to AI service.
    - **Target State**: Asynchronous processing via queue and worker.
    - **Suggested Approach**: Use a queue like Upstash or AWS SQS.
-
-2. Expand integration tests across apps
-   - **Current State**: Limited manual testing.
-   - **Target State**: Automated tests validating API and package interactions.
-   - **Suggested Approach**: Use Vitest with `@repo/testing` across apps.
 
 ## Recent Integration Changes
 - Deprecated packages `storage` and `internationalization` removed from the codebase.
