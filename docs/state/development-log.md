@@ -1,7 +1,14 @@
-<!-- Last Updated: 2025-06-13 -->
+<!-- Last Updated: 2025-06-20 -->
 # Development Log
 
 ## Recent Significant Changes
+### 2025-06-20: CI bundle size check
+- **Description**: Added GitHub Actions workflow `bundle-size.yml` to fail PRs when `pnpm bundle:check` exceeds 500KB.
+- **Components Affected**: CI configuration and docs.
+- **Architectural Impact**: Automates performance enforcement.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Immediate feedback on bundle size.
+
 ### 2025-06-13: Integration testing guidelines
 - **Description**: Added `docs/testing/integration-guidelines.md` outlining setup and best practices for cross-app tests.
 - **Components Affected**: documentation only.

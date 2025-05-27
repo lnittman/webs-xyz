@@ -1,0 +1,32 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    paths:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  bundle-size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.8.0 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run bundle check
+        run: pnpm bundle:check
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-report
+          path: apps/app/.next/analyze/client.html

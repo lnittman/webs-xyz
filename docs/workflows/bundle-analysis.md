@@ -18,3 +18,7 @@ Keeping bundles under **500KB** helps maintain fast page loads.
 ## Automated Check
 
 Run `pnpm bundle:check` to build the `app` with analysis enabled and verify the bundle size. The script fails if `client.html` exceeds **500KB**.
+
+## CI Enforcement
+
+A GitHub Actions workflow named **Bundle Size Check** runs on every pull request. It installs dependencies, builds the app with analysis enabled, and fails if `pnpm bundle:check` reports a size above 500KB. The `client.html` report is uploaded as an artifact for inspection.
