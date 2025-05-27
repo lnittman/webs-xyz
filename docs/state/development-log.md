@@ -1,13 +1,13 @@
-<!-- Last Updated: 2025-06-12 -->
+<!-- Last Updated: 2025-06-13 -->
 # Development Log
 
 ## Recent Significant Changes
-### 2025-06-10: Bundle size monitoring added
-- **Description**: Documented bundle analysis workflow and optimized icon imports.
-- **Components Affected**: app frontend docs.
-- **Architectural Impact**: Smaller client bundle.
-- **Integration Implications**: None.
-- **Developer Experience Impact**: Easier performance tracking.
+### 2025-06-13: Integration testing guidelines
+- **Description**: Added `docs/testing/integration-guidelines.md` outlining setup and best practices for cross-app tests.
+- **Components Affected**: documentation only.
+- **Architectural Impact**: Encourages consistent test structure.
+- **Integration Implications**: Establishes a baseline for future integration tests.
+- **Developer Experience Impact**: Simplifies onboarding for writing tests.
 
 ### 2025-06-12: Automated bundle size check
 - **Description**: Added `scripts/check-bundle-size.js` and `bundle:check` script to enforce the 500KB limit.
@@ -15,6 +15,13 @@
 - **Architectural Impact**: Encourages consistent performance checks.
 - **Integration Implications**: None.
 - **Developer Experience Impact**: Faster feedback on bundle sizes.
+
+### 2025-06-10: Bundle size monitoring added
+- **Description**: Documented bundle analysis workflow and optimized icon imports.
+- **Components Affected**: app frontend docs.
+- **Architectural Impact**: Smaller client bundle.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Easier performance tracking.
 
 ### 2025-06-05: Reverted integration test framework
 - **Description**: Removed `@repo/integration-tests` package per updated priorities.
