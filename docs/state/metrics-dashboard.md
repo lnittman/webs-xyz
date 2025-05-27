@@ -50,7 +50,7 @@ pie title Recommendation Outcomes (Last 20)
 | Recommendation | Implemented | Expected Impact | Actual Impact |
 |----------------|-------------|-----------------|---------------|
 | Doc expansion | 2025-05-25 | Better onboarding | TBD |
-| Add integration tests | Pending | Higher reliability | - |
+| Integration tests deferred | Deferred | N/A | N/A |
 
 ## Development Activity Metrics
 

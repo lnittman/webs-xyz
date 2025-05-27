@@ -149,28 +149,21 @@ Dashboard moving toward widget-based layout allowing easier feature additions.
 
 ## Prioritized Recommendations
 
-### Critical (Do Now)
-1. **Implement Integration Testing Framework**
-   - Impact: Prevent regressions across apps
-   - Effort: Medium
-   - Risk: Low
-   - Success Metrics: Passing test suite for core flows
-
 ### High Priority (Next Sprint)
-2. **Monitor bundle size and optimize imports**
+1. **Monitor bundle size and optimize imports**
    - Impact: Maintain fast load times
    - Effort: Medium
    - Risk: Medium
    - Success Metrics: Bundle size under 500KB
 
 ### Medium Priority (Next Month)
-3. **Introduce message queue for AI jobs**
+2. **Introduce message queue for AI jobs**
    - Impact: Handles heavy workloads asynchronously
    - Effort: Medium
    - Dependencies: Selection of queue provider
 
 ### Future Considerations
-4. **Explore micro-frontend approach**
+3. **Explore micro-frontend approach**
    - Rationale: Potential for independent deployments
    - Prerequisites: Shared auth/session handling
 
@@ -179,13 +172,12 @@ Dashboard moving toward widget-based layout allowing easier feature additions.
 ### Metrics to Track
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Integration tests | 0 | 80% coverage | 2 months |
 | Bundle size | 540KB | <500KB | 1 month |
 | Doc coverage | 77% | 85% | 1 month |
 
 ### Progress Tracking
 - Next review scheduled: 2025-06-30
-- Key milestones: integration tests, bundle optimizations
+- Key milestones: finalize core app features, bundle optimizations
 - Success criteria: docs up to date, tests passing
 
 ## Meta: Assessment Quality

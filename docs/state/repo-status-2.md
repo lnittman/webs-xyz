@@ -143,22 +143,16 @@ Design system adoption is accelerating; apps increasingly rely on shared compone
 
 ## Prioritized Recommendations
 
-### Critical (Do Now)
-1. **Establish Integration Testing Framework**
-   - Impact: Prevent regressions across apps
-   - Effort: Medium
-   - Risk: Low
-   - Success Metrics: Passing test suite for core flows
 
 ### High Priority (Next Sprint)
-2. **Implement Message Queue for AI Jobs**
+1. **Implement Message Queue for AI Jobs**
    - Impact: Handles heavy workloads asynchronously
    - Effort: Medium
    - Risk: Medium
    - Success Metrics: Queue processes 95% jobs within SLA
 
 ### Medium Priority (Next Month)
-3. **Consolidate Environment Docs**
+2. **Consolidate Environment Docs**
    - Impact: Smoother onboarding
    - Effort: Low
    - Dependencies: None
@@ -173,13 +167,12 @@ Design system adoption is accelerating; apps increasingly rely on shared compone
 ### Metrics to Track
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Integration tests | 0 | 80% coverage | 2 months |
 | Queue throughput | N/A | 90% within SLA | 3 months |
 | Doc coverage | 75% | 85% | 1 month |
 
 ### Progress Tracking
 - Next review scheduled: 2025-06-25
-- Key milestones: queue implementation, integration tests
+- Key milestones: finalize core app features, queue implementation
 - Success criteria: docs up to date, tests passing
 
 ## Meta: Assessment Quality
