@@ -101,7 +101,7 @@
 - Current implementation status: Basic agent working via API trigger.
 - Design approach: Mastra agent with memory store.
 - Implementation challenges: Handling large content and asynchronous processing.
-- Integration considerations: Possibly move to queue-based workflow in future.
+- Integration considerations: Mastra handles async work; no additional queue needed.
 
 ### 2025-05-25: Expanded Browser Tabs Modal
 - **Type**: Feature

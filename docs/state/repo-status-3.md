@@ -48,7 +48,7 @@ graph LR
 ### Top Concerns Requiring Attention
 1. Bundle size growth in the app dashboard (risk: slower loads)
 2. Lack of automated integration tests
-3. Pending decision on queue system for AI tasks
+3. Pending decision on Mastra service scaling
 
 ## Module Integration Analysis
 
@@ -56,7 +56,7 @@ graph LR
 | Component | Integration Score | Issues | Recommendations |
 |-----------|------------------|--------|-----------------|
 | app ↔ api | 8/10 | 1 | Monitor dashboard API latency |
-| app ↔ ai  | 6/10 | 2 | Queue heavy summarization jobs |
+| app ↔ ai  | 6/10 | 2 | Leverage Mastra for heavy summarization jobs |
 | api ↔ email | 7/10 | 0 | Document new feedback emails |
 
 ### Apps Integration
@@ -157,10 +157,10 @@ Dashboard moving toward widget-based layout allowing easier feature additions.
    - Success Metrics: Bundle size under 500KB
 
 ### Medium Priority (Next Month)
-2. **Introduce message queue for AI jobs**
+2. **Use Mastra queue for AI jobs**
    - Impact: Handles heavy workloads asynchronously
    - Effort: Medium
-   - Dependencies: Selection of queue provider
+   - Dependencies: Follow Mastra docs
 
 ### Future Considerations
 3. **Explore micro-frontend approach**

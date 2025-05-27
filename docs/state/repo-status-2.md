@@ -42,7 +42,7 @@ graph LR
 
 ### Top Concerns Requiring Attention
 1. Lack of automated integration tests (risk: regression bugs)
-2. Need for message queue to offload heavy AI tasks
+2. Mastra handles heavy AI tasks with its built-in queue
 3. Maintain consistency as design system evolves
 
 ## Module Integration Analysis
@@ -50,7 +50,7 @@ graph LR
 ### Integration Health Matrix
 | Component | Integration Score | Issues | Recommendations |
 |-----------|------------------|--------|-----------------|
-| app ↔ api | 8/10 | 1 | High priority queue for AI jobs |
+| app ↔ api | 8/10 | 1 | Leverage Mastra queue for AI jobs |
 | app ↔ ai  | 6/10 | 2 | Add retry logic |
 | api ↔ email | 7/10 | 0 | Document webhook flows |
 
@@ -97,7 +97,7 @@ graph TD
 |--------|-------|-------|-------|
 | Modularity | 7/10 | → | Packages well separated |
 | Consistency | 7/10 | ↑ | Docs unified |
-| Scalability | 6/10 | → | Lacks queue infrastructure |
+| Scalability | 6/10 | → | Mastra queue covers asynchronous scaling |
 | Maintainability | 7/10 | ↑ | Docs improve clarity |
 
 ### Architectural Patterns
@@ -167,12 +167,12 @@ Design system adoption is accelerating; apps increasingly rely on shared compone
 ### Metrics to Track
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Queue throughput | N/A | 90% within SLA | 3 months |
+| Mastra job throughput | N/A | 90% within SLA | 3 months |
 | Doc coverage | 75% | 85% | 1 month |
 
 ### Progress Tracking
 - Next review scheduled: 2025-06-25
-- Key milestones: finalize core app features, queue implementation
+- Key milestones: finalize core app features, Mastra integration
 - Success criteria: docs up to date, tests passing
 
 ## Meta: Assessment Quality

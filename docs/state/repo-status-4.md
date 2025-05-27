@@ -15,7 +15,7 @@
   - Implemented dynamic loading for BrowserTabsModal to keep the client chunk small
 - **Deferred Recommendations**:
   - Integration test suite implementation
-  - Message queue for AI workflows
+  - Mastra built-in queue handles AI workflows
 - **New Issues Discovered**:
   - None
 - **Architectural Improvements**:
@@ -51,7 +51,7 @@ graph LR
 ### Top Concerns Requiring Attention
 1. Integration testing framework still missing
 2. Bundle size growth after dashboard features
-3. Awaiting decision on queue system for AI tasks
+3. Awaiting decision on Mastra service scaling
 
 ## Module Integration Analysis
 
@@ -59,7 +59,7 @@ graph LR
 | Component | Integration Score | Issues | Recommendations |
 |-----------|------------------|--------|-----------------|
 | app ↔ api | 8/10 | 1 | Monitor dashboard API latency |
-| app ↔ ai  | 6/10 | 2 | Queue heavy summarization jobs |
+| app ↔ ai  | 6/10 | 2 | Leverage Mastra for heavy summarization jobs |
 | api ↔ email | 7/10 | 0 | Document new feedback emails |
 
 ### Apps Integration
@@ -160,10 +160,10 @@ No major architectural shifts since last entry. Focus remains on stabilizing cur
    - Outcome: Dynamic loading implemented for BrowserTabsModal. Future sprints will focus on functional features across apps.
 
 ### Medium Priority (Next Month)
-2. **Introduce message queue for AI jobs**
+2. **Use Mastra queue for AI jobs**
    - Impact: Handles heavy workloads asynchronously
    - Effort: Medium
-   - Dependencies: Selection of queue provider
+   - Dependencies: Follow Mastra docs
 
 ### Future Considerations
 3. **Explore micro-frontend approach**
