@@ -13,7 +13,8 @@
     "bump-deps": "npx npm-check-updates --deep -u -x react-day-picker",
     "bump-ui": "npx shadcn@latest add --all --overwrite -c packages/design",
     "migrate": "cd packages/database && npx prisma format && npx prisma generate && npx prisma db push",
-    "clean": "git clean -xdf node_modules"
+    "clean": "git clean -xdf node_modules",
+    "bundle:check": "pnpm --filter app analyze && node scripts/check-bundle-size.js"
   },
   "devDependencies": {
     "@auto-it/first-time-contributor": "^11.3.0",
