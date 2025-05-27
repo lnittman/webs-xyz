@@ -7,7 +7,12 @@ import { Plus, Pulse, Eye, Question } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ContextBar } from './context-bar';
 import { SyntaxHighlightedTextarea } from './syntax-highlighted-textarea';
-import { BrowserTabsModal } from './browser-tabs-modal';
+import dynamic from 'next/dynamic';
+// Load the modal only when opened to keep the initial bundle small
+const BrowserTabsModal = dynamic(
+  () => import('./browser-tabs-modal').then(m => m.BrowserTabsModal),
+  { ssr: false }
+);
 import { useModals } from '@repo/design/sacred';
 import {
   inputTextAtom,

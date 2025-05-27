@@ -1,7 +1,20 @@
-<!-- Last Updated: 2025-06-20 -->
+<!-- Last Updated: 2025-06-28 -->
 # Development Log
 
 ## Recent Significant Changes
+### 2025-06-27: Lazy-load BrowserTabsModal
+- **Description**: Converted the browser tabs modal to a dynamic import to reduce the initial bundle size.
+- **Components Affected**: prompt-bar component and workflow docs.
+- **Architectural Impact**: Smaller client chunk on first load.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Faster initial rendering.
+
+### 2025-06-28: Shift focus to feature work
+- **Description**: Documented completion of bundle optimization tasks and updated workflows to emphasize functional improvements across apps.
+- **Components Affected**: documentation only.
+- **Architectural Impact**: None.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Encourages development of new features.
 ### 2025-06-20: CI bundle size check
 - **Description**: Added GitHub Actions workflow `bundle-size.yml` to fail PRs when `pnpm bundle:check` exceeds 500KB.
 - **Components Affected**: CI configuration and docs.
