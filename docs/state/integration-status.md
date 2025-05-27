@@ -19,7 +19,7 @@
 - **Integration points and mechanisms**: `api` triggers AI agents via HTTP requests or shared database.
 - **Data sharing approaches**: API posts URLs or prompts, AI returns summaries.
 - **Communication patterns**: Synchronous calls for summarization; asynchronous webhooks possible.
-- **Integration quality assessment**: Basic but functional; could use message queue for scaling.
+- **Integration quality assessment**: Basic but functional; Mastra provides built-in queueing, so no extra infrastructure is required.
 - **Recent changes or improvements**: None significant.
 
 ### api ↔ email
@@ -68,7 +68,7 @@
 
 ### Anti-Patterns
 - Some manual HTTP calls between apps may lack retry logic.
-- Limited use of message queues or background jobs.
+- Asynchronous tasks rely on Mastra's built-in queues.
 
 ## Data Flow Mapping
 - Users interact with `app` → `app` fetches `api` → `api` triggers `ai` → results stored in database.
@@ -76,10 +76,10 @@
 - Analytics events captured across apps and sent to PostHog.
 
 ## Integration Recommendations
-1. Implement message queue for heavy AI tasks
+1. Leverage Mastra's built-in queue for heavy AI tasks
    - **Current State**: `api` performs synchronous calls to AI service.
-   - **Target State**: Asynchronous processing via queue and worker.
-   - **Suggested Approach**: Use a queue like Upstash or AWS SQS.
+   - **Target State**: Offload jobs to the Mastra service; no extra workers needed.
+   - **Suggested Approach**: Follow Mastra documentation for agent workflows.
 
 ## Recent Integration Changes
 - Deprecated packages `storage` and `internationalization` removed from the codebase.
