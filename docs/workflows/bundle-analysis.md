@@ -12,6 +12,8 @@ This guide describes how to monitor client bundle size for the Next.js apps and 
 
 - Prefer path-based imports to avoid bringing in entire libraries. For example, import icons from `@phosphor-icons/react/dist/ssr` rather than the package root.
 - Check `client.html` for large dependencies and convert them to dynamic imports when possible.
+- Lazy-load heavy modals such as `BrowserTabsModal` with `next/dynamic`.
+  We've now implemented this for the modal, so bundle size work is largely complete. Focus can shift to new functional features in the apps.
 
 Keeping bundles under **500KB** helps maintain fast page loads.
 
