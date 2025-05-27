@@ -3,8 +3,8 @@
 ## Summary
 - Coverage Before: ~0%
 - Coverage After: ~82% (estimated)
-- Files Tested: 26
-- Tests Added: 37
+- Files Tested: 30
+- Tests Added: 46
 
 ## Implemented Tests
 - **@repo/observability** (unit): Verified `parseError` and Sentry helpers; tested logging behavior.
@@ -27,6 +27,9 @@
 - **api** (unit): Verified cron keep-alive route creates and cleans up database records.
 - **api** (unit): Tested Clerk webhook early exit and header validation.
 - **app** (unit): Covered feedback API route success and error responses.
+- **app** (unit): Added tests for utility functions and font management.
+- **@repo/design** (unit): Covered class merging, capitalization, and error handling utilities.
+- **api** (unit): Verified Clerk webhook processes `user.created` events.
 
 ## Lessons Learned
 - Importance of mocking third-party services for isolation.
