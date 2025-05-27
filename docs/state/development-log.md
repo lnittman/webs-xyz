@@ -1,7 +1,14 @@
-<!-- Last Updated: 2025-06-05 -->
+<!-- Last Updated: 2025-06-10 -->
 # Development Log
 
 ## Recent Significant Changes
+### 2025-06-10: Bundle size monitoring added
+- **Description**: Documented bundle analysis workflow and optimized icon imports.
+- **Components Affected**: app frontend docs.
+- **Architectural Impact**: Smaller client bundle.
+- **Integration Implications**: None.
+- **Developer Experience Impact**: Easier performance tracking.
+
 ### 2025-06-05: Reverted integration test framework
 - **Description**: Removed `@repo/integration-tests` package per updated priorities.
 - **Components Affected**: none; package deleted.

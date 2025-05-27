@@ -10,3 +10,6 @@
 
 ## Deployment
 Deployment is handled via Vercel for apps. The AI app uses Mastra's deployer.
+
+## Bundle Analysis
+See [bundle-analysis.md](./bundle-analysis.md) for steps to inspect client bundle sizes and optimize imports.
