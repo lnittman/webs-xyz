@@ -2,7 +2,18 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChatCircle, X, PaperPlaneTilt, CaretDown, Check, Smiley, Bug, Sparkle, Gauge, ChatText } from "@phosphor-icons/react";
+import {
+  ChatCircle,
+  X,
+  PaperPlaneTilt,
+  CaretDown,
+  Check,
+  Smiley,
+  Bug,
+  Sparkle,
+  Gauge,
+  ChatText,
+} from "@phosphor-icons/react/dist/ssr";
 import {
     DropdownMenu,
     DropdownMenuContent,

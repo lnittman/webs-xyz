@@ -3,7 +3,19 @@
 import React, { useState } from "react";
 
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
-import { SignOut, Gear, Moon, Sun, Desktop, House, Users, Command, Palette, CaretUpDown, Plus } from "@phosphor-icons/react";
+import {
+  SignOut,
+  Gear,
+  Moon,
+  Sun,
+  Desktop,
+  House,
+  Users,
+  Command,
+  Palette,
+  CaretUpDown,
+  Plus,
+} from "@phosphor-icons/react/dist/ssr";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useTransitionRouter } from "next-view-transitions";
