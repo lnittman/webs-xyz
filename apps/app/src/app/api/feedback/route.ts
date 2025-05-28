@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createFeedback, listFeedback } from '@/lib/api/services/feedback';
+import { success, created, error as errorResponse } from '@/lib/api/response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,13 +8,10 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent');
     const referer = request.headers.get('referer');
     const feedback = await createFeedback({ ...body, userAgent, url: referer });
-    return NextResponse.json(
-      { success: true, id: feedback.id, message: 'Feedback submitted successfully' },
-      { status: 201 },
-    );
+    return created({ id: feedback.id, message: 'Feedback submitted successfully' });
   } catch (error) {
     console.error('Error submitting feedback:', error);
-    return NextResponse.json({ error: 'Failed to submit feedback' }, { status: 500 });
+    return errorResponse('Failed to submit feedback');
   }
 }
 
@@ -25,9 +23,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
     const result = await listFeedback({ topic, status, limit, offset });
-    return NextResponse.json({ ...result, hasMore: offset + limit < result.total });
+    return success({ ...result, hasMore: offset + limit < result.total });
   } catch (error) {
     console.error('Error fetching feedback:', error);
-    return NextResponse.json({ error: 'Failed to fetch feedback' }, { status: 500 });
+    return errorResponse('Failed to fetch feedback');
   }
 }
