@@ -1,6 +1,6 @@
 # API App Docs
 
-This folder holds detailed information about API routes, middleware and integrations.
+This folder contains documentation for cron and webhook endpoints used by other services.
 
-- `architecture.md` – describe folder structure.
+- `architecture.md` – explains the minimal structure for cron and webhook routes.
 - `examples/` – request/response examples.
