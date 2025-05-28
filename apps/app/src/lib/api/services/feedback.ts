@@ -1,16 +1,11 @@
 import { database } from '@repo/database';
-import { z } from 'zod';
+import { feedbackSchema, type FeedbackInput } from '../schemas/feedback';
 
-export const feedbackSchema = z.object({
-  topic: z.enum(['BUG', 'FEATURE', 'UI', 'PERFORMANCE', 'GENERAL']),
-  message: z.string(),
-  userAgent: z.string().nullable(),
-  url: z.string().url().nullable(),
-  userId: z.string().nullable(),
-  status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']).optional(),
-});
-
-export type Feedback = z.infer<typeof feedbackSchema> & { id: string; createdAt: string; updatedAt: string };
+export type Feedback = FeedbackInput & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export async function createFeedback(input: unknown): Promise<Feedback> {
   const data = feedbackSchema.parse(input);
