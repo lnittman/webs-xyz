@@ -32,4 +32,4 @@ No tests should be executed automatically. To run tests manually use `pnpm --fil
 - `packages/*` – shared libraries.
 
 ## Integration Points
-Apps consume shared packages via workspace protocol. The `api` app exposes endpoints consumed by the `app` frontend. The `ai` app handles AI workflows using Mastra. Common utilities like logging or authentication are imported from packages.
+Apps consume shared packages via workspace protocol. Frontend APIs now live in the `app` app under `src/app/api`. The `api` app is limited to cron jobs and webhooks. The `ai` app handles AI workflows using Mastra. Common utilities like logging or authentication are imported from packages.

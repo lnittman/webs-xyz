@@ -1,7 +1,7 @@
 # AGENTS - API App
 
 ## Overview
-This Next.js application exposes the backend API used by other apps. It handles user data, authentication, and external integrations.
+This Next.js application is reserved for cron jobs and inbound/outbound webhooks. Business APIs for the frontend live in `apps/app`.
 
 ## Dev Environment
 - Start the dev server: `pnpm --filter api dev` (port 3002).
@@ -12,14 +12,14 @@ This Next.js application exposes the backend API used by other apps. It handles 
 Use `pnpm --filter api test` to run unit tests with Vitest when needed.
 
 ## Code Standards
-Follow Next.js 15 conventions. API routes live in `app/api`.
+Follow Next.js 15 conventions. Only cron and webhook routes reside under `app/`.
 
 ## PR Instructions
-Update API documentation under `apps/api/docs` when endpoints change. Ensure new endpoints have typed `zod` schemas.
+Document any new webhook or cron endpoints in `apps/api/docs`. Ensure handlers validate payloads with `zod`.
 
 ## Key Files
-- `app/` – Next.js route handlers.
+- `app/` – Route handlers for cron and webhooks.
 - `instrumentation.ts` – Sentry instrumentation.
 
 ## Integration Points
-The API app connects to the database, authentication, and other packages. Frontend and AI apps communicate with it via HTTP.
+The API app triggers jobs and external integrations. Other apps call these endpoints only for background tasks.
