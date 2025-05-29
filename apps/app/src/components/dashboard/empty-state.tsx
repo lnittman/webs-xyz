@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Empty } from "@phosphor-icons/react/dist/ssr";
+import Balancer from "react-wrap-balancer";
 
 export function EmptyState() {
     return (
@@ -13,12 +14,11 @@ export function EmptyState() {
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <h3 className="text-lg font-medium text-foreground">
-                        Ready to analyze your first web?
-                    </h3>
+                <div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                        Enter a URL above to create your first web and start analyzing content.
+                        <Balancer>
+                            Enter a URL above to create your first web and start analyzing content.
+                        </Balancer>
                     </p>
                 </div>
             </div>

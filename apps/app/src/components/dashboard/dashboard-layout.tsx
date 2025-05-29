@@ -22,8 +22,10 @@ export function DashboardLayout({
     topDomains,
     selectedModelId
 }: DashboardLayoutProps) {
+    const processingCount = activities.length;
+
     return (
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
             {/* Collapsible section for non-wide layouts - COMMENTED OUT */}
             {/* <div className="block 2xl:hidden">
                 <CollapsiblePreviewSection
@@ -34,44 +36,47 @@ export function DashboardLayout({
                 />
             </div> */}
 
-            <div>
+            <div className="flex-1 flex flex-col">
                 {/* Wide layout (1400px+) - 3 column with context sidebar */}
-                <div className="hidden 2xl:block">
-                    <div className="w-full flex justify-center">
-                        <div className="w-full max-w-4xl px-6">
+                <div className="hidden 2xl:block flex-1">
+                    <div className="w-full flex justify-center h-full">
+                        <div className="w-full max-w-4xl px-6 flex flex-col">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}
                                 onClearSearch={onClearSearch}
                                 layout="wide"
+                                processingCount={processingCount}
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Desktop layout (768px - 1399px) - Centered grid */}
-                <div className="hidden md:block 2xl:hidden">
-                    <div className="w-full flex justify-center">
-                        <div className="w-full max-w-4xl px-6">
+                <div className="hidden md:block 2xl:hidden flex-1">
+                    <div className="w-full flex justify-center h-full">
+                        <div className="w-full max-w-4xl px-6 flex flex-col">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}
                                 onClearSearch={onClearSearch}
                                 layout="desktop"
+                                processingCount={processingCount}
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Mobile layout (< 768px) - List view */}
-                <div className="block md:hidden">
-                    <div className="w-full flex justify-center">
-                        <div className="w-full max-w-4xl px-6">
+                <div className="block md:hidden flex-1">
+                    <div className="w-full flex justify-center h-full">
+                        <div className="w-full max-w-4xl px-6 flex flex-col">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}
                                 onClearSearch={onClearSearch}
                                 layout="mobile"
+                                processingCount={processingCount}
                             />
                         </div>
                     </div>

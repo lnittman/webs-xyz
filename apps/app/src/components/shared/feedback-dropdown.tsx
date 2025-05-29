@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChatCircle,
   X,
   PaperPlaneTilt,
   CaretDown,
@@ -94,7 +93,6 @@ export function FeedbackDropdown({ className }: FeedbackDropdownProps) {
                         className
                     )}
                 >
-                    <ChatCircle size={16} weight="duotone" />
                     <span>Feedback</span>
                 </button>
             </DropdownMenuTrigger>
@@ -135,9 +133,6 @@ export function FeedbackDropdown({ className }: FeedbackDropdownProps) {
                                 <div className="p-4 space-y-4">
                                     {/* Topic Selection */}
                                     <div className="space-y-2">
-                                        <label className="text-xs text-muted-foreground font-medium font-mono">
-                                            Select a topic
-                                        </label>
                                         <div className="relative">
                                             <button
                                                 type="button"
@@ -198,9 +193,6 @@ export function FeedbackDropdown({ className }: FeedbackDropdownProps) {
 
                                     {/* Feedback Text */}
                                     <div className="space-y-2">
-                                        <label className="text-xs text-muted-foreground font-medium font-mono">
-                                            Your feedback
-                                        </label>
                                         <textarea
                                             value={feedback}
                                             onChange={(e) => setFeedback(e.target.value)}

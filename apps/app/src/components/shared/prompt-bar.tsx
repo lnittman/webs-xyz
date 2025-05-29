@@ -16,6 +16,7 @@ import { UrlInput } from './url-input';
 import { Button } from '@repo/design/components/ui/button';
 import { useModals } from '@repo/design/sacred';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ScrollFadeContainer } from './scroll-fade-container';
 
 // Load the modal only when opened to keep the initial bundle small
 const BrowserTabsModal = dynamic(
@@ -195,10 +196,13 @@ export function PromptBar({
       </div>
 
       {/* Main content area with URL tiles */}
-      <div className="px-4 py-3">
-        <div
-          className="flex gap-3 overflow-x-auto scrollbar-hide relative"
-          style={{ height: '48px' }}
+      <div className="p-2">
+        <ScrollFadeContainer
+          showLeft
+          showRight
+          fadeSize={24}
+          className="h-12"
+          scrollableClassName="flex gap-3 overflow-x-auto scrollbar-hide"
         >
           <AnimatePresence mode="wait">
             {stableUrls.length > 0 ? (
@@ -262,7 +266,7 @@ export function PromptBar({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </ScrollFadeContainer>
       </div>
 
       {/* Bottom bar with model picker and submit button */}

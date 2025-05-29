@@ -73,17 +73,6 @@
   </methodology>
 
   <tools>
-    <!-- Include Firecrawl MCP tools -->
-    <include path="{{toolsDir}}/mcp/firecrawl/instructions.xml" />
-    
-    <!-- Include Gmail MCP tools -->
-    <include path="{{toolsDir}}/mcp/gmail/instructions.xml" />
-    
-    <!-- Include Sequential Thinking MCP tools -->
-    <include path="{{toolsDir}}/mcp/sequential-thinking/instructions.xml" />
-    
-    <!-- Include GitHub MCP tools -->
-    <!-- <include path="{{toolsDir}}/mcp/github/instructions.xml" /> -->
   </tools>
 
   <guidelines>

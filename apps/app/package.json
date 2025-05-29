@@ -38,6 +38,7 @@
     "next-view-transitions": "^0.3.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-wrap-balancer": "^1.1.1",
     "require-in-the-middle": "^7.5.2",
     "sign-up": "link:@clerk/elements/sign-up",
     "sign-up@latest": "link:@clerk/elements/sign-up@latest",

@@ -4,35 +4,135 @@ import { TABLE_EVALS } from '@mastra/core/storage';
 import { checkEvalStorageFields } from '@mastra/core/utils';
 import { Mastra, Telemetry } from '@mastra/core';
 import { createLogger } from '@mastra/core/logger';
-import { LibSQLStore } from '@mastra/libsql';
+import { PostgresStore } from '@mastra/pg';
+import { Agent } from '@mastra/core/agent';
+import { Memory } from '@mastra/memory';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { existsSync, readFileSync, createReadStream, lstatSync } from 'fs';
+import path from 'path';
 import crypto, { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
 import { join } from 'path/posix';
 import { createServer } from 'http';
 import { Http2ServerRequest } from 'http2';
 import { Readable } from 'stream';
-import { createReadStream, lstatSync } from 'fs';
 import { RuntimeContext } from '@mastra/core/runtime-context';
 import { Readable as Readable$1, Writable } from 'node:stream';
 import util from 'node:util';
 import { Buffer as Buffer$1 } from 'node:buffer';
-import { Agent } from '@mastra/core/agent';
 import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import { A2AError } from '@mastra/core/a2a';
 import { RuntimeContext as RuntimeContext$1 } from '@mastra/core/di';
 import { isVercelTool } from '@mastra/core/tools';
 import { ReadableStream as ReadableStream$1 } from 'node:stream/web';
 
-const mastra = new Mastra({
-  agents: {},
-  // Define agents if needed for other tasks
-  logger: createLogger({
-    name: "webs-ai",
-    level: "info"
-  }),
-  storage: new LibSQLStore({
-    url: "file:../mastra.db"
+function loadPrompt(relativePath, fallback = "", variables = {}) {
+  try {
+    let xmlPath = path.join(process.cwd(), "src/mastra", relativePath);
+    if (!existsSync(xmlPath)) {
+      xmlPath = path.join(process.cwd(), "../../src/mastra", relativePath);
+    }
+    if (!existsSync(xmlPath)) {
+      const dirPath = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+      xmlPath = path.join(dirPath, "..", relativePath);
+    }
+    if (!existsSync(xmlPath)) {
+      const dirPath = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+      xmlPath = path.join(dirPath, "../..", relativePath);
+    }
+    if (!existsSync(xmlPath)) {
+      console.error(`[loadPrompt] XML file not found at any location: ${relativePath}`);
+      console.error(`[loadPrompt] - Tried: ${process.cwd()}/src/mastra/${relativePath}`);
+      console.error(`[loadPrompt] - Tried: ${process.cwd()}/../../src/mastra/${relativePath}`);
+      const dirPath = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+      console.error(`[loadPrompt] - Tried: ${dirPath}/../${relativePath}`);
+      console.error(`[loadPrompt] - Tried: ${dirPath}/../../${relativePath}`);
+      return fallback;
+    }
+    let template = readFileSync(xmlPath, "utf-8");
+    console.log(`Loaded template from: ${xmlPath} (${template.length} chars)`);
+    template = processIncludes(template, variables);
+    return template;
+  } catch (error) {
+    console.error(`Failed to load ${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
+    return fallback;
+  }
+}
+function processIncludes(template, variables = {}) {
+  const includeRegex = /<include\s+path="([^"]+)"\s*\/>/g;
+  return template.replace(includeRegex, (match, includePath) => {
+    try {
+      const processedPath = applyPathVariables(includePath, variables);
+      const possiblePaths = [
+        path.join(process.cwd(), "src/mastra", processedPath),
+        path.join(process.cwd(), "../../src/mastra", processedPath)
+      ];
+      const dirPath = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+      possiblePaths.push(path.join(dirPath, "..", processedPath));
+      possiblePaths.push(path.join(dirPath, "../..", processedPath));
+      for (const p of possiblePaths) {
+        if (existsSync(p)) {
+          const includedContent = readFileSync(p, "utf-8");
+          console.log(`Included content from: ${p} (${includedContent.length} chars)`);
+          const contentMatch = includedContent.match(/<[^>]+>([\s\S]*)<\/[^>]+>/);
+          if (contentMatch && contentMatch[1]) {
+            return contentMatch[1].trim();
+          }
+          return includedContent;
+        }
+      }
+      console.error(`[processIncludes] Included file not found: ${processedPath} (original: ${includePath})`);
+      console.error(`[processIncludes] - Tried: ${possiblePaths.join("\n  - ")}`);
+      return `<!-- Include failed: File not found: ${processedPath} -->`;
+    } catch (error) {
+      console.error(`Failed to process include for ${includePath}: ${error instanceof Error ? error.message : String(error)}`);
+      return `<!-- Include failed: ${error instanceof Error ? error.message : String(error)} -->`;
+    }
+  });
+}
+function applyPathVariables(pathString, variables = {}) {
+  let result = pathString;
+  for (const [key, value] of Object.entries(variables)) {
+    const placeholder = new RegExp(`{{${key}}}`, "g");
+    result = result.replace(placeholder, value);
+  }
+  return result;
+}
+
+const openRouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY
+});
+const prompt = loadPrompt("agents/chat/prompt.xml", "", {
+  toolsDir: "tools",
+  rootDir: process.cwd()
+});
+const chatAgent = new Agent({
+  name: "chat",
+  instructions: prompt,
+  model: openRouter("anthropic/claude-3.7-sonnet"),
+  memory: new Memory({
+    options: {
+      semanticRecall: false
+    }
   })
+});
+
+const logger$1 = createLogger({
+  name: "mastra",
+  level: "info"
+});
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/webs_memory";
+const mastra = new Mastra({
+  agents: {
+    chat: chatAgent
+  },
+  logger: logger$1,
+  storage: new PostgresStore({
+    connectionString
+  }),
+  telemetry: {
+    enabled: false
+  }
 });
 
 // src/utils/filepath.ts

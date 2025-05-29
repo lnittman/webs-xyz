@@ -11,9 +11,10 @@ interface WebsGridProps {
     searchQuery: string;
     onClearSearch: () => void;
     layout: 'wide' | 'desktop' | 'mobile';
+    processingCount?: number;
 }
 
-export function WebsGrid({ webs, searchQuery, onClearSearch, layout }: WebsGridProps) {
+export function WebsGrid({ webs, searchQuery, onClearSearch, layout, processingCount = 0 }: WebsGridProps) {
     const [viewMode] = useAtom(viewModeAtom);
 
     const fadeTransition = {
@@ -37,7 +38,8 @@ export function WebsGrid({ webs, searchQuery, onClearSearch, layout }: WebsGridP
                 <motion.div
                     key="search-empty"
                     {...emptyStateTransition}
-                    className="flex items-center justify-center py-16"
+                    className="flex items-center justify-center flex-grow"
+                    style={{ minHeight: '60vh' }}
                 >
                     <SearchEmptyState searchQuery={searchQuery} onClearSearch={onClearSearch} />
                 </motion.div>
@@ -52,7 +54,8 @@ export function WebsGrid({ webs, searchQuery, onClearSearch, layout }: WebsGridP
                 <motion.div
                     key="empty"
                     {...emptyStateTransition}
-                    className="flex items-center justify-center py-16"
+                    className="flex items-center justify-center flex-grow"
+                    style={{ minHeight: '60vh' }}
                 >
                     <EmptyState />
                 </motion.div>
