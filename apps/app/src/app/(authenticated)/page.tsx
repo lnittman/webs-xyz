@@ -42,8 +42,8 @@ export default function RootPage() {
   return (
     <Dashboard
       webs={webs}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
       onModelChange={handleModelChange}
       selectedModelId={selectedModelId}
     />

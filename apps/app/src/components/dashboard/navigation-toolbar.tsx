@@ -19,7 +19,7 @@ export function NavigationToolbar({ resultsCount, processingCount }: NavigationT
             processingCount > 0 ? "top-[113px]" : "top-14"
         )}>
             <div className="w-full flex justify-center">
-                <div className="w-full max-w-3xl px-6">
+                <div className="w-full max-w-4xl px-6">
                     <div className="flex h-14 items-center justify-between gap-4">
                         {/* Left section - Search */}
                         <div className="flex-1 max-w-md">

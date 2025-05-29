@@ -73,7 +73,7 @@ export function Dashboard({
             {/* Command interface */}
             <div className="bg-card/50 border-b border-border">
                 <div className="w-full flex justify-center">
-                    <div className="w-full max-w-3xl px-6 py-4">
+                    <div className="w-full max-w-4xl px-6 py-4">
                         <PromptBar
                             onSubmit={onSubmit}
                             isSubmitting={isSubmitting}
@@ -81,7 +81,6 @@ export function Dashboard({
                             onFocusChange={setIsPromptFocused}
                             selectedModelId={selectedModelId}
                             onModelChange={onModelChange}
-                            placeholder="https://example.com [optional: summarize the main points]"
                         />
                     </div>
                 </div>

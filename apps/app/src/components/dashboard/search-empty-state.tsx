@@ -1,4 +1,4 @@
-import { MagnifyingGlass } from '@phosphor-icons/react/dist/ssr';
+import { Empty } from '@phosphor-icons/react/dist/ssr';
 
 interface SearchEmptyStateProps {
     searchQuery: string;
@@ -9,7 +9,11 @@ export function SearchEmptyState({ searchQuery, onClearSearch }: SearchEmptyStat
     return (
         <div className="flex items-center justify-center py-32">
             <div className="text-center max-w-md">
-                <MagnifyingGlass size={48} weight="duotone" className="mx-auto mb-6 text-muted-foreground" />
+                <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center">
+                        <Empty size={32} weight="duotone" className="text-muted-foreground/60" />
+                    </div>
+                </div>
                 <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                     No webs found for <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">"{searchQuery}"</span>
                 </p>

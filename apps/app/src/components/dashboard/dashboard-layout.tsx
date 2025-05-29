@@ -38,7 +38,7 @@ export function DashboardLayout({
                 {/* Wide layout (1400px+) - 3 column with context sidebar */}
                 <div className="hidden 2xl:block">
                     <div className="w-full flex justify-center">
-                        <div className="w-full max-w-3xl px-6">
+                        <div className="w-full max-w-4xl px-6">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}
@@ -52,7 +52,7 @@ export function DashboardLayout({
                 {/* Desktop layout (768px - 1399px) - Centered grid */}
                 <div className="hidden md:block 2xl:hidden">
                     <div className="w-full flex justify-center">
-                        <div className="w-full max-w-3xl px-6">
+                        <div className="w-full max-w-4xl px-6">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}
@@ -66,7 +66,7 @@ export function DashboardLayout({
                 {/* Mobile layout (< 768px) - List view */}
                 <div className="block md:hidden">
                     <div className="w-full flex justify-center">
-                        <div className="w-full max-w-3xl px-6">
+                        <div className="w-full max-w-4xl px-6">
                             <WebsGrid
                                 webs={webs}
                                 searchQuery={searchQuery}

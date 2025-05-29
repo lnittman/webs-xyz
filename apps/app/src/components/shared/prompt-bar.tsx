@@ -1,24 +1,27 @@
 'use client';
 
-import { useState, KeyboardEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { cn } from '@repo/design/lib/utils';
-import { Plus, Pulse, Eye, Question } from '@phosphor-icons/react/dist/ssr';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ContextBar } from './context-bar';
-import { SyntaxHighlightedTextarea } from './syntax-highlighted-textarea';
+import { Plus, ArrowUp, SpinnerGap, ArrowSquareOut, X, Globe } from '@phosphor-icons/react/dist/ssr';
 import dynamic from 'next/dynamic';
+import {
+  inputTextAtom,
+  hasUrlsAtom,
+  updateStableUrlsAtom,
+  stableUrlsAtom
+} from '@/atoms/urls';
+import { ModelPicker } from './model-picker';
+import { UrlInput } from './url-input';
+import { Button } from '@repo/design/components/ui/button';
+import { useModals } from '@repo/design/sacred';
+import { AnimatePresence, motion } from 'framer-motion';
+
 // Load the modal only when opened to keep the initial bundle small
 const BrowserTabsModal = dynamic(
   () => import('./browser-tabs-modal').then(m => m.BrowserTabsModal),
   { ssr: false }
 );
-import { useModals } from '@repo/design/sacred';
-import {
-  inputTextAtom,
-  hasUrlsAtom,
-  updateStableUrlsAtom
-} from '@/atoms/urls';
 
 interface PromptBarProps {
   onSubmit: (prompt: string) => void | Promise<void>;
@@ -27,7 +30,6 @@ interface PromptBarProps {
   onFocusChange?: (focused: boolean) => void;
   selectedModelId?: string;
   onModelChange?: (modelId: string) => void;
-  placeholder?: string;
 }
 
 interface BrowserTab {
@@ -35,19 +37,6 @@ interface BrowserTab {
   title: string;
   favIconUrl?: string;
 }
-
-interface ProcessingStatus {
-  type: 'idle' | 'extracting' | 'processing' | 'summarizing' | 'complete';
-  message: string;
-  progress?: number;
-}
-
-const models = [
-  { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', short: 'C4S' },
-  { id: 'gpt-4o', name: 'GPT-4o', short: 'GP4' },
-  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', short: 'GM4' },
-  { id: 'gemini-pro', name: 'Gemini Pro', short: 'GEM' },
-];
 
 // Enhanced browser tabs detection
 async function getBrowserTabs(): Promise<BrowserTab[]> {
@@ -110,18 +99,13 @@ export function PromptBar({
   onFocusChange,
   selectedModelId = 'claude-4-sonnet',
   onModelChange,
-  placeholder = 'https://example.com [optional: summarize the main points]',
 }: PromptBarProps) {
   const [input, setInput] = useAtom(inputTextAtom);
   const [hasUrls] = useAtom(hasUrlsAtom);
   const [, updateStableUrls] = useAtom(updateStableUrlsAtom);
-
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [stableUrls] = useAtom(stableUrlsAtom);
+  const [urlInput, setUrlInput] = useState('');
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
-  const [showHelpTooltip, setShowHelpTooltip] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({ type: 'idle', message: '' });
-
-  const selectedModel = models.find(m => m.id === selectedModelId) || models[0];
   const { open } = useModals();
 
   // Load browser tabs on mount
@@ -135,61 +119,19 @@ export function PromptBar({
   }, [input, updateStableUrls]);
 
   const handleSubmit = async () => {
-    if (!input.trim() || isSubmitting) return;
-
-    // Simulate processing status updates when submitting
-    setProcessingStatus({ type: 'extracting', message: 'EXTRACTING CONTENT', progress: 25 });
-
-    const statusSequence: ProcessingStatus[] = [
-      { type: 'processing', message: 'PROCESSING CONTENT', progress: 50 },
-      { type: 'summarizing', message: 'GENERATING SUMMARY', progress: 75 },
-    ];
-
-    // Update status every 800ms
-    statusSequence.forEach((status, index) => {
-      setTimeout(() => {
-        setProcessingStatus(status);
-      }, (index + 1) * 800);
-    });
-
-    // Reset status after completion
-    setTimeout(() => {
-      setProcessingStatus({ type: 'idle', message: '' });
-    }, statusSequence.length * 800 + 1000);
+    if (!hasUrls || isSubmitting) return;
 
     try {
       await onSubmit(input.trim());
       setInput('');
-      setIsExpanded(false);
     } catch (error) {
-      setProcessingStatus({ type: 'idle', message: '' });
+      console.error('Error submitting:', error);
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-
-    if (e.key === 'Escape') {
-      e.currentTarget.blur();
-    }
-
-    // Show tab modal on Ctrl/Cmd + T
-    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
-      e.preventDefault();
-      openTabsModal();
-    }
-  };
-
-  const handleFocus = () => {
-    setIsExpanded(true);
-    onFocusChange?.(true);
-  };
-
-  const handleBlur = () => {
-    onFocusChange?.(false);
+  const handleUrlSubmit = (url: string) => {
+    const newInput = input ? `${input} ${url}` : url;
+    setInput(newInput);
   };
 
   const addTabUrl = (tab: BrowserTab) => {
@@ -210,130 +152,149 @@ export function PromptBar({
     });
   };
 
-  return (
-    <>
-      <div
-        className={cn(
-          'relative border bg-background transition-all duration-200 rounded-lg overflow-hidden',
-          isFocused ? 'border-foreground/30 shadow-sm' : 'border-border',
-          isSubmitting && 'border-blue-500/30'
-        )}
-      >
-        {/* Model selector bar */}
-        <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-b border-border">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <button
-                onMouseEnter={() => setShowHelpTooltip(true)}
-                onMouseLeave={() => setShowHelpTooltip(false)}
-                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-md hover:bg-background"
-              >
-                <Question size={14} weight="duotone" />
-              </button>
-              <AnimatePresence>
-                {showHelpTooltip && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                    className="absolute left-0 top-8 z-50 w-64 p-3 bg-popover border border-border text-xs text-popover-foreground shadow-lg rounded-lg"
-                  >
-                    Enter a URL to process. Add optional instructions after the URL. Press ENTER to submit.
-                    {browserTabs.length > 0 && (
-                      <span className="block mt-2 font-mono text-muted-foreground">⌘T for browser tabs</span>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Model
-              </span>
-              <div className="flex gap-1">
-                {models.map((model) => (
-                  <button
-                    key={model.id}
-                    onClick={() => onModelChange?.(model.id)}
-                    className={cn(
-                      'px-3 py-1.5 text-xs font-mono transition-all duration-200 rounded-md',
-                      selectedModelId === model.id
-                        ? 'bg-foreground text-background'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
-                    )}
-                  >
-                    {model.short}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+  const removeUrl = (urlId: string) => {
+    const urlToRemove = stableUrls.find(u => u.id === urlId);
+    if (urlToRemove) {
+      const newInput = input.replace(urlToRemove.url, '').trim();
+      setInput(newInput);
+    }
+  };
 
-          {/* Input status indicators */}
-          <div className="flex items-center gap-3 text-xs">
-            {browserTabs.length > 0 && (
-              <button
-                onClick={openTabsModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-background rounded-md"
-              >
-                <Plus size={12} weight="duotone" />
-                <span className="uppercase tracking-wider">Tabs</span>
-              </button>
-            )}
-            {hasUrls && (
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-green-600/10 border border-green-600/20 text-green-600 rounded-md">
-                <Eye size={12} weight="duotone" />
-                <span className="font-mono uppercase text-xs">URL</span>
-              </div>
-            )}
-          </div>
+  return (
+    <div
+      className={cn(
+        'relative border bg-background transition-all duration-200 rounded-lg z-50',
+        isFocused ? 'border-foreground/30 shadow-sm' : 'border-border',
+        isSubmitting && 'border-blue-500/30'
+      )}
+    >
+      {/* Top bar with URL input and tabs button */}
+      <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-b border-border">
+        {/* URL Input */}
+        <div className="flex-1 max-w-md">
+          <UrlInput
+            value={urlInput}
+            onChange={setUrlInput}
+            onSubmit={handleUrlSubmit}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => onFocusChange?.(false)}
+            isFocused={isFocused}
+          />
         </div>
 
-        {/* Input area with syntax highlighting */}
-        <SyntaxHighlightedTextarea
-          value={input}
-          onChange={setInput}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          disabled={isSubmitting}
-        />
-
-        {/* Bottom status bar */}
-        <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-t border-border">
-          {/* Character count and status */}
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground font-mono">
-              {input.length} chars
-            </span>
-            {processingStatus.type !== 'idle' && (
-              <div className="flex items-center gap-2">
-                <Pulse size={12} weight="duotone" className="text-blue-600 animate-pulse" />
-                <span className="text-xs text-blue-600 font-mono uppercase tracking-wider">
-                  {processingStatus.message}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Submit indicator */}
-          <motion.div
-            animate={{
-              opacity: input.trim() && !isSubmitting ? 1 : 0.5,
-            }}
-            className="flex items-center gap-2 text-xs text-muted-foreground transition-all duration-200"
+        {/* Tabs button */}
+        {browserTabs.length > 0 && (
+          <button
+            onClick={openTabsModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md border border-transparent hover:border-accent/30"
           >
-            <kbd className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono">
-              ⏎
-            </kbd>
-            <span className="font-mono uppercase tracking-wider">Submit</span>
-          </motion.div>
+            <Plus size={12} weight="duotone" />
+            <span className="uppercase tracking-wider text-xs">Tabs</span>
+          </button>
+        )}
+      </div>
+
+      {/* Main content area with URL tiles */}
+      <div className="px-4 py-3">
+        <div
+          className="flex gap-3 overflow-x-auto scrollbar-hide relative"
+          style={{ height: '48px' }}
+        >
+          <AnimatePresence mode="wait">
+            {stableUrls.length > 0 ? (
+              stableUrls.map((detectedUrl) => (
+                <motion.div
+                  key={detectedUrl.id}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="group flex items-center gap-3 px-3 py-2 border border-border bg-background hover:border-foreground/30 hover:shadow-sm transition-all duration-200 shrink-0 h-12 w-72 rounded-lg relative"
+                  style={{
+                    position: 'relative',
+                    zIndex: 1
+                  }}
+                >
+                  {/* URL info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-green-600 font-mono uppercase mb-1 tracking-wider">
+                      {detectedUrl.url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]}
+                    </div>
+                    <div className="text-xs font-mono text-foreground truncate">
+                      {detectedUrl.url}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => window.open(detectedUrl.url, '_blank')}
+                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 rounded-md"
+                      title="Open in new tab"
+                    >
+                      <ArrowSquareOut size={12} weight="duotone" />
+                    </button>
+                    <button
+                      onClick={() => removeUrl(detectedUrl.id)}
+                      className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 rounded-md"
+                      title="Remove URL"
+                    >
+                      <X size={12} weight="duotone" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center w-full h-12"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Globe size={14} weight="duotone" />
+                  <span className="text-xs font-mono uppercase tracking-wider">
+                    Enter URLs above to see context
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Context Bar */}
-      <ContextBar />
-    </>
+      {/* Bottom bar with model picker and submit button */}
+      <div className="flex items-center justify-between bg-muted/30 px-4 py-3 border-t border-border">
+        {/* Model picker */}
+        <ModelPicker
+          selectedModelId={selectedModelId}
+          onModelChange={onModelChange}
+          disabled={isSubmitting}
+        />
+
+        {/* Submit button */}
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className={cn(
+            "h-8 w-8 flex items-center justify-center transition-all duration-300 rounded-md",
+            hasUrls && !isSubmitting
+              ? "bg-accent hover:bg-accent/80 text-foreground hover:text-foreground/80 active:text-foreground"
+              : "bg-accent/60 hover:bg-accent/80 text-foreground/60 hover:text-foreground/80"
+          )}
+          onClick={handleSubmit}
+          disabled={isSubmitting || !hasUrls}
+        >
+          {isSubmitting ? (
+            <SpinnerGap weight="bold" className="h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowUp weight="bold" className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+    </div>
   );
 } 
