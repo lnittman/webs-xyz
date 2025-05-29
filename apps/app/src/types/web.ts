@@ -20,7 +20,6 @@ export interface Message {
 }
 
 export interface CreateWebInput {
-  workspaceId: string;
   url: string;
   prompt?: string;
 } 

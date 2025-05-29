@@ -1,7 +1,17 @@
 import useSWR from 'swr';
 import type { Web } from '@/types/web';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  
+  if (!res.ok) {
+    throw new Error(json.message || 'Failed to fetch');
+  }
+  
+  // Extract data from the response envelope
+  return json.data || json;
+};
 
 export function useWebs(workspaceId = 'default') {
   const { data, error, mutate } = useSWR<Web[]>(
@@ -9,11 +19,12 @@ export function useWebs(workspaceId = 'default') {
     fetcher,
     {
       refreshInterval: 5000, // Poll every 5 seconds for updates
+      fallbackData: [], // Provide empty array as fallback
     }
   );
 
   return {
-    webs: data,
+    webs: data || [],
     isLoading: !error && !data,
     isError: error,
     mutate,

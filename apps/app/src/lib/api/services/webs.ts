@@ -3,7 +3,6 @@ import { createWebInputSchema, updateWebInputSchema, Web } from '../schemas/web'
 
 export async function listWebs(workspaceId: string): Promise<Web[]> {
   const webs = await database.web.findMany({
-    where: { workspaceId },
     include: { messages: true },
     orderBy: { createdAt: 'desc' },
   });
@@ -43,7 +42,6 @@ export async function createWeb(input: unknown): Promise<Web> {
       url: data.url,
       domain,
       prompt: data.prompt,
-      workspaceId: data.workspaceId,
       status: 'PENDING',
     },
     include: { messages: true },

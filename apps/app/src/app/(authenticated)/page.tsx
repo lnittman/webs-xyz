@@ -29,7 +29,7 @@ export default function RootPage() {
       const url = match ? match[1] : input;
       const prompt = input.replace(urlRegex, '').trim() || undefined;
 
-      await createWeb({ workspaceId: 'default', url, prompt });
+      await createWeb({ url, prompt });
     } finally {
       setIsSubmitting(false);
     }

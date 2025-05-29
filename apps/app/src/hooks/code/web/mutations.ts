@@ -20,13 +20,15 @@ export function useCreateWeb() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create web');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create web');
       }
 
-      const newWeb = await response.json() as Web;
+      const result = await response.json();
+      const newWeb = result.data as Web;
       
       // Invalidate and refetch webs list
-      await mutate('/api/webs?workspaceId=' + input.workspaceId);
+      await mutate('/api/webs?workspaceId=default');
       
       return newWeb;
     } catch (err) {

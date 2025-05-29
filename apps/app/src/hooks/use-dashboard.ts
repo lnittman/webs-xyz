@@ -11,9 +11,10 @@ interface UseDashboardProps {
 export function useDashboard({ webs = [], searchQuery, activities }: UseDashboardProps) {
   // Filter webs based on search query
   const filteredWebs = useMemo(() => {
-    if (!searchQuery) return webs;
+    const websArray = webs || [];
+    if (!searchQuery) return websArray;
     const query = searchQuery.toLowerCase();
-    return webs.filter(web => {
+    return websArray.filter(web => {
       return (
         web.title?.toLowerCase().includes(query) ||
         web.url.toLowerCase().includes(query) ||
@@ -25,7 +26,8 @@ export function useDashboard({ webs = [], searchQuery, activities }: UseDashboar
 
   // Group webs by domain for context
   const websByDomain = useMemo(() => {
-    return webs.reduce((acc, web) => {
+    const websArray = webs || [];
+    return websArray.reduce((acc, web) => {
       const domain = extractDomain(web.url);
       if (!acc[domain]) acc[domain] = [];
       acc[domain].push(web);
@@ -34,7 +36,10 @@ export function useDashboard({ webs = [], searchQuery, activities }: UseDashboar
   }, [webs]);
 
   // Get recent activity for context tile
-  const recentWebs = useMemo(() => webs.slice(0, 5), [webs]);
+  const recentWebs = useMemo(() => {
+    const websArray = webs || [];
+    return websArray.slice(0, 5);
+  }, [webs]);
 
   // Get top domains
   const topDomains = useMemo(() => {

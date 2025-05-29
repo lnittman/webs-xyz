@@ -22,7 +22,6 @@ export const webSchema = z.object({
 });
 
 export const createWebInputSchema = z.object({
-  workspaceId: z.string(),
   url: z.string().url(),
   prompt: z.string().optional(),
 });
