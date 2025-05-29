@@ -56,18 +56,55 @@ export async function createWeb(input: unknown): Promise<Web> {
 
 export async function updateWeb(id: string, input: unknown): Promise<Web | null> {
   const data = updateWebInputSchema.parse(input);
+
+  // Prepare update data for Prisma
+  let updateData: any = { ...data };
+  if (data.messages) {
+    updateData = {
+      ...data,
+      messages: {
+        update: data.messages.map(msg => ({
+          where: { id: msg.id },
+          data: {
+            type: msg.type,
+            content: msg.content,
+            createdAt: msg.createdAt,
+            // add other fields as needed
+          }
+        }))
+      }
+    };
+    // Remove the plain messages array from updateData
+    delete updateData.messages;
+    updateData.messages = {
+      update: data.messages.map(msg => ({
+        where: { id: msg.id },
+        data: {
+          type: msg.type,
+          content: msg.content,
+          createdAt: msg.createdAt,
+        }
+      }))
+    };
+  } else {
+    delete updateData.messages;
+  }
+
   const web = await database.web.update({
     where: { id },
-    data,
+    data: updateData,
     include: { messages: true },
-  });
+  }) as any;
+
   return {
     ...web,
     createdAt: web.createdAt.toISOString(),
     updatedAt: web.updatedAt.toISOString(),
-    messages: web.messages.map(m => ({
-      ...m,
-      createdAt: m.createdAt.toISOString(),
-    })),
+    messages: Array.isArray(web.messages)
+      ? web.messages.map((m: any) => ({
+          ...m,
+          createdAt: m.createdAt.toISOString(),
+        }))
+      : [],
   };
 }

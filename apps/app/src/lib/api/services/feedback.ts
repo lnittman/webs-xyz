@@ -1,5 +1,6 @@
 import { database } from '@repo/database';
 import { feedbackSchema, type FeedbackInput } from '../schemas/feedback';
+import { z } from 'zod';
 
 export type Feedback = FeedbackInput & {
   id: string;
@@ -23,8 +24,8 @@ export async function createFeedback(input: unknown): Promise<Feedback> {
 }
 
 export async function listFeedback(params: {
-  topic?: string;
-  status?: string;
+  topic?: z.infer<typeof feedbackSchema>['topic'];
+  status?: z.infer<typeof feedbackSchema>['status'];
   limit?: number;
   offset?: number;
 }): Promise<{ feedback: Feedback[]; total: number }> {
@@ -32,8 +33,8 @@ export async function listFeedback(params: {
   const [feedback, total] = await Promise.all([
     database.feedback.findMany({
       where: {
-        ...(topic ? { topic } : {}),
-        ...(status ? { status } : {}),
+        ...(topic ? { topic: topic as any } : {}),
+        ...(status ? { status: status as any } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -41,8 +42,8 @@ export async function listFeedback(params: {
     }),
     database.feedback.count({
       where: {
-        ...(topic ? { topic } : {}),
-        ...(status ? { status } : {}),
+        ...(topic ? { topic: topic as any } : {}),
+        ...(status ? { status: status as any } : {}),
       },
     }),
   ]);

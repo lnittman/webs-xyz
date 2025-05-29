@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createFeedback, listFeedback } from '@/lib/api/services/feedback';
 import { success, created, error as errorResponse } from '@/lib/api/response';
+import { feedbackSchema, feedbackTopicEnum, feedbackStatusEnum } from '@/lib/api/schemas/feedback';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,10 +19,17 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const topic = searchParams.get('topic') || undefined;
-    const status = searchParams.get('status') || undefined;
+    const topicParam = searchParams.get('topic');
+    const statusParam = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
+
+    const allowedTopics = feedbackTopicEnum.options;
+    const allowedStatuses = feedbackStatusEnum.options;
+
+    const topic = (topicParam && allowedTopics.includes(topicParam as any)) ? (topicParam as typeof allowedTopics[number]) : undefined;
+    const status = (statusParam && allowedStatuses.includes(statusParam as any)) ? (statusParam as typeof allowedStatuses[number]) : undefined;
+
     const result = await listFeedback({ topic, status, limit, offset });
     return success({ ...result, hasMore: offset + limit < result.total });
   } catch (error) {
