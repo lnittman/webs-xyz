@@ -20,7 +20,7 @@ const prompt = loadPrompt("agents/chat/prompt.xml", "", {
 export const chatAgent = new Agent({
   name: "chat",
   instructions: prompt,
-  model: openRouter("anthropic/claude-3.7-sonnet"),
+  model: openRouter("openai/gpt-4.1"),
   memory: new Memory({
     storage,
     options: {

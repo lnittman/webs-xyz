@@ -10,9 +10,9 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { PostgresStore } from '@mastra/pg';
 import { existsSync, readFileSync, createReadStream, lstatSync } from 'fs';
 import path from 'path';
-import { scrapeWithJina } from './tools/bcbbbaa3-9e08-417a-9e3d-f57c859c6e33.mjs';
-import { Workflow, Step } from '@mastra/core/workflows';
+import { createTool, isVercelTool } from '@mastra/core/tools';
 import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
+import { Workflow, Step } from '@mastra/core/workflows';
 import crypto, { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
 import { join } from 'path/posix';
@@ -25,7 +25,6 @@ import util from 'node:util';
 import { Buffer as Buffer$1 } from 'node:buffer';
 import { A2AError } from '@mastra/core/a2a';
 import { RuntimeContext as RuntimeContext$1 } from '@mastra/core/di';
-import { isVercelTool } from '@mastra/core/tools';
 import { ReadableStream as ReadableStream$1 } from 'node:stream/web';
 
 const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/webs_memory";
@@ -116,7 +115,7 @@ const prompt$1 = loadPrompt("agents/chat/prompt.xml", "", {
 const chatAgent = new Agent({
   name: "chat",
   instructions: prompt$1,
-  model: openRouter$1("anthropic/claude-3.7-sonnet"),
+  model: openRouter$1("openai/gpt-4.1"),
   memory: new Memory({
     storage,
     options: {
@@ -127,6 +126,59 @@ const chatAgent = new Agent({
       }
     }
   })
+});
+
+const scrapeWithJina = createTool({
+  id: "scrape-web-content-jina",
+  description: "Scrapes web content from a given URL using the r.jina.ai service",
+  inputSchema: z.object({
+    url: z.string().url().describe("The URL to scrape content from")
+  }),
+  outputSchema: z.object({
+    content: z.string().describe("The scraped content from the webpage"),
+    title: z.string().optional().describe("The title of the webpage"),
+    description: z.string().optional().describe("The meta description of the webpage"),
+    error: z.string().optional().describe("Error message if scraping failed")
+  }),
+  execute: async (params) => {
+    const { context } = params;
+    const { url } = context;
+    console.log("[scrape-with-jina] Scraping URL:", url);
+    try {
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      console.log("[scrape-with-jina] Jina URL:", jinaUrl);
+      const response = await fetch(jinaUrl, {
+        method: "GET",
+        headers: {
+          "Accept": "text/plain",
+          // Add API key if available in environment
+          ...process.env.JINA_API_KEY && {
+            "Authorization": `Bearer ${process.env.JINA_API_KEY}`
+          }
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to scrape URL: ${response.status} ${response.statusText}`);
+      }
+      const content = await response.text();
+      const titleMatch = content.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1] : void 0;
+      const descriptionMatch = content.match(/(?:Description|Meta Description):\s*(.+)$/mi);
+      const description = descriptionMatch ? descriptionMatch[1] : void 0;
+      console.log("[scrape-with-jina] Successfully scraped content, length:", content.length);
+      return {
+        content,
+        title,
+        description
+      };
+    } catch (error) {
+      console.error("[scrape-with-jina] Error scraping with Jina:", error);
+      return {
+        content: "",
+        error: error instanceof Error ? error.message : "Unknown error occurred while scraping"
+      };
+    }
+  }
 });
 
 const openRouter = createOpenRouter({
