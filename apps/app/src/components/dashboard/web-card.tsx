@@ -97,34 +97,36 @@ export function WebCard({
     }
 
     return (
-        <div className="group relative h-full">
+        <div className="group relative">
             <Link
                 href={`/w/${web.id}`}
-                className="block h-full"
+                className="block"
             >
-                <div className="border border-border bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all duration-200 h-full min-h-[160px] flex flex-col rounded-lg">
-                    <div className="flex flex-col space-y-3 flex-1">
-                        <div className="flex items-start justify-between gap-3">
+                <div className="border border-border bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all duration-200 h-[180px] flex flex-col rounded-lg">
+                    <div className="flex flex-col h-full">
+                        <div className="flex items-start justify-between gap-3 mb-3">
                             <span className="text-xs text-muted-foreground uppercase font-mono tracking-wider">
                                 {domain}
                             </span>
                         </div>
 
-                        <ScrollFadeContainer showRight fadeSize={24} className="w-full">
-                            <h3 className="text-sm font-medium group-hover:text-foreground/80 transition-all duration-200 leading-snug pr-10">
-                                {web.title || web.url}
-                            </h3>
-                        </ScrollFadeContainer>
-
-                        {web.prompt && (
+                        <div className="flex-1 min-h-0 space-y-2">
                             <ScrollFadeContainer showRight fadeSize={24} className="w-full">
-                                <p className="text-xs text-muted-foreground leading-relaxed pr-10">
-                                    "{web.prompt}"
-                                </p>
+                                <h3 className="text-sm font-medium group-hover:text-foreground/80 transition-all duration-200 leading-snug pr-10 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                    {web.title || web.url}
+                                </h3>
                             </ScrollFadeContainer>
-                        )}
 
-                        <div className="flex items-center justify-between pt-2 mt-auto">
+                            {web.prompt && (
+                                <ScrollFadeContainer showRight fadeSize={24} className="w-full">
+                                    <p className="text-xs text-muted-foreground leading-relaxed pr-10 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                        "{web.prompt}"
+                                    </p>
+                                </ScrollFadeContainer>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 mt-auto border-t border-border/50">
                             <span className="text-xs text-muted-foreground font-mono">
                                 {relativeTime}
                             </span>

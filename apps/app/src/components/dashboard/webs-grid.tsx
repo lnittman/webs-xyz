@@ -141,9 +141,9 @@ export function WebsGrid({
                     key="grid-view"
                     {...fadeTransition}
                     className={`grid ${layout === 'wide'
-                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
                         : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                            } gap-4`}
+                        } gap-4 auto-rows-fr`}
                     >
                         {webs.map((web, index) => (
                             <motion.div
@@ -155,6 +155,7 @@ export function WebsGrid({
                                     ease: 'easeOut',
                                     delay: Math.min(index * 0.05, 0.3) // Stagger with max delay
                                 }}
+                                className="h-fit"
                             >
                                 <WebCard
                                     web={web}
