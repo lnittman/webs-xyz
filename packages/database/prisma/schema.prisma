@@ -13,19 +13,43 @@ datasource db {
 }
 
 model Web {
-  id          String    @id @default(uuid())
-  url         String
-  domain      String? // Extracted domain for grouping
-  title       String? // Page title
-  description String? // Meta description or AI summary
-  prompt      String? // Optional user prompt
-  status      WebStatus @default(PENDING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String      @id @default(uuid())
+  url         String      @db.Text // Primary URL (deprecated - use urls)
+  urls        String[] // Array of URLs to analyze
+  domain      String? // Primary domain for grouping
+  title       String? // Overall title
+  description String?     @db.Text // Overall summary
+  prompt      String?     @db.Text // User prompt
+  status      WebStatus   @default(PENDING)
+  // Analysis results
+  analysis    Json? // Full analysis JSON
+  topics      String[] // Extracted topics
+  sentiment   String? // Overall sentiment
+  confidence  Float? // Confidence score
+  readingTime Float? // Estimated reading time
+  insights    String[] // Key insights
+  // Additional discovered URLs
+  relatedUrls String[] // URLs found in content
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   messages    Message[]
+  entities    WebEntity[] // Extracted entities
 
   @@index([domain])
   @@index([createdAt])
+  @@index([status])
+}
+
+model WebEntity {
+  id        String   @id @default(uuid())
+  webId     String
+  web       Web      @relation(fields: [webId], references: [id], onDelete: Cascade)
+  type      String // person, organization, location, etc.
+  value     String // The actual entity value
+  createdAt DateTime @default(now())
+
+  @@index([webId])
+  @@index([type])
 }
 
 model Message {
@@ -33,7 +57,7 @@ model Message {
   webId     String?
   web       Web?        @relation(fields: [webId], references: [id])
   type      MessageType @default(TEXT)
-  content   String
+  content   String      @db.Text
   createdAt DateTime    @default(now())
 
   @@index([webId])

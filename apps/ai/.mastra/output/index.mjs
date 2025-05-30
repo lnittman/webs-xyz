@@ -4,12 +4,15 @@ import { TABLE_EVALS } from '@mastra/core/storage';
 import { checkEvalStorageFields } from '@mastra/core/utils';
 import { Mastra, Telemetry } from '@mastra/core';
 import { createLogger } from '@mastra/core/logger';
-import { PostgresStore } from '@mastra/pg';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { PostgresStore } from '@mastra/pg';
 import { existsSync, readFileSync, createReadStream, lstatSync } from 'fs';
 import path from 'path';
+import { scrapeWithJina } from './tools/bcbbbaa3-9e08-417a-9e3d-f57c859c6e33.mjs';
+import { Workflow, Step } from '@mastra/core/workflows';
+import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import crypto, { randomUUID } from 'crypto';
 import { readFile } from 'fs/promises';
 import { join } from 'path/posix';
@@ -20,11 +23,15 @@ import { RuntimeContext } from '@mastra/core/runtime-context';
 import { Readable as Readable$1, Writable } from 'node:stream';
 import util from 'node:util';
 import { Buffer as Buffer$1 } from 'node:buffer';
-import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import { A2AError } from '@mastra/core/a2a';
 import { RuntimeContext as RuntimeContext$1 } from '@mastra/core/di';
 import { isVercelTool } from '@mastra/core/tools';
 import { ReadableStream as ReadableStream$1 } from 'node:stream/web';
+
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/webs_memory";
+const storage = new PostgresStore({
+  connectionString
+});
 
 function loadPrompt(relativePath, fallback = "", variables = {}) {
   try {
@@ -99,37 +106,224 @@ function applyPathVariables(pathString, variables = {}) {
   return result;
 }
 
-const openRouter = createOpenRouter({
+const openRouter$1 = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY
 });
-const prompt = loadPrompt("agents/chat/prompt.xml", "", {
+const prompt$1 = loadPrompt("agents/chat/prompt.xml", "", {
   toolsDir: "tools",
   rootDir: process.cwd()
 });
 const chatAgent = new Agent({
   name: "chat",
-  instructions: prompt,
-  model: openRouter("anthropic/claude-3.7-sonnet"),
+  instructions: prompt$1,
+  model: openRouter$1("anthropic/claude-3.7-sonnet"),
   memory: new Memory({
+    storage,
     options: {
-      semanticRecall: false
+      lastMessages: 10,
+      semanticRecall: false,
+      threads: {
+        generateTitle: false
+      }
     }
   })
 });
 
+const openRouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY
+});
+const prompt = loadPrompt("agents/webs/prompt.xml", "", {
+  toolsDir: "tools",
+  rootDir: process.cwd()
+});
+const websAgent = new Agent({
+  name: "webs",
+  instructions: prompt,
+  model: openRouter("google/gemini-2.5-flash-preview-05-20"),
+  tools: {
+    "scrape-web-content-jina": scrapeWithJina
+  },
+  memory: new Memory({
+    storage,
+    options: {
+      lastMessages: 5,
+      semanticRecall: false,
+      threads: {
+        generateTitle: false
+      }
+    }
+  })
+});
+
+const analyzeWebInputSchema = z.object({
+  urls: z.array(z.string().url()).describe("The URLs to analyze"),
+  prompt: z.string().optional().describe("Optional prompt for specific analysis")
+});
+const singleUrlAnalysisSchema = z.object({
+  url: z.string(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  topics: z.array(z.string()),
+  sentiment: z.enum(["positive", "neutral", "negative"]),
+  summary: z.string(),
+  insights: z.array(z.string()),
+  entities: z.array(z.object({
+    type: z.string(),
+    value: z.string()
+  })),
+  readingTime: z.number(),
+  confidence: z.number(),
+  relatedUrls: z.array(z.string()).optional()
+});
+const analysisResultSchema = z.object({
+  urls: z.array(z.string()),
+  prompt: z.string().nullable(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  topics: z.array(z.string()),
+  sentiment: z.enum(["positive", "neutral", "negative"]),
+  insights: z.array(z.string()),
+  entities: z.array(z.object({
+    type: z.string(),
+    value: z.string()
+  })),
+  readingTime: z.number(),
+  confidence: z.number(),
+  relatedUrls: z.array(z.string()),
+  urlAnalyses: z.array(singleUrlAnalysisSchema),
+  metadata: z.object({
+    timestamp: z.string(),
+    urlCount: z.number()
+  })
+});
+const analyzeWebStep = new Step({
+  id: "analyze-web",
+  description: "Analyzes multiple web pages using the webs agent",
+  inputSchema: analyzeWebInputSchema,
+  outputSchema: analysisResultSchema,
+  execute: async ({ context }) => {
+    const triggerData = context?.triggerData?.triggerData || context?.triggerData;
+    if (!triggerData) {
+      throw new Error("Trigger data not found");
+    }
+    const parsedData = analyzeWebInputSchema.parse(triggerData);
+    const { urls, prompt } = parsedData;
+    try {
+      console.log(`[analyze-web workflow] Analyzing ${urls.length} URLs`);
+      const urlAnalyses = await Promise.all(
+        urls.map(async (url) => {
+          try {
+            const userMessage = prompt ? `Analyze this website and also identify any related or referenced URLs in the content: ${url}
+
+Specific request: ${prompt}` : `Analyze this website and also identify any related or referenced URLs in the content: ${url}`;
+            console.log(`[analyze-web workflow] Analyzing URL: ${url}`);
+            const response = await websAgent.generate([
+              {
+                role: "user",
+                content: userMessage
+              }
+            ]);
+            console.log(`[analyze-web workflow] Got response for URL: ${url}`);
+            try {
+              let jsonText = response.text;
+              if (jsonText.startsWith("```json")) {
+                jsonText = jsonText.slice(7);
+              } else if (jsonText.startsWith("```")) {
+                jsonText = jsonText.slice(3);
+              }
+              if (jsonText.endsWith("```")) {
+                jsonText = jsonText.slice(0, -3);
+              }
+              jsonText = jsonText.trim();
+              const analysisData = JSON.parse(jsonText);
+              const relatedUrls = analysisData.relatedUrls || [];
+              return {
+                url,
+                ...analysisData,
+                relatedUrls
+              };
+            } catch (parseError) {
+              console.error(`[analyze-web workflow] Failed to parse JSON for ${url}:`, parseError);
+              return null;
+            }
+          } catch (error) {
+            console.error(`[analyze-web workflow] Failed to analyze ${url}:`, error);
+            return null;
+          }
+        })
+      );
+      const successfulAnalyses = urlAnalyses.filter(Boolean);
+      if (successfulAnalyses.length === 0) {
+        throw new Error("All URL analyses failed");
+      }
+      const combinedAnalysis = {
+        urls,
+        prompt: prompt || null,
+        title: successfulAnalyses[0]?.title || `Analysis of ${urls.length} web pages`,
+        description: prompt ? `Analysis of ${urls.length} URLs based on: "${prompt}"` : `Combined analysis of ${urls.length} web pages`,
+        topics: [...new Set(successfulAnalyses.flatMap((a) => a?.topics || []))],
+        sentiment: determineCombinedSentiment(successfulAnalyses),
+        insights: combineInsights(successfulAnalyses),
+        entities: combineEntities(successfulAnalyses),
+        readingTime: successfulAnalyses.reduce((sum, a) => sum + (a?.readingTime || 0), 0),
+        confidence: successfulAnalyses.reduce((sum, a) => sum + (a?.confidence || 0), 0) / successfulAnalyses.length,
+        relatedUrls: [...new Set(successfulAnalyses.flatMap((a) => a?.relatedUrls || []))],
+        urlAnalyses: successfulAnalyses,
+        metadata: {
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          urlCount: urls.length
+        }
+      };
+      return combinedAnalysis;
+    } catch (error) {
+      console.error("[analyze-web workflow] Error:", error);
+      throw error;
+    }
+  }
+});
+function determineCombinedSentiment(analyses) {
+  const sentiments = analyses.map((a) => a?.sentiment).filter(Boolean);
+  const sentimentCounts = sentiments.reduce((acc, sentiment) => {
+    acc[sentiment] = (acc[sentiment] || 0) + 1;
+    return acc;
+  }, {});
+  const sortedSentiments = Object.entries(sentimentCounts).sort(([, a], [, b]) => b - a);
+  return sortedSentiments[0]?.[0] || "neutral";
+}
+function combineInsights(analyses) {
+  const allInsights = analyses.flatMap((a) => a?.insights || []);
+  return [...new Set(allInsights)].slice(0, 10);
+}
+function combineEntities(analyses) {
+  const allEntities = analyses.flatMap((a) => a?.entities || []);
+  const uniqueEntities = /* @__PURE__ */ new Map();
+  allEntities.forEach((entity) => {
+    const key = `${entity.type}:${entity.value}`;
+    if (!uniqueEntities.has(key)) {
+      uniqueEntities.set(key, entity);
+    }
+  });
+  return Array.from(uniqueEntities.values());
+}
+const analyzeWeb = new Workflow({
+  name: "analyzeWeb",
+  triggerSchema: analyzeWebInputSchema
+}).step(analyzeWebStep).commit();
+
 const logger$1 = createLogger({
   name: "mastra",
-  level: "info"
+  level: "debug"
 });
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/webs_memory";
 const mastra = new Mastra({
   agents: {
-    chat: chatAgent
+    chat: chatAgent,
+    webs: websAgent
+  },
+  workflows: {
+    analyzeWeb
   },
   logger: logger$1,
-  storage: new PostgresStore({
-    connectionString
-  }),
+  storage,
   telemetry: {
     enabled: false
   }

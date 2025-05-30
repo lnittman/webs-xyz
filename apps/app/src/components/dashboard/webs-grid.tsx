@@ -1,6 +1,7 @@
 import { useAtom } from 'jotai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { viewModeAtom } from '@/atoms/dashboard';
+import { isLoadingAtom } from '@/atoms/loading';
 import { WebCard } from './web-card';
 import { EmptyState } from './empty-state';
 import { SearchEmptyState } from './search-empty-state';
@@ -14,8 +15,15 @@ interface WebsGridProps {
     processingCount?: number;
 }
 
-export function WebsGrid({ webs, searchQuery, onClearSearch, layout, processingCount = 0 }: WebsGridProps) {
+export function WebsGrid({
+    webs,
+    searchQuery,
+    onClearSearch,
+    layout,
+    processingCount = 0
+}: WebsGridProps) {
     const [viewMode] = useAtom(viewModeAtom);
+    const [isLoading] = useAtom(isLoadingAtom);
 
     const fadeTransition = {
         initial: { opacity: 0, y: 10 },
@@ -30,6 +38,11 @@ export function WebsGrid({ webs, searchQuery, onClearSearch, layout, processingC
         exit: { opacity: 0, scale: 0.95 },
         transition: { duration: 0.4, ease: 'easeOut' }
     };
+
+    // Show empty content area while loading (progress bar is handled globally)
+    if (isLoading) {
+        return <div className="flex-1" style={{ minHeight: '60vh' }} />;
+    }
 
     // Show search empty state if there's a search query but no results
     if (searchQuery && webs.length === 0) {

@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+import { useEffect, useState } from 'react';
 import type { Web } from '@/types/web';
 
 const fetcher = async (url: string) => {
@@ -14,7 +15,8 @@ const fetcher = async (url: string) => {
 };
 
 export function useWebs(workspaceId = 'default') {
-  const { data, error, mutate } = useSWR<Web[]>(
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { data, error, mutate, isValidating } = useSWR<Web[]>(
     `/api/webs?workspaceId=${workspaceId}`,
     fetcher,
     {
@@ -23,9 +25,16 @@ export function useWebs(workspaceId = 'default') {
     }
   );
 
+  // Track when we've successfully loaded data for the first time
+  useEffect(() => {
+    if (data && !error && !isValidating) {
+      setHasLoadedOnce(true);
+    }
+  }, [data, error, isValidating]);
+
   return {
     webs: data || [],
-    isLoading: !error && !data,
+    isLoading: !hasLoadedOnce && isValidating,
     isError: error,
     mutate,
   };
@@ -36,7 +45,14 @@ export function useWeb(webId: string) {
     webId ? `/api/webs/${webId}` : null,
     fetcher,
     {
-      refreshInterval: 2000, // Poll more frequently for individual web
+      refreshInterval: (data) => {
+        // Poll more frequently if the web is still processing
+        if (data?.status === 'PROCESSING') {
+          return 1000; // Poll every second
+        }
+        // Otherwise poll less frequently
+        return 5000; // Poll every 5 seconds
+      },
     }
   );
 

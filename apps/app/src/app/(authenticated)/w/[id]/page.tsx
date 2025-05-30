@@ -6,21 +6,12 @@ import { Link } from 'next-view-transitions';
 import { useWeb } from '@/hooks/code/web/queries';
 import { ClientLayout } from '@/components/shared/client-layout';
 import { cn } from '@repo/design/lib/utils';
-import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon } from '@phosphor-icons/react/dist/ssr';
+import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon, Globe } from '@phosphor-icons/react/dist/ssr';
 
 interface WebDetailPageProps {
     params: Promise<{
         id: string;
     }>;
-}
-
-interface ContentInsights {
-    readingTime: number;
-    sentiment: 'positive' | 'neutral' | 'negative';
-    keyTopics: string[];
-    entities: { type: string; value: string }[];
-    summary: string;
-    confidence: number;
 }
 
 // Helper to extract domain from URL
@@ -53,20 +44,6 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
     useEffect(() => {
         params.then(({ id }) => setId(id));
     }, [params]);
-
-    // Content insights (in real app, this would come from the backend)
-    const contentInsights: ContentInsights = {
-        readingTime: 5,
-        sentiment: 'neutral',
-        keyTopics: ['Next.js', 'React', 'Web Development', 'TypeScript'],
-        entities: [
-            { type: 'ORGANIZATION', value: 'Vercel' },
-            { type: 'TECHNOLOGY', value: 'Next.js 15' },
-            { type: 'PERSON', value: 'Lee Robinson' }
-        ],
-        summary: 'Technical documentation covering Next.js 15 features including App Router, Server Components, and performance optimizations.',
-        confidence: 0.92
-    };
 
     if (isLoading) {
         return (
@@ -110,6 +87,17 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
         );
     }
 
+    // Use actual data from web object or defaults
+    const confidence = web.confidence || 0;
+    const readingTime = web.readingTime || 0;
+    const sentiment = web.sentiment || 'neutral';
+    const topics = web.topics || [];
+    const entities = web.entities || [];
+    const insights = web.insights || [];
+    const urls = web.urls || [web.url];
+    const relatedUrls = web.relatedUrls || [];
+    const hasAnalysisData = web.analysis && Object.keys(web.analysis).length > 0;
+
     return (
         <ClientLayout
             webTitle={web.title || extractDomain(web.url)}
@@ -121,12 +109,22 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                     <div className="w-full max-w-3xl px-6 py-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Brain size={14} weight="duotone" className="text-green-600" />
-                                    <span className="text-xs text-green-600 font-mono">
-                                        CONFIDENCE: {Math.round(contentInsights.confidence * 100)}%
-                                    </span>
-                                </div>
+                                {hasAnalysisData && confidence > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <Brain size={14} weight="duotone" className="text-green-600" />
+                                        <span className="text-xs text-green-600 font-mono">
+                                            CONFIDENCE: {Math.round(confidence * 100)}%
+                                        </span>
+                                    </div>
+                                )}
+                                {urls.length > 1 && (
+                                    <div className="flex items-center gap-2">
+                                        <Globe size={14} weight="duotone" className="text-blue-600" />
+                                        <span className="text-xs text-blue-600 font-mono">
+                                            {urls.length} URLS ANALYZED
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className={cn(
@@ -156,43 +154,75 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                             <div className="space-y-6">
                                 <div>
                                     <h1 className="text-2xl font-semibold mb-3">
-                                        {web.title || web.url}
+                                        {web.title || `Analysis of ${urls.length} web page${urls.length > 1 ? 's' : ''}`}
                                     </h1>
-                                    <a
-                                        href={web.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors break-all"
-                                    >
-                                        <LinkIcon size={14} weight="duotone" />
-                                        {web.url}
-                                    </a>
+                                    {urls.length === 1 ? (
+                                        <a
+                                            href={web.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors break-all"
+                                        >
+                                            <LinkIcon size={14} weight="duotone" />
+                                            {web.url}
+                                        </a>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {urls.slice(0, 3).map((url, index) => (
+                                                <a
+                                                    key={index}
+                                                    href={url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block text-sm text-muted-foreground hover:text-foreground transition-colors truncate"
+                                                >
+                                                    <LinkIcon size={14} weight="duotone" className="inline mr-2" />
+                                                    {url}
+                                                </a>
+                                            ))}
+                                            {urls.length > 3 && (
+                                                <span className="text-xs text-muted-foreground">
+                                                    ... and {urls.length - 3} more
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Content Insights Bar */}
-                                <div className="flex items-center gap-6 p-4 border border-border bg-card rounded-lg text-xs font-mono">
-                                    <div className="flex items-center gap-2">
-                                        <Clock size={12} weight="duotone" />
-                                        <span>{contentInsights.readingTime} MIN READ</span>
+                                {hasAnalysisData && (
+                                    <div className="flex items-center gap-6 p-4 border border-border bg-card rounded-lg text-xs font-mono">
+                                        {readingTime > 0 && (
+                                            <>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock size={12} weight="duotone" />
+                                                    <span>{Math.round(readingTime)} MIN READ</span>
+                                                </div>
+                                                <span className="text-muted-foreground">|</span>
+                                            </>
+                                        )}
+                                        {sentiment && (
+                                            <>
+                                                <div className="flex items-center gap-2">
+                                                    <ChartLine size={12} weight="duotone" />
+                                                    <span className={cn(
+                                                        "uppercase",
+                                                        sentiment === 'positive' && "text-green-600",
+                                                        sentiment === 'neutral' && "text-yellow-600",
+                                                        sentiment === 'negative' && "text-red-600"
+                                                    )}>
+                                                        {sentiment} SENTIMENT
+                                                    </span>
+                                                </div>
+                                                <span className="text-muted-foreground">|</span>
+                                            </>
+                                        )}
+                                        <div className="flex items-center gap-2">
+                                            <Hash size={12} weight="duotone" />
+                                            <span>{topics.length} KEY TOPICS</span>
+                                        </div>
                                     </div>
-                                    <span className="text-muted-foreground">|</span>
-                                    <div className="flex items-center gap-2">
-                                        <ChartLine size={12} weight="duotone" />
-                                        <span className={cn(
-                                            "uppercase",
-                                            contentInsights.sentiment === 'positive' && "text-green-600",
-                                            contentInsights.sentiment === 'neutral' && "text-yellow-600",
-                                            contentInsights.sentiment === 'negative' && "text-red-600"
-                                        )}>
-                                            {contentInsights.sentiment} SENTIMENT
-                                        </span>
-                                    </div>
-                                    <span className="text-muted-foreground">|</span>
-                                    <div className="flex items-center gap-2">
-                                        <Hash size={12} weight="duotone" />
-                                        <span>{contentInsights.keyTopics.length} KEY TOPICS</span>
-                                    </div>
-                                </div>
+                                )}
 
                                 {web.prompt && (
                                     <div className="border border-border bg-card p-4 rounded-lg">
@@ -291,6 +321,10 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                                                             <span className="font-mono">{web.status}</span>
                                                         </div>
                                                         <div className="flex justify-between py-2 border-b border-border">
+                                                            <span className="text-muted-foreground">URLs:</span>
+                                                            <span className="font-mono">{urls.length}</span>
+                                                        </div>
+                                                        <div className="flex justify-between py-2 border-b border-border">
                                                             <span className="text-muted-foreground">Created:</span>
                                                             <span className="font-mono text-xs">{formatDate(web.createdAt)}</span>
                                                         </div>
@@ -303,20 +337,24 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
 
                                                 <div className="space-y-4">
                                                     <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
-                                                        PROCESSING
+                                                        ANALYSIS
                                                     </h3>
                                                     <div className="space-y-3 text-sm">
                                                         <div className="flex justify-between py-2 border-b border-border">
-                                                            <span className="text-muted-foreground">Messages:</span>
-                                                            <span className="font-mono">{web.messages?.length || 0}</span>
+                                                            <span className="text-muted-foreground">Topics:</span>
+                                                            <span className="font-mono">{topics.length}</span>
                                                         </div>
                                                         <div className="flex justify-between py-2 border-b border-border">
-                                                            <span className="text-muted-foreground">Has Prompt:</span>
-                                                            <span className="font-mono">{web.prompt ? 'Yes' : 'No'}</span>
+                                                            <span className="text-muted-foreground">Entities:</span>
+                                                            <span className="font-mono">{entities.length}</span>
+                                                        </div>
+                                                        <div className="flex justify-between py-2 border-b border-border">
+                                                            <span className="text-muted-foreground">Insights:</span>
+                                                            <span className="font-mono">{insights.length}</span>
                                                         </div>
                                                         <div className="flex justify-between py-2">
-                                                            <span className="text-muted-foreground">Has Summary:</span>
-                                                            <span className="font-mono">{web.description ? 'Yes' : 'No'}</span>
+                                                            <span className="text-muted-foreground">Related URLs:</span>
+                                                            <span className="font-mono">{relatedUrls.length}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -326,69 +364,132 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
 
                                     {activeTab === 'insights' && (
                                         <div className="space-y-8">
-                                            {/* Key Topics */}
-                                            <div>
-                                                <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                                                    <Tag size={12} weight="duotone" />
-                                                    KEY TOPICS
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {contentInsights.keyTopics.map((topic, index) => (
-                                                        <motion.span
-                                                            key={topic}
-                                                            initial={{ opacity: 0, scale: 0.8 }}
-                                                            animate={{ opacity: 1, scale: 1 }}
-                                                            transition={{ delay: index * 0.05 }}
-                                                            className="px-3 py-1.5 border border-border bg-accent text-xs font-mono hover:bg-accent/80 transition-all cursor-pointer rounded-md"
-                                                        >
-                                                            {topic}
-                                                        </motion.span>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Extracted Entities */}
-                                            <div>
-                                                <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                                                    <LinkIcon size={12} weight="duotone" />
-                                                    EXTRACTED ENTITIES
-                                                </h3>
-                                                <div className="space-y-2">
-                                                    {contentInsights.entities.map((entity, index) => (
-                                                        <motion.div
-                                                            key={index}
-                                                            initial={{ opacity: 0, x: -10 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            transition={{ delay: index * 0.05 }}
-                                                            className="flex items-center justify-between p-3 border border-border bg-background rounded-md"
-                                                        >
-                                                            <span className="text-xs text-muted-foreground font-mono uppercase">
-                                                                {entity.type}
-                                                            </span>
-                                                            <span className="text-sm font-medium">
-                                                                {entity.value}
-                                                            </span>
-                                                        </motion.div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Content Analysis */}
-                                            <div>
-                                                <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                                                    <Quotes size={12} weight="duotone" />
-                                                    ANALYSIS
-                                                </h3>
-                                                <div className="p-4 border border-border bg-accent/50 rounded-lg">
-                                                    <p className="text-sm leading-relaxed italic">
-                                                        "{contentInsights.summary}"
+                                            {!hasAnalysisData && web.status === 'PROCESSING' ? (
+                                                <div className="text-center py-12">
+                                                    <p className="text-sm text-muted-foreground mb-4">
+                                                        Analysis in progress...
                                                     </p>
-                                                    <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                                                        <span>Generated automatically</span>
-                                                        <span>Confidence: {Math.round(contentInsights.confidence * 100)}%</span>
+                                                    <div className="w-8 h-1 bg-border rounded-full overflow-hidden mx-auto">
+                                                        <div className="h-full bg-foreground animate-pulse rounded-full" />
                                                     </div>
                                                 </div>
-                                            </div>
+                                            ) : !hasAnalysisData && web.status === 'FAILED' ? (
+                                                <div className="text-center py-12">
+                                                    <p className="text-sm text-red-600">
+                                                        Analysis failed. Please try again.
+                                                    </p>
+                                                </div>
+                                            ) : hasAnalysisData ? (
+                                                <>
+                                                            {/* Key Topics */}
+                                                            {topics.length > 0 && (
+                                                                <div>
+                                                                    <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                                        <Tag size={12} weight="duotone" />
+                                                                        KEY TOPICS
+                                                                    </h3>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {topics.map((topic, index) => (
+                                                                            <motion.span
+                                                                                key={topic}
+                                                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                                transition={{ delay: index * 0.05 }}
+                                                                                className="px-3 py-1.5 border border-border bg-accent text-xs font-mono hover:bg-accent/80 transition-all cursor-pointer rounded-md"
+                                                                            >
+                                                                                {topic}
+                                                                            </motion.span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Insights */}
+                                                            {insights.length > 0 && (
+                                                                <div>
+                                                                    <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                                        <Sparkle size={12} weight="duotone" />
+                                                                        KEY INSIGHTS
+                                                                    </h3>
+                                                                    <div className="space-y-2">
+                                                                        {insights.map((insight, index) => (
+                                                                            <motion.div
+                                                                                key={index}
+                                                                                initial={{ opacity: 0, x: -10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ delay: index * 0.05 }}
+                                                                                className="p-3 border border-border bg-background rounded-md"
+                                                                            >
+                                                                                <p className="text-sm">{insight}</p>
+                                                                            </motion.div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Extracted Entities */}
+                                                            {entities.length > 0 && (
+                                                                <div>
+                                                                    <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                                        <LinkIcon size={12} weight="duotone" />
+                                                                        EXTRACTED ENTITIES
+                                                                    </h3>
+                                                                    <div className="space-y-2">
+                                                                        {entities.map((entity, index) => (
+                                                                            <motion.div
+                                                                                key={entity.id}
+                                                                                initial={{ opacity: 0, x: -10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ delay: index * 0.05 }}
+                                                                                className="flex items-center justify-between p-3 border border-border bg-background rounded-md"
+                                                                            >
+                                                                                <span className="text-xs text-muted-foreground font-mono uppercase">
+                                                                                    {entity.type}
+                                                                                </span>
+                                                                                <span className="text-sm font-medium">
+                                                                                    {entity.value}
+                                                                                </span>
+                                                                            </motion.div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Related URLs */}
+                                                            {relatedUrls.length > 0 && (
+                                                                <div>
+                                                                    <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                                                                        <Globe size={12} weight="duotone" />
+                                                                        RELATED URLS
+                                                                    </h3>
+                                                                    <div className="space-y-2">
+                                                                        {relatedUrls.map((url, index) => (
+                                                                            <motion.a
+                                                                                key={index}
+                                                                                href={url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                initial={{ opacity: 0, x: -10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ delay: index * 0.05 }}
+                                                                                className="block p-3 border border-border bg-background rounded-md hover:bg-accent transition-colors"
+                                                                            >
+                                                                                <span className="text-sm text-muted-foreground hover:text-foreground truncate">
+                                                                                    {url}
+                                                                                </span>
+                                                                            </motion.a>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-center py-12">
+                                                            <p className="text-sm text-muted-foreground">
+                                                                No analysis data available.
+                                                            </p>
+                                                            </div>
+                                            )}
                                         </div>
                                     )}
 

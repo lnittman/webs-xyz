@@ -5,13 +5,30 @@ import { Dashboard } from '@/components/dashboard';
 import { useWebs } from '@/hooks/code/web/queries';
 import { useCreateWeb } from '@/hooks/code/web/mutations';
 import { useUserSettings } from '@/hooks/user-settings';
+import { useSetAtom } from 'jotai';
+import { inputTextAtom } from '@/atoms/urls';
+import { startLoadingAtom, stopLoadingAtom } from '@/atoms/loading';
+
+const LOADING_ID = 'webs-dashboard';
 
 export default function RootPage() {
-  const { webs } = useWebs();
+  const { webs, isLoading } = useWebs();
   const { createWeb } = useCreateWeb();
   const { settings } = useUserSettings();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState('claude-4-sonnet');
+  const setInputText = useSetAtom(inputTextAtom);
+  const startLoading = useSetAtom(startLoadingAtom);
+  const stopLoading = useSetAtom(stopLoadingAtom);
+
+  // Manage loading state with atoms
+  useEffect(() => {
+    if (isLoading) {
+      startLoading(LOADING_ID);
+    } else {
+      stopLoading(LOADING_ID);
+    }
+  }, [isLoading, startLoading, stopLoading]);
 
   // Update selected model when user settings load
   useEffect(() => {
@@ -23,13 +40,27 @@ export default function RootPage() {
   const handleSubmit = async (input: string) => {
     setIsSubmitting(true);
     try {
-      // Parse input to extract URL and optional prompt
-      const urlRegex = /(https?:\/\/[^\s]+)/;
-      const match = input.match(urlRegex);
-      const url = match ? match[1] : input;
+      // Extract all URLs from the input
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const urls = input.match(urlRegex) || [];
+
+      // Extract prompt by removing all URLs
       const prompt = input.replace(urlRegex, '').trim() || undefined;
 
-      await createWeb({ url, prompt });
+      if (urls.length === 0) {
+        console.warn('No URLs found in input');
+        return;
+      }
+
+      // Create web with multiple URLs
+      await createWeb({
+        urls,
+        prompt,
+        url: urls[0] || '', // Primary URL for backward compatibility
+      });
+
+      // Clear the prompt bar
+      setInputText('');
     } finally {
       setIsSubmitting(false);
     }

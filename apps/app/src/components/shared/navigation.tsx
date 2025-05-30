@@ -13,6 +13,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@repo/design/components/ui/breadcrumb';
+import React from 'react';
 
 interface NavigationProps {
     webTitle?: string;
@@ -65,13 +66,13 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
                             <Breadcrumb>
                                 <BreadcrumbList>
                                     {breadcrumbItems.map((item, index) => (
-                                        <BreadcrumbItem key={item.href}>
-                                            {index === breadcrumbItems.length - 1 ? (
-                                                <BreadcrumbPage className="text-foreground font-medium">
-                                                    {item.label}
-                                                </BreadcrumbPage>
-                                            ) : (
-                                                <>
+                                        <React.Fragment key={item.href}>
+                                            <BreadcrumbItem>
+                                                {index === breadcrumbItems.length - 1 ? (
+                                                    <BreadcrumbPage className="text-foreground font-medium">
+                                                        {item.label}
+                                                    </BreadcrumbPage>
+                                                ) : (
                                                     <BreadcrumbLink asChild>
                                                         <Link
                                                             href={item.href}
@@ -80,12 +81,14 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
                                                             {item.label}
                                                         </Link>
                                                     </BreadcrumbLink>
-                                                    <BreadcrumbSeparator>
-                                                        <span className="text-muted-foreground">/</span>
-                                                    </BreadcrumbSeparator>
-                                                </>
+                                                )}
+                                            </BreadcrumbItem>
+                                            {index < breadcrumbItems.length - 1 && (
+                                                <BreadcrumbSeparator>
+                                                    <span className="text-muted-foreground">/</span>
+                                                </BreadcrumbSeparator>
                                             )}
-                                        </BreadcrumbItem>
+                                        </React.Fragment>
                                     ))}
                                 </BreadcrumbList>
                             </Breadcrumb>

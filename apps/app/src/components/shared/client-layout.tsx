@@ -5,6 +5,7 @@ import { useAtom } from 'jotai';
 import { Navigation } from './navigation';
 import { SearchModal } from './search-modal';
 import { FontLoader } from './font-loader';
+import { ProgressBar } from './progress-bar';
 import { useWebs } from '@/hooks/code/web/queries';
 import { searchModalOpenAtom } from '@/atoms/search';
 
@@ -46,6 +47,9 @@ export function ClientLayout({
                 onClose={() => setIsSearchModalOpen(false)}
                 webs={webs || []}
             />
+
+            {/* Global Progress Bar */}
+            <ProgressBar />
 
             <main className="flex-1 flex flex-col pt-14">
                 {children}

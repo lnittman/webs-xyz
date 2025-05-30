@@ -8,6 +8,7 @@ import { keys as core } from '@repo/next-config/keys';
 import { keys as observability } from '@repo/observability/keys';
 import { keys as security } from '@repo/security/keys';
 import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
 
 export const env = createEnv({
   extends: [
@@ -21,7 +22,11 @@ export const env = createEnv({
     observability(),
     security(),
   ],
-  server: {},
+  server: {
+    MASTRA_SERVER_URL: z.string().url().default('http://localhost:4111'),
+  },
   client: {},
-  runtimeEnv: {},
+  runtimeEnv: {
+    MASTRA_SERVER_URL: process.env.MASTRA_SERVER_URL,
+  },
 });

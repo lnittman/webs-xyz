@@ -4,27 +4,31 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 import { storage } from "../../storage";
 import { loadPrompt } from "../../utils/loadPrompt";
+import { scrapeWithJina } from "../../tools";
 
 const openRouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-const prompt = loadPrompt("agents/chat/prompt.xml", "", {
+const prompt = loadPrompt("agents/webs/prompt.xml", "", {
   toolsDir: "tools",
   rootDir: process.cwd(),
 });
 
 /**
- * The Chat agent combines planning, execution, and summarization into a single conversational interface
+ * The Webs agent analyzes scraped web content and returns structured data
  */
-export const chatAgent = new Agent({
-  name: "chat",
+export const websAgent = new Agent({
+  name: "webs",
   instructions: prompt,
-  model: openRouter("anthropic/claude-3.7-sonnet"),
+  model: openRouter("google/gemini-2.5-flash-preview-05-20"),
+  tools: {
+    "scrape-web-content-jina": scrapeWithJina,
+  },
   memory: new Memory({
     storage,
     options: {
-      lastMessages: 10,
+      lastMessages: 5,
       semanticRecall: false,
       threads: {
         generateTitle: false
@@ -33,4 +37,4 @@ export const chatAgent = new Agent({
   }),
 });
 
-export default chatAgent; 
+export default websAgent;
