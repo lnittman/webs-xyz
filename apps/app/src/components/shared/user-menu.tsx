@@ -4,17 +4,17 @@ import React, { useState } from "react";
 
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
 import {
-  SignOut,
-  Gear,
-  Moon,
-  Sun,
-  Desktop,
-  House,
-  Users,
-  Command,
-  Palette,
-  CaretUpDown,
-  Plus,
+    SignOut,
+    Gear,
+    Moon,
+    Sun,
+    Desktop,
+    House,
+    Users,
+    Command,
+    Palette,
+    CaretUpDown,
+    Plus,
 } from "@phosphor-icons/react/dist/ssr";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -70,10 +70,10 @@ export function UserMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     className={cn(
-                        "h-8 w-8 bg-muted text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border transition-all duration-200 rounded-md",
+                        "h-8 w-8 text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border transition-all duration-200 rounded-md",
                         "hover:bg-accent hover:border-foreground/20",
                         "focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:ring-offset-2 focus:ring-offset-background",
-                        menuOpen ? "bg-accent border-foreground/20" : ""
+                        menuOpen ? "bg-accent border-foreground/20" : "bg-muted"
                     )}
                 >
                     {initials}
