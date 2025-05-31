@@ -36,8 +36,8 @@ export async function executeWorkflow(
       runId,
       triggerData: data,
       metadata,
-      // Include webhook URL for completion callback
-      webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:2102'}/api/webhooks/mastra`,
+      // Include webhook URL for completion callback - now pointing to API app
+      webhookUrl: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2101'}/webhooks/mastra`,
     }),
   });
 

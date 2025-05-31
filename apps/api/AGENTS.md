@@ -21,5 +21,14 @@ Document any new webhook or cron endpoints in `apps/api/docs`. Ensure handlers v
 - `app/` – Route handlers for cron and webhooks.
 - `instrumentation.ts` – Sentry instrumentation.
 
+## Webhook Endpoints
+
+### Clerk Webhooks
+- `POST /webhooks/clerk` - Handles user lifecycle events from Clerk authentication
+
+### Mastra Webhooks  
+- `POST /webhooks/mastra` - Handles workflow completion notifications from Mastra
+- See `docs/mastra-webhook.md` for detailed documentation
+
 ## Integration Points
 The API app triggers jobs and external integrations. Other apps call these endpoints only for background tasks.

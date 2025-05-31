@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { toast } from '@repo/design/components/ui/sonner';
 import { cn } from '@repo/design/lib/utils';
 import {
     DropdownMenu,
@@ -83,10 +83,10 @@ export function WebActionMenu({
                             <DropdownMenuItem
                                 onClick={() => onRename(web.id)}
                                 disabled={!onRename}
-                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer"
+                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
                             >
-                                <PencilSimple className="w-4 h-4 mr-2" weight="duotone" />
-                                <span>Rename</span>
+                                <PencilSimple className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                <span className="transition-colors duration-200">Rename</span>
                             </DropdownMenuItem>
                         )}
 
@@ -95,20 +95,20 @@ export function WebActionMenu({
                                 navigator.clipboard.writeText(web.url);
                                 toast.success('URL copied to clipboard!');
                             }}
-                            className="rounded-md px-2 py-1.5 text-sm cursor-pointer"
+                            className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
                         >
-                            <Copy className="w-4 h-4 mr-2" weight="duotone" />
-                            <span>Copy URL</span>
+                            <Copy className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                            <span className="transition-colors duration-200">Copy URL</span>
                         </DropdownMenuItem>
 
                         {onShare && (
                             <DropdownMenuItem
                                 onClick={() => onShare(web.id)}
                                 disabled={!onShare}
-                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer"
+                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
                             >
-                                <ShareNetwork className="w-4 h-4 mr-2" weight="duotone" />
-                                <span>Share</span>
+                                <ShareNetwork className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                <span className="transition-colors duration-200">Share</span>
                             </DropdownMenuItem>
                         )}
 
@@ -116,10 +116,10 @@ export function WebActionMenu({
                             <DropdownMenuItem
                                 onClick={() => onFavorite(web.id)}
                                 disabled={!onFavorite}
-                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer"
+                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
                             >
-                                <Star className="w-4 h-4 mr-2" weight="duotone" />
-                                <span>Add to Favorites</span>
+                                <Star className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                <span className="transition-colors duration-200">Add to Favorites</span>
                             </DropdownMenuItem>
                         )}
 
@@ -129,10 +129,10 @@ export function WebActionMenu({
                             <DropdownMenuItem
                                 onClick={() => onDelete(web.id)}
                                 disabled={!onDelete}
-                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-600/10"
+                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-600/10 transition-all duration-200"
                             >
-                                <Trash className="w-4 h-4 mr-2" weight="duotone" />
-                                <span>Delete</span>
+                                <Trash className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                <span className="transition-colors duration-200">Delete</span>
                             </DropdownMenuItem>
                         )}
                     </motion.div>

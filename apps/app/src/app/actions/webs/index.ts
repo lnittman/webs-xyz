@@ -1,0 +1,1 @@
+export { updateWebEmoji } from './update-emoji'; 

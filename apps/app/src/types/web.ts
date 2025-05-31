@@ -8,6 +8,7 @@ export interface WebEntity {
 
 export interface Web {
   id: string;
+  userId: string;
   url: string;
   urls?: string[];
   domain?: string | null;
@@ -23,6 +24,7 @@ export interface Web {
   readingTime?: number | null;
   insights?: string[];
   relatedUrls?: string[];
+  emoji?: string | null;
   createdAt: string;
   updatedAt: string;
   messages?: Message[];

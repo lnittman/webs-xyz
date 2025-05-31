@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { CaretDown, CaretUp, Gear, Empty } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from "framer-motion";
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@repo/design/components/ui/dropdown-menu";
 import { cn } from '@repo/design/lib/utils';
 import { Button } from '@repo/design/components/ui/button';
 
@@ -25,8 +30,8 @@ export function ModelPicker({
     const displayText = 'no models configured';
 
     return (
-        <DropdownMenuPrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
-            <DropdownMenuPrimitive.Trigger asChild>
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+            <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
                     className={cn(
@@ -64,74 +69,71 @@ export function ModelPicker({
                         )}
                     </AnimatePresence>
                 </Button>
-            </DropdownMenuPrimitive.Trigger>
+            </DropdownMenuTrigger>
 
             <AnimatePresence>
                 {isOpen && (
-                    <DropdownMenuPrimitive.Portal forceMount>
-                        <DropdownMenuPrimitive.Content
-                            asChild
-                            side="top"
-                            align="start"
-                            alignOffset={0}
-                            sideOffset={8}
-                            onCloseAutoFocus={(event: Event) => {
-                                event.preventDefault();
+                    <DropdownMenuContent
+                        side="top"
+                        align="start"
+                        alignOffset={0}
+                        sideOffset={8}
+                        onCloseAutoFocus={(event: Event) => {
+                            event.preventDefault();
+                        }}
+                        className="z-[500] w-80 overflow-hidden border border-border bg-popover/95 backdrop-blur-sm shadow-md rounded-lg flex flex-col p-0"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                            transition={{
+                                duration: 0.2,
+                                ease: [0.32, 0.72, 0, 1]
                             }}
                         >
-                            <motion.div
-                                className="z-[500] w-80 overflow-hidden border border-border bg-popover/95 backdrop-blur-sm shadow-md rounded-lg flex flex-col"
-                                initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                                transition={{
-                                    duration: 0.2,
-                                    ease: [0.32, 0.72, 0, 1]
-                                }}
-                            >
-                                {/* Empty state */}
-                                <div className="py-8 px-4">
-                                    <div className="text-center space-y-4">
-                                        <div className="flex justify-center">
-                                            <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center">
-                                                <Empty size={32} weight="duotone" className="text-muted-foreground/60" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-medium text-foreground">
-                                                No models configured
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Configure models to start analyzing
-                                            </p>
+                            {/* Empty state */}
+                            <div className="py-8 px-4">
+                                <div className="text-center space-y-4">
+                                    <div className="flex justify-center">
+                                        <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center">
+                                            <Empty size={32} weight="duotone" className="text-muted-foreground/60" />
                                         </div>
                                     </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-foreground">
+                                            No models configured
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Configure models to start analyzing
+                                        </p>
+                                    </div>
                                 </div>
+                            </div>
 
-                                {/* Settings option */}
-                                <div className="border-t border-border/50 p-1">
-                                    <DropdownMenuPrimitive.Item
-                                        className={cn(
-                                            "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm outline-none transition-colors text-foreground mx-1 rounded-md",
-                                            "hover:bg-accent hover:text-accent-foreground",
-                                            "focus:bg-accent focus:text-accent-foreground"
-                                        )}
-                                        onSelect={() => {
-                                            // TODO: Navigate to settings
-                                            setIsOpen(false);
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Gear weight="duotone" className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-xs">Configure models</span>
-                                        </div>
-                                    </DropdownMenuPrimitive.Item>
-                                </div>
-                            </motion.div>
-                        </DropdownMenuPrimitive.Content>
-                    </DropdownMenuPrimitive.Portal>
+                            {/* Settings option */}
+                            <div className="border-t border-border/50 p-1">
+                                <DropdownMenuItem
+                                    className={cn(
+                                        "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm outline-none transition-colors text-foreground mx-1 rounded-md",
+                                        "hover:bg-accent hover:text-accent-foreground",
+                                        "focus:bg-accent focus:text-accent-foreground"
+                                    )}
+                                    onSelect={() => {
+                                        // TODO: Navigate to settings
+                                        setIsOpen(false);
+                                    }}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Gear weight="duotone" className="h-4 w-4 flex-shrink-0" />
+                                        <span className="text-xs">Configure models</span>
+                                    </div>
+                                </DropdownMenuItem>
+                            </div>
+                        </motion.div>
+                    </DropdownMenuContent>
                 )}
             </AnimatePresence>
-        </DropdownMenuPrimitive.Root>
+        </DropdownMenu>
     );
 } 

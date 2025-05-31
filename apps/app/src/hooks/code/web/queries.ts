@@ -40,7 +40,7 @@ export function useWebs(workspaceId = 'default') {
   };
 }
 
-export function useWeb(webId: string) {
+export function useWeb(webId: string | null) {
   const { data, error, mutate } = useSWR<Web>(
     webId ? `/api/webs/${webId}` : null,
     fetcher,

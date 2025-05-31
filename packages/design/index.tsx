@@ -23,3 +23,23 @@ export const DesignSystemProvider = ({
     </AuthProvider>
   </ThemeProvider>
 );
+
+// Export emoji picker components
+export {
+  EmojiPicker,
+  EmojiPickerSearch,
+  EmojiPickerContent,
+  EmojiPickerFooter,
+  type Emoji,
+} from './components/ui/emoji-picker';
+
+// Export popover components
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from './components/ui/popover';
+
+// Export button component
+export { Button } from './components/ui/button';

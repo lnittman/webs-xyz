@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useAtom } from 'jotai';
+
+import { promptFocusedAtom } from '@/atoms/chat';
 import { PromptBar } from '@/components/shared/prompt-bar';
 import { ClientLayout } from '@/components/shared/client-layout';
-import { promptFocusedAtom } from '@/atoms/chat';
-import { NavigationToolbar } from './navigation-toolbar';
-import { DashboardLayout } from './dashboard-layout';
 import { useDashboard } from '@/hooks/use-dashboard';
-import { Globe, Sparkle, Clock } from '@phosphor-icons/react/dist/ssr';
-import type { ProcessingActivity, Web } from '@/types/dashboard';
+import type { Web } from '@/types/dashboard';
+
+import { DashboardLayout } from './dashboard-layout';
+import { NavigationToolbar } from './navigation-toolbar';
 
 interface DashboardProps {
     webs?: Web[];
@@ -29,40 +30,12 @@ export function Dashboard({
     const [isPromptFocused, setIsPromptFocused] = useAtom(promptFocusedAtom);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Mock processing activities (in real app, this would come from a subscription/polling)
-    const [processingActivities] = useState<ProcessingActivity[]>([
-        {
-            id: '1',
-            type: 'processing',
-            action: 'EXTRACTING CONTENT',
-            target: 'github.com/vercel/next.js',
-            timestamp: new Date(Date.now() - 1000 * 60 * 2),
-            icon: Globe
-        },
-        {
-            id: '2',
-            type: 'completed',
-            action: 'GENERATED SUMMARY',
-            target: 'news.ycombinator.com',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5),
-            icon: Sparkle
-        },
-        {
-            id: '3',
-            type: 'queued',
-            action: 'PENDING ANALYSIS',
-            target: 'arxiv.org/papers/2024',
-            timestamp: new Date(Date.now() - 1000 * 60 * 10),
-            icon: Clock
-        }
-    ]);
-
     const {
         filteredWebs,
         recentWebs,
         topDomains,
         processingCount
-    } = useDashboard({ webs, searchQuery, activities: processingActivities });
+    } = useDashboard({ webs, searchQuery, activities: [] });
 
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -97,7 +70,7 @@ export function Dashboard({
                 webs={filteredWebs}
                 searchQuery={searchQuery}
                 onClearSearch={handleClearSearch}
-                activities={processingActivities}
+                activities={[]}
                 recentWebs={recentWebs}
                 topDomains={topDomains}
                 selectedModelId={selectedModelId}

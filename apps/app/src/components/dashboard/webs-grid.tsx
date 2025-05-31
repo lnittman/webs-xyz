@@ -6,7 +6,7 @@ import { WebCard } from './web-card';
 import { EmptyState } from './empty-state';
 import { SearchEmptyState } from './search-empty-state';
 import type { Web } from '@/types/dashboard';
-import { toast } from 'sonner';
+import { toast } from '@repo/design/components/ui/sonner';
 
 interface WebsGridProps {
     webs: Web[];
@@ -27,16 +27,16 @@ export function WebsGrid({
     const [isLoading] = useAtom(isLoadingAtom);
 
     const fadeTransition = {
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -10 },
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
         transition: { duration: 0.3, ease: 'easeOut' }
     };
 
     const emptyStateTransition = {
-        initial: { opacity: 0, scale: 0.95 },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale: 0.95 },
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
         transition: { duration: 0.4, ease: 'easeOut' }
     };
 
@@ -117,8 +117,8 @@ export function WebsGrid({
                     {webs.map((web, index) => (
                         <motion.div
                             key={web.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                             transition={{
                                 duration: 0.3,
                                 ease: 'easeOut',
@@ -148,8 +148,8 @@ export function WebsGrid({
                         {webs.map((web, index) => (
                             <motion.div
                                 key={web.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
                                 transition={{
                                     duration: 0.3,
                                     ease: 'easeOut',

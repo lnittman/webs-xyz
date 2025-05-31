@@ -2,6 +2,7 @@ import { Metadata } from "next";
 
 import { auth, currentUser } from '@repo/auth/server';
 import { secure } from '@repo/security';
+import { NotificationsProvider } from '@repo/notifications/components/provider';
 
 import { env } from '../../../env';
 
@@ -29,10 +30,10 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
   }
 
   return (
-    <>
+    <NotificationsProvider userId={user.id}>
       {children}
       <PostHogIdentifier />
-    </>
+    </NotificationsProvider>
   );
 };
 

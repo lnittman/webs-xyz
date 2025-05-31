@@ -3,13 +3,15 @@ import { searchModalOpenAtom } from '@/atoms/search';
 import { viewModeAtom } from '@/atoms/dashboard';
 import { cn } from '@repo/design/lib/utils';
 import { MagnifyingGlass, FunnelSimple, SortAscending, Database, SquaresFour, List } from '@phosphor-icons/react/dist/ssr';
+import { motion } from 'framer-motion';
 
 interface NavigationToolbarProps {
     resultsCount: number;
     processingCount: number;
+    isLoadingResults?: boolean;
 }
 
-export function NavigationToolbar({ resultsCount, processingCount }: NavigationToolbarProps) {
+export function NavigationToolbar({ resultsCount, processingCount, isLoadingResults = false }: NavigationToolbarProps) {
     const [, setIsSearchModalOpen] = useAtom(searchModalOpenAtom);
     const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
@@ -81,10 +83,15 @@ export function NavigationToolbar({ resultsCount, processingCount }: NavigationT
                             </div>
 
                             {/* Results count */}
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted border border-border font-mono rounded-lg">
+                            <motion.div
+                                initial={isLoadingResults ? { opacity: 0 } : { opacity: 1 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted border border-border font-mono rounded-lg"
+                            >
                                 <Database size={14} weight="duotone" />
                                 <span className="font-medium">{resultsCount}</span>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>

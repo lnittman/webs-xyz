@@ -5,6 +5,7 @@ export const GET = async () => {
     data: {
       url: 'https://cron-temp.example.com',
       title: 'cron-temp',
+      userId: 'cron-system',
     },
   });
 

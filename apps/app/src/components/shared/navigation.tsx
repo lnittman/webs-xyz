@@ -2,8 +2,11 @@
 
 import { usePathname } from 'next/navigation';
 import { Link } from 'next-view-transitions';
+import { useTransitionRouter } from 'next-view-transitions';
 import { UserMenu } from './user-menu';
-import { FeedbackDropdown } from './feedback-dropdown';
+import { NotificationsWrapper } from './notifications-wrapper';
+import { DocsMenu } from './docs-menu';
+import { FeedbackMenu } from './feedback-menu';
 import { WebsAsciiLogo } from './webs-ascii';
 import {
     Breadcrumb,
@@ -22,6 +25,11 @@ interface NavigationProps {
 
 export function Navigation({ webTitle, webId }: NavigationProps) {
     const pathname = usePathname();
+    const router = useTransitionRouter();
+
+    const handleNavigate = (path: string) => {
+        router.push(path);
+    };
 
     // Generate breadcrumb items based on current path
     const getBreadcrumbItems = () => {
@@ -98,7 +106,9 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
                 {/* Right side - Feedback and User menu */}
                 <div className="flex items-center gap-2">
-                    <FeedbackDropdown className="h-8" />
+                    <FeedbackMenu className="h-8" />
+                    <DocsMenu />
+                    <NotificationsWrapper onNavigate={handleNavigate} />
                     <UserMenu />
                 </div>
             </div>

@@ -14,6 +14,7 @@ datasource db {
 
 model Web {
   id          String      @id @default(uuid())
+  userId      String // Clerk user ID for multi-tenancy
   url         String      @db.Text // Primary URL (deprecated - use urls)
   urls        String[] // Array of URLs to analyze
   domain      String? // Primary domain for grouping
@@ -30,11 +31,13 @@ model Web {
   insights    String[] // Key insights
   // Additional discovered URLs
   relatedUrls String[] // URLs found in content
+  emoji       String? // User-selectable or AI-suggested emoji
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   messages    Message[]
   entities    WebEntity[] // Extracted entities
 
+  @@index([userId])
   @@index([domain])
   @@index([createdAt])
   @@index([status])

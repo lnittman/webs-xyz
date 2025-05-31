@@ -4,15 +4,23 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'next-view-transitions';
 import { useWeb } from '@/hooks/code/web/queries';
+import { useUpdateWebEmoji } from '@/hooks/code/web/mutations';
 import { ClientLayout } from '@/components/shared/client-layout';
+import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
 import { cn } from '@repo/design/lib/utils';
-import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon, Globe } from '@phosphor-icons/react/dist/ssr';
+import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon, Globe, Robot } from '@phosphor-icons/react/dist/ssr';
+import { useSetAtom } from 'jotai';
+import { startLoadingAtom, stopLoadingAtom } from '@/atoms/loading';
+import { toast } from '@repo/design/components/ui/sonner';
+import { WebChat } from '@/components/shared/web-chat';
 
 interface WebDetailPageProps {
     params: Promise<{
         id: string;
     }>;
 }
+
+const LOADING_ID = 'web-detail';
 
 // Helper to extract domain from URL
 function extractDomain(url: string): string {
@@ -38,26 +46,38 @@ function formatDate(date: string): string {
 
 export default function WebDetailPage({ params }: WebDetailPageProps) {
     const [id, setId] = useState<string | null>(null);
-    const { web, isLoading, isError } = useWeb(id || '');
-    const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'raw' | 'insights'>('overview');
+    const { web, isLoading, isError } = useWeb(id);
+    const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'raw' | 'insights' | 'chat'>('overview');
+    const startLoading = useSetAtom(startLoadingAtom);
+    const stopLoading = useSetAtom(stopLoadingAtom);
+    const { updateEmoji } = useUpdateWebEmoji();
 
     useEffect(() => {
         params.then(({ id }) => setId(id));
     }, [params]);
 
-    if (isLoading) {
-        return (
-            <ClientLayout>
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="text-xs text-muted-foreground mb-2">LOADING WEB...</div>
-                        <div className="w-8 h-1 bg-border rounded-full overflow-hidden">
-                            <div className="h-full bg-foreground animate-pulse rounded-full" />
-                        </div>
-                    </div>
-                </div>
-            </ClientLayout>
-        );
+    // Manage loading state with atoms
+    useEffect(() => {
+        if (isLoading) {
+            startLoading(LOADING_ID);
+        } else {
+            stopLoading(LOADING_ID);
+        }
+    }, [isLoading, startLoading, stopLoading]);
+
+    const handleEmojiSelect = async (emoji: string) => {
+        if (!web) return;
+        try {
+            await updateEmoji(web.id, emoji);
+            toast.success('Emoji updated!');
+        } catch (error) {
+            toast.error('Failed to update emoji');
+        }
+    };
+
+    // Show loading while we're waiting for the ID to be resolved
+    if (!id) {
+        return <ClientLayout><div /></ClientLayout>;
     }
 
     if (isError || !web) {
@@ -153,9 +173,39 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                         <div className="mb-8">
                             <div className="space-y-6">
                                 <div>
-                                    <h1 className="text-2xl font-semibold mb-3">
-                                        {web.title || `Analysis of ${urls.length} web page${urls.length > 1 ? 's' : ''}`}
-                                    </h1>
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="flex-1">
+                                            {web.title ? (
+                                                <h1 className="text-2xl font-semibold">
+                                                    {web.title}
+                                                </h1>
+                                            ) : (web.status === 'PROCESSING' || web.status === 'PENDING') ? (
+                                                <div className="space-y-3">
+                                                    <div className="h-8 bg-muted animate-pulse rounded w-3/4" />
+                                                    <div className="h-8 bg-muted animate-pulse rounded w-1/2" />
+                                                </div>
+                                            ) : (
+                                                <h1 className="text-2xl font-semibold text-muted-foreground">
+                                                    {`Analysis of ${urls.length} web page${urls.length > 1 ? 's' : ''}`}
+                                                </h1>
+                                            )}
+                                        </div>
+                                        {web.emoji ? (
+                                            <EmojiPickerButton
+                                                emoji={web.emoji}
+                                                onEmojiSelect={handleEmojiSelect}
+                                                className="h-8 w-8 text-lg"
+                                            />
+                                        ) : (web.status === 'PROCESSING' || web.status === 'PENDING') ? (
+                                            <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+                                        ) : (
+                                            <EmojiPickerButton
+                                                emoji={null}
+                                                onEmojiSelect={handleEmojiSelect}
+                                                className="h-8 w-8 text-lg opacity-50"
+                                            />
+                                        )}
+                                    </div>
                                     {urls.length === 1 ? (
                                         <a
                                             href={web.url}
@@ -273,6 +323,18 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                                     INSIGHTS
                                 </button>
                                 <button
+                                    onClick={() => setActiveTab('chat')}
+                                    className={cn(
+                                        "px-4 py-3 text-xs uppercase tracking-wider transition-all flex items-center gap-2 font-medium",
+                                        activeTab === 'chat'
+                                            ? "bg-background text-foreground border-b-2 border-foreground"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                    )}
+                                >
+                                    <Robot size={12} weight="duotone" />
+                                    CHAT
+                                </button>
+                                <button
                                     onClick={() => setActiveTab('messages')}
                                     className={cn(
                                         "px-4 py-3 text-xs uppercase tracking-wider transition-all font-medium",
@@ -366,12 +428,9 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                                         <div className="space-y-8">
                                             {!hasAnalysisData && web.status === 'PROCESSING' ? (
                                                 <div className="text-center py-12">
-                                                    <p className="text-sm text-muted-foreground mb-4">
+                                                    <p className="text-sm text-muted-foreground">
                                                         Analysis in progress...
                                                     </p>
-                                                    <div className="w-8 h-1 bg-border rounded-full overflow-hidden mx-auto">
-                                                        <div className="h-full bg-foreground animate-pulse rounded-full" />
-                                                    </div>
                                                 </div>
                                             ) : !hasAnalysisData && web.status === 'FAILED' ? (
                                                 <div className="text-center py-12">
@@ -491,6 +550,10 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                                                             </div>
                                             )}
                                         </div>
+                                    )}
+
+                                    {activeTab === 'chat' && (
+                                        <WebChat web={web} />
                                     )}
 
                                     {activeTab === 'messages' && (

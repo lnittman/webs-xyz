@@ -89,7 +89,7 @@ export function FeedbackDropdown({ className }: FeedbackDropdownProps) {
                     className={cn(
                         "flex h-8 items-center gap-2 px-3 py-1.5 text-sm font-medium font-mono text-muted-foreground hover:text-foreground transition-all duration-200 rounded-md border border-border hover:border-foreground/20 hover:bg-accent",
                         "focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:ring-offset-2 focus:ring-offset-background",
-                        isOpen && "bg-accent border-foreground/20 text-foreground",
+                        isOpen && "bg-accent/80 border-foreground/30 text-foreground",
                         className
                     )}
                 >
@@ -174,14 +174,14 @@ export function FeedbackDropdown({ className }: FeedbackDropdownProps) {
                                                                     setSelectedTopic(topic.id);
                                                                     setShowTopicDropdown(false);
                                                                 }}
-                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center justify-between font-mono group"
+                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-all duration-200 flex items-center justify-between font-mono group"
                                                             >
                                                                 <div className="flex items-center gap-2">
-                                                                    <topic.icon size={16} weight="duotone" className="text-muted-foreground group-hover:text-foreground" />
-                                                                    <span>{topic.label}</span>
+                                                                    <topic.icon size={16} weight="duotone" className="text-muted-foreground group-hover:text-foreground transition-all duration-200" />
+                                                                    <span className="transition-colors duration-200">{topic.label}</span>
                                                                 </div>
                                                                 {selectedTopic === topic.id && (
-                                                                    <Check size={14} weight="duotone" className="text-green-600" />
+                                                                    <Check size={14} weight="duotone" className="text-green-600 transition-all duration-200" />
                                                                 )}
                                                             </button>
                                                         ))}

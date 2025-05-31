@@ -14,25 +14,26 @@
     "bump-ui": "npx shadcn@latest add --all --overwrite -c packages/design",
     "migrate": "cd packages/database && npx prisma format && npx prisma generate && npx prisma db push",
     "clean": "git clean -xdf node_modules",
-    "bundle:check": "pnpm --filter app analyze && node scripts/check-bundle-size.js"
   },
   "devDependencies": {
     "@auto-it/first-time-contributor": "^11.3.0",
     "@biomejs/biome": "1.9.4",
     "@repo/typescript-config": "workspace:*",
-    "@turbo/gen": "^2.5.0",
-    "@types/node": "^22.14.1",
-    "tsup": "^8.4.0",
-    "turbo": "^2.5.0",
+    "@turbo/gen": "^2.5.3",
+    "@types/node": "^22.15.21",
+    "turbo": "^2.5.3",
     "typescript": "^5.8.3",
-    "ultracite": "^4.2.1",
-    "vitest": "^3.1.1"
+    "ultracite": "^4.2.5",
+    "vitest": "^3.1.4"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@10.8.0",
+  "packageManager": "pnpm@10.11.0",
   "dependencies": {
-    "sonner": "^2.0.3"
+    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/react": "^1.2.12",
+    "ai": "^4.3.16",
+    "zod": "^3.25.42"
   }
 }

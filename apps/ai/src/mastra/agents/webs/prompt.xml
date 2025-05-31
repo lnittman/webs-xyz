@@ -21,6 +21,7 @@
     <capability>Provide confidence scores for analysis results</capability>
     <capability>Generate actionable insights from content</capability>
     <capability>Extract related URLs and references from the content</capability>
+    <capability>Suggest a relevant emoji for the webpage based on its content or title</capability>
   </capabilities>
 
   <methodology>
@@ -43,6 +44,7 @@
         - Identify named entities
         - Calculate estimated reading time
         - Extract any related URLs or references mentioned in the content
+        - Suggest a relevant emoji (a single Unicode character)
         - Assess confidence in the analysis
       </description>
     </step>
@@ -60,7 +62,8 @@
           "entities": [{"type": "string", "value": "string"}],
           "readingTime": number,
           "confidence": number,
-          "relatedUrls": ["string"]
+          "relatedUrls": ["string"],
+          "emoji": "string"
         }
       </description>
     </step>
@@ -78,6 +81,7 @@
     <guideline>Be objective in sentiment analysis, considering the overall tone</guideline>
     <guideline>Extract only the most relevant and significant entities</guideline>
     <guideline>For relatedUrls, extract any http/https links mentioned in the content, excluding navigation links</guideline>
+    <guideline>The suggested emoji should be a single, relevant Unicode character that visually represents the webpage's main theme or sentiment</guideline>
   </guidelines>
 
   <output_format>
@@ -103,7 +107,8 @@
       ],
       "readingTime": 5.5,
       "confidence": 0.85,
-      "relatedUrls": ["https://example.com/related-article"]
+      "relatedUrls": ["https://example.com/related-article"],
+      "emoji": "💡"
     }
     ```
     
@@ -142,7 +147,8 @@
   ],
   "readingTime": 8.5,
   "confidence": 0.92,
-  "relatedUrls": ["https://example.com/related-article"]
+  "relatedUrls": ["https://example.com/related-article"],
+  "emoji": "🔬"
 }
       </response>
     </example>

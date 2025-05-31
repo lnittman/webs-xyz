@@ -1,39 +1,43 @@
 import { NextRequest } from 'next/server';
+
+import { ApiResponse, withErrorHandling } from '@/lib/api/response';
+import { feedbackSchema } from '@/lib/api/schemas/feedback';
+import { validateWith, validatePaginationParams } from '@/lib/api/validation';
 import { createFeedback, listFeedback } from '@/lib/api/services/feedback';
-import { success, created, error as errorResponse } from '@/lib/api/response';
-import { feedbackSchema, feedbackTopicEnum, feedbackStatusEnum } from '@/lib/api/schemas/feedback';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const userAgent = request.headers.get('user-agent');
-    const referer = request.headers.get('referer');
-    const feedback = await createFeedback({ ...body, userAgent, url: referer });
-    return created({ id: feedback.id, message: 'Feedback submitted successfully' });
-  } catch (error) {
-    console.error('Error submitting feedback:', error);
-    return errorResponse('Failed to submit feedback');
-  }
+async function handleGetFeedback(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const { limit, offset } = validatePaginationParams(searchParams);
+  
+  const topic = searchParams.get('topic') as any;
+  const status = searchParams.get('status') as any;
+
+  const result = await listFeedback({
+    topic,
+    status,
+    limit,
+    offset,
+  });
+
+  return ApiResponse.success(result);
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const topicParam = searchParams.get('topic');
-    const statusParam = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    const allowedTopics = feedbackTopicEnum.options;
-    const allowedStatuses = feedbackStatusEnum.options;
-
-    const topic = (topicParam && allowedTopics.includes(topicParam as any)) ? (topicParam as typeof allowedTopics[number]) : undefined;
-    const status = (statusParam && allowedStatuses.includes(statusParam as any)) ? (statusParam as typeof allowedStatuses[number]) : undefined;
-
-    const result = await listFeedback({ topic, status, limit, offset });
-    return success({ ...result, hasMore: offset + limit < result.total });
-  } catch (error) {
-    console.error('Error fetching feedback:', error);
-    return errorResponse('Failed to fetch feedback');
-  }
+async function handleCreateFeedback(request: NextRequest) {
+  const body = await request.json();
+  
+  // Add user-agent and referer from headers
+  const userAgent = request.headers.get('user-agent');
+  const referer = request.headers.get('referer');
+  
+  const validatedData = await validateWith(feedbackSchema, {
+    ...body,
+    userAgent,
+    url: referer,
+  });
+  
+  const feedback = await createFeedback(validatedData);
+  return ApiResponse.success(feedback, 201);
 }
+
+export const GET = withErrorHandling(handleGetFeedback);
+export const POST = withErrorHandling(handleCreateFeedback);

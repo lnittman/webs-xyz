@@ -8,9 +8,6 @@
 - Build: `pnpm --filter app build`.
 - Global middleware is defined in `middleware.ts`.
 
-## Testing Instructions
-Run `pnpm --filter app test` when necessary. Tests use Vitest and Testing Library.
-
 ## Code Standards
 - Components live under `app/` using the App Router convention.
 - API routes live under `src/app/api` and should call services from `src/lib/api`.

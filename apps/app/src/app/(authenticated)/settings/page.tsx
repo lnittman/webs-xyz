@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ClientLayout } from '@/components/shared/client-layout';
 import { cn } from '@repo/design/lib/utils';
 import { useUserSettings, useUpdateUserSettings } from '@/hooks/user-settings';
@@ -32,11 +33,20 @@ const settingsNavigation = [
 export default function SettingsPage() {
   const { settings, isLoading: settingsLoading } = useUserSettings();
   const { updateSettings, isLoading: updateLoading } = useUpdateUserSettings();
+  const searchParams = useSearchParams();
 
   const [activeSection, setActiveSection] = useState('general');
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Handle URL parameters
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && settingsNavigation.some(nav => nav.id === tab)) {
+      setActiveSection(tab);
+    }
+  }, [searchParams]);
 
   // Check if mobile
   useEffect(() => {

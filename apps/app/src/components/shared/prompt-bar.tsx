@@ -107,11 +107,15 @@ export function PromptBar({
   const [stableUrls] = useAtom(stableUrlsAtom);
   const [urlInput, setUrlInput] = useState('');
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
+  const [hasBrowserTabsLoaded, setHasBrowserTabsLoaded] = useState(false);
   const { open } = useModals();
 
   // Load browser tabs on mount
   useEffect(() => {
-    getBrowserTabs().then(setBrowserTabs);
+    getBrowserTabs().then(tabs => {
+      setBrowserTabs(tabs);
+      setHasBrowserTabsLoaded(true);
+    });
   }, []);
 
   // Update stable URLs when input changes
@@ -183,16 +187,20 @@ export function PromptBar({
           />
         </div>
 
-        {/* Tabs button */}
-        {browserTabs.length > 0 && (
-          <button
-            onClick={openTabsModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 font-mono transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md border border-transparent hover:border-accent/30"
-          >
-            <Plus size={12} weight="duotone" />
-            <span className="uppercase tracking-wider text-xs">Tabs</span>
-          </button>
-        )}
+        {/* Tabs button - always visible */}
+        <button
+          onClick={openTabsModal}
+          disabled={!hasBrowserTabsLoaded || browserTabs.length === 0}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 font-mono transition-all duration-200 rounded-md border",
+            hasBrowserTabsLoaded && browserTabs.length > 0
+              ? "text-muted-foreground hover:text-foreground hover:bg-accent/50 border-transparent hover:border-accent/30"
+              : "text-muted-foreground/50 cursor-not-allowed border-transparent"
+          )}
+        >
+          <Plus size={12} weight="duotone" />
+          <span className="uppercase tracking-wider text-xs">Tabs</span>
+        </button>
       </div>
 
       {/* Main content area with URL tiles */}
@@ -204,9 +212,9 @@ export function PromptBar({
           className="h-12"
           scrollableClassName="flex gap-3 overflow-x-auto scrollbar-hide"
         >
-          <AnimatePresence mode="wait">
-            {stableUrls.length > 0 ? (
-              stableUrls.map((detectedUrl) => (
+          {stableUrls.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {stableUrls.map((detectedUrl) => (
                 <motion.div
                   key={detectedUrl.id}
                   layout
@@ -248,24 +256,18 @@ export function PromptBar({
                     </button>
                   </div>
                 </motion.div>
-              ))
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-center w-full h-12"
-              >
+              ))}
+            </AnimatePresence>
+          ) : (
+              <div className="flex items-center justify-center w-full h-12">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Globe size={14} weight="duotone" />
                   <span className="text-xs font-mono uppercase tracking-wider">
                     Enter URLs above to see context
                   </span>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
         </ScrollFadeContainer>
       </div>
 

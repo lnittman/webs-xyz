@@ -3,13 +3,14 @@ import { createWebInputSchema, updateWebInputSchema, Web } from '../schemas/web'
 import { executeWorkflow } from '@/lib/mastra';
 
 // Import Mastra client for workflow execution
-async function triggerWebAnalysis(webId: string, urls: string[], prompt?: string) {
+async function triggerWebAnalysis(webId: string, userId: string, urls: string[], prompt?: string) {
   try {
     const result = await executeWorkflow('analyzeWeb', {
       urls,
       prompt,
     }, {
       webId, // Pass webId as metadata for webhook handling
+      userId, // Pass userId for notifications
     });
 
     if (!result.runId) {
@@ -38,6 +39,7 @@ async function triggerWebAnalysis(webId: string, urls: string[], prompt?: string
 async function pollForWorkflowCompletion(webId: string, runId: string) {
   const maxAttempts = 60; // 2 minutes with 2 second intervals
   let attempts = 0;
+  let hasUpdatedQuickMetadata = false;
   
   const pollInterval = setInterval(async () => {
     attempts++;
@@ -74,18 +76,78 @@ async function pollForWorkflowCompletion(webId: string, runId: string) {
       
       console.log(`Workflow ${runId} status:`, ourRun.snapshot?.status);
       
+      // Check for quick metadata completion (for early UI feedback)
+      if (!hasUpdatedQuickMetadata) {
+        const quickMetadataStep = ourRun.snapshot?.context?.steps?.['generate-quick-metadata'];
+        if (quickMetadataStep?.status === 'success' && quickMetadataStep?.output) {
+          console.log('Quick metadata available - updating UI');
+          
+          try {
+            const quickData = quickMetadataStep.output;
+            await database.web.update({
+              where: { id: webId },
+              data: {
+                title: quickData.quickTitle,
+                emoji: quickData.quickEmoji,
+                description: quickData.quickDescription,
+                // Keep status as PROCESSING since we're not done
+              },
+            });
+            hasUpdatedQuickMetadata = true;
+            console.log('Updated web with quick metadata');
+          } catch (error) {
+            console.error('Error updating web with quick metadata:', error);
+          }
+        }
+      }
+      
       // Check if workflow is done (either completed or failed)
       if (ourRun.snapshot?.status === 'done') {
         clearInterval(pollInterval);
         
-        // Check the step status
-        const analyzeWebStep = ourRun.snapshot?.context?.steps?.['analyze-web'];
+        // Check the final step status (final-assembly is the last step)
+        const finalStep = ourRun.snapshot?.context?.steps?.['final-assembly'];
         
-        if (analyzeWebStep?.status === 'success' && analyzeWebStep?.output) {
-          console.log('Workflow completed successfully, updating database');
-          await handleWorkflowCompletion(webId, analyzeWebStep.output);
+        if (finalStep?.status === 'success' && finalStep?.output) {
+          console.log('Workflow completed successfully - updating database');
+          
+          // Update the web record with the final analysis results
+          try {
+            const analysisResult = finalStep.output;
+            
+            await database.web.update({
+              where: { id: webId },
+              data: {
+                status: 'COMPLETE',
+                title: analysisResult.title,
+                description: analysisResult.description,
+                analysis: analysisResult,
+                topics: analysisResult.topics,
+                sentiment: analysisResult.sentiment,
+                confidence: analysisResult.confidence,
+                readingTime: analysisResult.readingTime,
+                insights: analysisResult.insights,
+                relatedUrls: analysisResult.relatedUrls,
+                emoji: analysisResult.emoji,
+                entities: {
+                  create: analysisResult.entities?.map((entity: any) => ({
+                    type: entity.type,
+                    value: entity.value,
+                  })) || [],
+                },
+              },
+            });
+            
+            console.log('Successfully updated web record with final analysis results');
+          } catch (error) {
+            console.error('Error updating web with final analysis results:', error);
+            await database.web.update({
+              where: { id: webId },
+              data: { status: 'FAILED' },
+            });
+          }
         } else {
-          console.error('Workflow failed:', analyzeWebStep?.error);
+          console.error('Workflow failed:', finalStep?.error);
           await database.web.update({
             where: { id: webId },
             data: { status: 'FAILED' },
@@ -114,8 +176,9 @@ async function pollForWorkflowCompletion(webId: string, runId: string) {
   }, 2000); // Poll every 2 seconds
 }
 
-export async function listWebs(workspaceId: string): Promise<Web[]> {
+export async function listWebs(userId: string): Promise<Web[]> {
   const webs = await database.web.findMany({
+    where: { userId },
     include: { 
       messages: true,
       entities: true,
@@ -171,6 +234,7 @@ export async function createWeb(input: unknown): Promise<Web> {
   
   const web = await database.web.create({
     data: {
+      userId: data.userId,
       url: primaryUrl,
       urls,
       domain,
@@ -184,7 +248,7 @@ export async function createWeb(input: unknown): Promise<Web> {
   });
 
   // Trigger the workflow asynchronously
-  triggerWebAnalysis(web.id, urls, data.prompt);
+  triggerWebAnalysis(web.id, web.userId, urls, data.prompt);
 
   return {
     ...web,
@@ -256,39 +320,4 @@ export async function updateWeb(id: string, input: unknown): Promise<Web | null>
         }))
       : [],
   };
-}
-
-// New function to handle workflow completion
-export async function handleWorkflowCompletion(webId: string, analysisResult: any) {
-  try {
-    // Update the web with analysis results
-    await database.web.update({
-      where: { id: webId },
-      data: {
-        status: 'COMPLETE',
-        title: analysisResult.title,
-        description: analysisResult.description,
-        analysis: analysisResult,
-        topics: analysisResult.topics,
-        sentiment: analysisResult.sentiment,
-        confidence: analysisResult.confidence,
-        readingTime: analysisResult.readingTime,
-        insights: analysisResult.insights,
-        relatedUrls: analysisResult.relatedUrls,
-        entities: {
-          create: analysisResult.entities.map((entity: any) => ({
-            type: entity.type,
-            value: entity.value,
-          })),
-        },
-      },
-    });
-  } catch (error) {
-    console.error('Error updating web with analysis results:', error);
-    // Mark as failed
-    await database.web.update({
-      where: { id: webId },
-      data: { status: 'FAILED' },
-    });
-  }
 }

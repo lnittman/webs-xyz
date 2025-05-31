@@ -11,8 +11,9 @@ import { log } from '@repo/observability/log';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';
+import { sendWelcomeNotification } from '@repo/notifications/server';
 
-const handleUserCreated = (data: UserJSON) => {
+const handleUserCreated = async (data: UserJSON) => {
   analytics.identify({
     distinctId: data.id,
     properties: {
@@ -29,6 +30,13 @@ const handleUserCreated = (data: UserJSON) => {
     event: 'User Created',
     distinctId: data.id,
   });
+
+  // Send welcome notification
+  try {
+    await sendWelcomeNotification(data.id, data.first_name || undefined);
+  } catch (error) {
+    log.error('Failed to send welcome notification:', { error, userId: data.id });
+  }
 
   return new Response('User created', { status: 201 });
 };
@@ -195,7 +203,7 @@ export const POST = async (request: Request): Promise<Response> => {
 
   switch (eventType) {
     case 'user.created': {
-      response = handleUserCreated(event.data);
+      response = await handleUserCreated(event.data);
       break;
     }
     case 'user.updated': {
