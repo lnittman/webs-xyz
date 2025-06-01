@@ -1,55 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { database } from '@repo/database'
-import { withAuthenticatedUser } from '@/lib/api/auth'
-import { withErrorHandling } from '@/lib/api/response'
-import { ApiError } from '@/lib/api/error'
-import { ErrorType, ResourceType } from '@/lib/api/constants'
+import { NextRequest } from 'next/server'
+import { websService, webIdParamSchema } from '@repo/api'
+import { withAuthenticatedUser } from '@repo/api/utils/auth'
+import { withErrorHandling, ApiResponse } from '@repo/api/utils/response'
+import { ApiError } from '@repo/api/utils/error'
+import { ErrorType, ResourceType } from '@repo/api/constants'
 
-const updateEmojiSchema = z.object({
-  emoji: z.string().min(1).max(10), // Allow emoji characters (usually 1-4 chars, but some complex ones can be longer)
-})
+async function handleUpdateEmoji(
+  request: NextRequest,
+  { params, userId }: { params: Promise<{ id: string }>; userId: string }
+) {
+  const resolvedParams = await params;
+  const { id } = webIdParamSchema.parse(resolvedParams)
+  const { emoji } = await request.json()
 
-export const PATCH = withErrorHandling(
-  withAuthenticatedUser<{ id: string }>(async (request, { params, userId }) => {
-    const webId = params.id
-    if (!webId) {
-      throw ApiError.missingParam('id')
-    }
+  if (!emoji || typeof emoji !== 'string') {
+    throw new ApiError(ErrorType.VALIDATION, 'Emoji is required and must be a string')
+  }
 
-    // Parse request body
-    const body = await request.json()
-    const validatedData = updateEmojiSchema.parse(body)
+  // Verify web exists and user has access
+  const web = await websService.getWebById(id)
+  if (!web) {
+    throw ApiError.notFound(ResourceType.WEB, id)
+  }
 
-    // Check if the web exists and belongs to the user
-    const existingWeb = await database.web.findFirst({
-      where: {
-        id: webId,
-        userId,
-      },
-    })
+  if (web.userId !== userId) {
+    throw ApiError.unauthorized('You do not have access to this web')
+  }
 
-    if (!existingWeb) {
-      throw ApiError.notFound(ResourceType.WEB, webId)
-    }
+  const updatedWeb = await websService.updateWebEmoji(id, emoji)
+  return ApiResponse.success(updatedWeb)
+}
 
-    // Update the emoji
-    const updatedWeb = await database.web.update({
-      where: {
-        id: webId,
-      },
-      data: {
-        emoji: validatedData.emoji,
-      },
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: updatedWeb.id,
-        emoji: updatedWeb.emoji,
-        updatedAt: updatedWeb.updatedAt.toISOString(),
-      },
-    })
-  })
-) 
+export const PATCH = withErrorHandling(withAuthenticatedUser(handleUpdateEmoji)) 

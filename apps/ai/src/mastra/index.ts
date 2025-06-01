@@ -1,6 +1,5 @@
 import { Mastra } from '@mastra/core';
 import { createLogger } from '@mastra/core/logger';
-import { PostgresStore } from '@mastra/pg';
 
 import { chatAgent } from './agents/chat';
 import { websAgent } from './agents/webs';
@@ -10,7 +9,7 @@ import { storage } from './storage';
 // Create a logger with less verbose level to reduce output
 const logger = createLogger({
   name: 'mastra',
-  level: 'debug'
+  level: 'info'
 });
 
 // Create the Mastra instance with our components

@@ -1,15 +1,14 @@
 import { NextRequest } from 'next/server';
-import { getUserSettings, updateUserSettings } from '@/lib/api/services/userSettings';
-import { ApiResponse, withErrorHandling } from '@/lib/api/response';
-import { withAuthenticatedUser } from '@/lib/api/auth';
-import { updateUserSettingsSchema } from '@/lib/api/schemas/userSettings';
-import { validateWith } from '@/lib/api/validation';
+import { userSettingsService, updateUserSettingsSchema } from '@repo/api';
+import { withErrorHandling, ApiResponse } from '@repo/api/utils/response';
+import { withAuthenticatedUser } from '@repo/api/utils/auth';
+import { validateWith } from '@repo/api/utils/validation';
 
 async function handleGetUserSettings(
   request: NextRequest,
   { userId }: { userId: string }
 ) {
-  const settings = await getUserSettings(userId);
+  const settings = await userSettingsService.getUserSettings(userId);
   return ApiResponse.success(settings);
 }
 
@@ -20,7 +19,7 @@ async function handleUpdateUserSettings(
   const body = await request.json();
   const validatedData = await validateWith(updateUserSettingsSchema, body);
   
-  const settings = await updateUserSettings(userId, validatedData);
+  const settings = await userSettingsService.updateUserSettings(userId, validatedData);
   return ApiResponse.success(settings);
 }
 

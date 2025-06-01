@@ -1,7 +1,7 @@
 import { ZodError } from 'zod';
 
-import { ResourceType } from '@/lib/api/constants';
-import { ErrorType, ERROR_MESSAGES } from '@/lib/api/constants/error';
+import { ResourceType } from '../constants';
+import { ErrorType, ERROR_MESSAGES } from '../constants/error';
 
 /**
  * Custom error class with error type

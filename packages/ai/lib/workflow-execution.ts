@@ -119,4 +119,4 @@ export async function waitForWorkflowCompletion(
   }
   
   throw new Error(`Workflow did not complete within ${maxAttempts * delayMs / 1000} seconds`);
-}
+} 

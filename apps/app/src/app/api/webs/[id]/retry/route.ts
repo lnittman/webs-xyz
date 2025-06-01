@@ -1,54 +1,53 @@
 import { NextRequest } from 'next/server';
-import { database } from '@repo/database';
-import { analyzeWebAsync } from '@/lib/api/services/ai';
-import { updateWeb } from '@/lib/api/services/webs';
-import { ApiResponse, withErrorHandling } from '@/lib/api/response';
-import { withAuthenticatedUser } from '@/lib/api/auth';
-import { webIdParamSchema } from '@/lib/api/schemas/web';
-import { validateWith } from '@/lib/api/validation';
-import { ApiError } from '@/lib/api/error';
-import { ResourceType } from '@/lib/api/constants';
-
-type RouteParams = { id: string };
+import { websService, webIdParamSchema } from '@repo/api';
+import { withErrorHandling, ApiResponse } from '@repo/api/utils/response';
+import { withAuthenticatedUser } from '@repo/api/utils/auth';
+import { validateWith } from '@repo/api/utils/validation';
+import { ApiError } from '@repo/api/utils/error';
+import { ResourceType } from '@repo/api/constants';
 
 async function handleRetryWeb(
   request: NextRequest,
-  { params, userId }: { params: RouteParams; userId: string }
+  { params, userId }: { params: Promise<{ id: string }>; userId: string }
 ) {
-  // Validate the ID parameter
-  const { id } = await validateWith(webIdParamSchema, params);
+  const resolvedParams = await params;
+  const { id } = await validateWith(webIdParamSchema, resolvedParams);
   
-  // Get the web to retry
-  const web = await database.web.findUnique({
-    where: { id },
-  });
-
+  // Verify web exists and user has access
+  const web = await websService.getWebById(id);
   if (!web) {
     throw ApiError.notFound(ResourceType.WEB, id);
   }
-
-  // Check if the web belongs to the authenticated user
+  
   if (web.userId !== userId) {
-    throw ApiError.unauthorized('You do not have permission to retry this web analysis');
+    throw ApiError.unauthorized('You do not have access to this web');
   }
-
-  // Reset status to PROCESSING
-  await updateWeb(id, { status: 'PROCESSING' });
-
-  // Retry the analysis
-  analyzeWebAsync({
-    url: web.url,
-    prompt: web.prompt || undefined,
-  })
-    .then(async (runId) => {
-      console.log(`Retrying analysis workflow for ${web.url} with runId: ${runId}`);
-    })
-    .catch((error) => {
-      console.error(`Failed to retry analysis for ${web.url}:`, error);
-      updateWeb(id, { status: 'FAILED' }).catch(console.error);
+  
+  // Only allow retry for failed webs
+  if (web.status !== 'FAILED') {
+    throw ApiError.invalidParam('status', 'Web must be in FAILED status to retry');
+  }
+  
+  try {
+    // Use the analyzeWebAsync method to retry analysis
+    const runId = await websService.analyzeWebAsync({
+      url: web.url,
+      prompt: web.prompt || undefined,
+      webId: id,
     });
-
-  return ApiResponse.success({ message: 'Analysis retry started' });
+    
+    // Mark as processing
+    await websService.markWebAsProcessing(id, runId);
+    
+    return ApiResponse.success({ 
+      message: 'Web analysis retry started',
+      runId,
+      status: 'PROCESSING'
+    });
+  } catch (error) {
+    await websService.markWebAsFailed(id, error instanceof Error ? error.message : 'Unknown error');
+    throw error;
+  }
 }
 
 export const POST = withErrorHandling(withAuthenticatedUser(handleRetryWeb)); 

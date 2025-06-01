@@ -2,6 +2,22 @@
   "name": "@repo/notifications",
   "version": "0.0.0",
   "private": true,
+  "main": "./client.ts",
+  "types": "./client.ts",
+  "exports": {
+    ".": {
+      "types": "./client.ts",
+      "default": "./client.ts"
+    },
+    "./server": {
+      "types": "./server.ts",
+      "default": "./server.ts"
+    },
+    "./client": {
+      "types": "./client.ts",
+      "default": "./client.ts"
+    }
+  },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"

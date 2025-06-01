@@ -15,4 +15,6 @@ export { ProgressBar } from './progress-bar';
 export { ThemeSwitcher } from './theme-switcher';
 export { BrowserTabsModal } from './browser-tabs-modal';
 export * from './footer';
-export * from './navigation'; 
+export * from './navigation';
+export { WebChat } from './web-chat';
+export { WorkflowProgress } from './workflow-progress'; 

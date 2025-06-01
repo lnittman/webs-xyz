@@ -5,9 +5,10 @@ import type { Web } from '@/types/dashboard';
 import { ScrollFadeContainer } from '@/components/shared/scroll-fade-container';
 import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
 import { useUpdateWebEmoji } from '@/hooks/code/web/mutations';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WebActionMenu } from './web-action-menu';
 import { toast } from '@repo/design/components/ui/sonner';
+import { useWebStream } from '@/hooks/code/web/use-web-stream';
 
 interface WebCardProps {
     web: Web;
@@ -30,6 +31,27 @@ export function WebCard({
     const relativeTime = formatRelativeTime(new Date(web.createdAt));
     const [menuOpen, setMenuOpen] = useState(false);
     const { updateEmoji } = useUpdateWebEmoji();
+
+    // Stream quick metadata for PROCESSING webs
+    const { webUpdate, startAnalysis } = useWebStream(
+        web.status === 'PROCESSING' ? web.id : null
+    );
+
+    // Auto-start streaming for PROCESSING webs
+    useEffect(() => {
+        if (web.status === 'PROCESSING' && startAnalysis) {
+            // Small delay to ensure component is mounted
+            const timer = setTimeout(() => {
+                startAnalysis();
+            }, 100);
+
+            return () => clearTimeout(timer);
+        }
+    }, [web.id, web.status]); // Only depend on stable values, not startAnalysis
+
+    // Use streamed data if available, otherwise fall back to web data
+    const displayTitle = webUpdate?.title || web.title;
+    const displayEmoji = webUpdate?.emoji || web.emoji;
 
     const handleEmojiSelect = async (emoji: string) => {
         try {
@@ -55,11 +77,11 @@ export function WebCard({
 
     // Emoji component with skeleton
     const EmojiDisplay = () => {
-        if (web.emoji) {
+        if (displayEmoji) {
             return (
                 <div onClick={(e) => e.stopPropagation()}>
                     <EmojiPickerButton
-                        emoji={web.emoji}
+                        emoji={displayEmoji}
                         onEmojiSelect={handleEmojiSelect}
                         className="h-6 w-6 text-xs"
                     />
@@ -88,10 +110,10 @@ export function WebCard({
 
     // Title component with skeleton
     const TitleDisplay = ({ className, style }: { className?: string; style?: React.CSSProperties }) => {
-        if (web.title) {
+        if (displayTitle) {
             return (
                 <h3 className={cn("text-sm font-medium group-hover:text-foreground/80 transition-all duration-200", className)} style={style}>
-                    {web.title}
+                    {displayTitle}
                 </h3>
             );
         }

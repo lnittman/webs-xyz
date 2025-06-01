@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@repo/auth/server';
 
-import { ErrorType } from '@/lib/api/constants/error';
+import { ErrorType } from '../constants/error';
 
 import { ApiError } from './error';
 

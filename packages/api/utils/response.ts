@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
-import { ErrorType } from './constants/error';
+import { ErrorType } from '../constants/error';
 import { ApiError, handleZodError } from './error';
 
 export class ApiResponse {

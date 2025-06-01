@@ -1,5 +1,5 @@
 {
-  "name": "@repo/database",
+  "name": "@repo/api",
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",
@@ -8,30 +8,32 @@
       "import": "./index.ts",
       "require": "./index.ts",
       "types": "./index.ts"
+    },
+    "./utils/*": {
+      "import": "./utils/*.ts",
+      "require": "./utils/*.ts",
+      "types": "./utils/*.ts"
+    },
+    "./constants": {
+      "import": "./constants/index.ts",
+      "require": "./constants/index.ts",
+      "types": "./constants/index.ts"
     }
   },
   "scripts": {
-    "analyze": "prisma generate --no-hints --schema=./prisma/schema.prisma",
-    "build": "prisma generate --no-hints --schema=./prisma/schema.prisma",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.0",
-    "@prisma/adapter-neon": "6.4.1",
-    "@prisma/client": "6.4.1",
-    "@t3-oss/env-nextjs": "^0.12.0",
+    "@repo/auth": "workspace:*",
+    "@repo/database": "workspace:*",
+    "next": "15.3.2",
     "server-only": "^0.0.1",
-    "undici": "^7.8.0",
-    "ws": "^8.18.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.14.1",
-    "@types/ws": "^8.18.1",
-    "bufferutil": "^4.0.9",
-    "prisma": "6.4.1",
     "typescript": "^5.8.3"
   }
-}
+} 

@@ -10,7 +10,7 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { PostgresStore } from '@mastra/pg';
 import { existsSync, readFileSync, createReadStream, lstatSync } from 'fs';
 import path from 'path';
-import { scrapeWithJina } from './tools/62de3bfd-9f90-41a8-8893-2e836097f80a.mjs';
+import { s as scrapeWithJina } from './scrape-with-jina.mjs';
 import { Workflow, Step } from '@mastra/core/workflows';
 import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import crypto, { randomUUID } from 'crypto';
@@ -155,9 +155,29 @@ const websAgent = new Agent({
   })
 });
 
+function logStep(stepName, emoji, message, data) {
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].slice(0, 8);
+  console.log(`[${timestamp}] ${emoji} [${stepName.toUpperCase()}] ${message}`);
+  if (data) {
+    console.log(`[${timestamp}] ${emoji} [${stepName.toUpperCase()}] Data:`, JSON.stringify(data, null, 2));
+  }
+}
+function logError(stepName, error, context) {
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].slice(0, 8);
+  console.error(`[${timestamp}] \u274C [${stepName.toUpperCase()}] ERROR:`, error);
+  if (context) {
+    console.error(`[${timestamp}] \u274C [${stepName.toUpperCase()}] Context:`, context);
+  }
+}
+function logTiming(stepName, startTime, message) {
+  const duration = Date.now() - startTime;
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].slice(0, 8);
+  console.log(`[${timestamp}] \u23F1\uFE0F  [${stepName.toUpperCase()}] ${message || "Completed"} - Duration: ${duration}ms`);
+}
 const analyzeWebInputSchema = z.object({
   urls: z.array(z.string().url()).describe("The URLs to analyze"),
-  prompt: z.string().optional().describe("Optional prompt for specific analysis")
+  prompt: z.string().nullable().optional().describe("Optional prompt for specific analysis"),
+  webId: z.string().optional().describe("The web ID to update in database")
 });
 const urlFetchSchema = z.object({
   urls: z.array(z.string()),
@@ -256,89 +276,171 @@ const fetchUrlsStep = new Step({
   inputSchema: analyzeWebInputSchema,
   outputSchema: urlFetchSchema,
   execute: async ({ context }) => {
-    const triggerData = context?.triggerData?.triggerData || context?.triggerData;
-    if (!triggerData) {
-      throw new Error("Trigger data not found");
-    }
-    const parsedData = analyzeWebInputSchema.parse(triggerData);
-    const { urls, prompt } = parsedData;
-    console.log(`[fetch-urls] Fetching content from ${urls.length} URLs in parallel`);
-    const fetchResults = await Promise.all(
-      urls.map(async (url) => {
-        const startTime = Date.now();
+    const stepStartTime = Date.now();
+    logStep("fetch-urls", "\u{1F680}", "Starting URL fetch step");
+    try {
+      const triggerData = context?.triggerData?.triggerData || context?.triggerData;
+      logStep("fetch-urls", "\u{1F4E5}", "Processing trigger data", {
+        hasContext: !!context,
+        hasTriggerData: !!triggerData,
+        triggerDataKeys: triggerData ? Object.keys(triggerData) : []
+      });
+      if (!triggerData) {
+        logError("fetch-urls", "Trigger data not found", { context });
+        throw new Error("Trigger data not found");
+      }
+      const parsedData = analyzeWebInputSchema.parse(triggerData);
+      const { urls, prompt } = parsedData;
+      logStep("fetch-urls", "\u{1F4CB}", `Parsed input - ${urls.length} URLs to fetch`, {
+        urls,
+        prompt: prompt || "No specific prompt provided",
+        urlCount: urls.length
+      });
+      logStep("fetch-urls", "\u{1F310}", "Starting parallel URL fetching");
+      const fetchPromises = urls.map(async (url, index) => {
+        const urlStartTime = Date.now();
+        logStep("fetch-urls", "\u{1F4E1}", `[${index + 1}/${urls.length}] Starting fetch for: ${url}`);
         try {
-          console.log(`[fetch-urls] Fetching: ${url}`);
           const response = await websAgent.generate([
             {
               role: "user",
               content: `Please scrape this URL and return just the raw content: ${url}. Only use the scrape-web-content-jina tool.`
             }
           ]);
-          const processingTime = Date.now() - startTime;
+          const processingTime = Date.now() - urlStartTime;
           const content = response.text || "";
+          const title = extractTitleFromContent(content);
+          logStep("fetch-urls", "\u2705", `[${index + 1}/${urls.length}] Successfully fetched: ${url}`, {
+            contentLength: content.length,
+            hasTitle: !!title,
+            title: title?.substring(0, 100),
+            processingTime
+          });
           return {
             url,
             success: true,
             content,
-            title: extractTitleFromContent(content),
+            title,
             metadata: {
               contentLength: content.length,
               processingTime
             }
           };
         } catch (error) {
-          console.error(`[fetch-urls] Failed to fetch ${url}:`, error);
+          const processingTime = Date.now() - urlStartTime;
+          logError("fetch-urls", `[${index + 1}/${urls.length}] Failed to fetch ${url}`, {
+            error: error instanceof Error ? error.message : "Unknown error",
+            processingTime
+          });
           return {
             url,
             success: false,
             error: error instanceof Error ? error.message : "Unknown error",
             metadata: {
-              processingTime: Date.now() - startTime
+              processingTime
             }
           };
         }
-      })
-    );
-    const successfulFetches = fetchResults.filter((f) => f.success);
-    console.log(`[fetch-urls] Successfully fetched ${successfulFetches.length}/${urls.length} URLs`);
-    return {
-      urls,
-      prompt: prompt || null,
-      fetchResults
-    };
+      });
+      const fetchResults = await Promise.all(fetchPromises);
+      const successfulFetches = fetchResults.filter((f) => f.success);
+      const failedFetches = fetchResults.filter((f) => !f.success);
+      logStep("fetch-urls", "\u{1F4CA}", "Fetch results summary", {
+        totalUrls: urls.length,
+        successful: successfulFetches.length,
+        failed: failedFetches.length,
+        successRate: `${Math.round(successfulFetches.length / urls.length * 100)}%`,
+        failedUrls: failedFetches.map((f) => f.url)
+      });
+      const result = {
+        urls,
+        prompt: prompt || null,
+        fetchResults
+      };
+      logTiming("fetch-urls", stepStartTime, "Fetch step completed");
+      logStep("fetch-urls", "\u{1F3AF}", "Step output prepared", {
+        resultKeys: Object.keys(result),
+        fetchResultsCount: fetchResults.length
+      });
+      return result;
+    } catch (error) {
+      logError("fetch-urls", "Step failed", error);
+      logTiming("fetch-urls", stepStartTime, "Step failed");
+      throw error;
+    }
   }
 });
 const generateQuickMetadataStep = new Step({
   id: "generate-quick-metadata",
-  description: "Generates quick title and emoji for immediate UI feedback",
+  description: "Generates quick title, emoji, and description for immediate UI feedback",
   inputSchema: urlFetchSchema,
   outputSchema: quickMetadataSchema,
   execute: async ({ context }) => {
-    const fetchData = context?.steps?.["fetch-urls"];
-    if (!fetchData || fetchData.status !== "success") {
-      throw new Error("Fetch data not found or failed");
-    }
-    const { urls, prompt, fetchResults } = fetchData.output;
-    const successfulFetches = fetchResults.filter((f) => f.success);
-    console.log(`[generate-quick-metadata] Generating quick metadata for ${urls.length} URLs`);
-    if (successfulFetches.length === 0) {
-      return {
-        quickTitle: `Failed to analyze ${urls.length} URLs`,
-        quickEmoji: "\u274C",
-        quickDescription: "All URL fetches failed"
+    const stepStartTime = Date.now();
+    logStep("quick-metadata", "\u26A1", "Starting quick metadata generation");
+    try {
+      const fetchData = context?.steps?.["fetch-urls"];
+      const triggerData = context?.triggerData?.triggerData || context?.triggerData;
+      const webId = triggerData?.webId;
+      logStep("quick-metadata", "\u{1F50D}", "Checking fetch step data", {
+        hasFetchData: !!fetchData,
+        fetchStatus: fetchData?.status,
+        fetchDataKeys: fetchData ? Object.keys(fetchData) : [],
+        hasWebId: !!webId,
+        webId
+      });
+      if (!fetchData || fetchData.status !== "success") {
+        logError("quick-metadata", "Fetch data not found or failed", { fetchData });
+        throw new Error("Fetch data not found or failed");
+      }
+      const { urls, prompt, fetchResults } = fetchData.output;
+      const successfulFetches = fetchResults.filter((f) => f.success);
+      logStep("quick-metadata", "\u{1F4DD}", "Processing fetch results", {
+        totalUrls: urls.length,
+        successfulFetches: successfulFetches.length,
+        hasPrompt: !!prompt,
+        prompt: prompt?.substring(0, 100)
+      });
+      if (successfulFetches.length === 0) {
+        logStep("quick-metadata", "\u26A0\uFE0F", "No successful fetches, returning error metadata");
+        const errorResult = {
+          quickTitle: `Failed to analyze ${urls.length} URLs`,
+          quickEmoji: "\u274C",
+          quickDescription: "All URL fetches failed"
+        };
+        logStep("quick-metadata", "\u{1F4E4}", "Error metadata generated", errorResult);
+        return errorResult;
+      }
+      const firstUrl = successfulFetches[0];
+      logStep("quick-metadata", "\u{1F3AF}", "Using first successful fetch for quick metadata", {
+        url: firstUrl.url,
+        hasTitle: !!firstUrl.title,
+        contentLength: firstUrl.content?.length || 0
+      });
+      const quickTitle = firstUrl.title || extractDomainFromUrl(firstUrl.url);
+      const quickEmoji = generateQuickEmoji(firstUrl.content, urls);
+      const quickDescription = prompt ? `Analysis of ${urls.length} URL${urls.length > 1 ? "s" : ""} based on: "${prompt}"` : `Analysis of ${urls.length} web page${urls.length > 1 ? "s" : ""}`;
+      logStep("quick-metadata", "\u{1F3F7}\uFE0F", "Extracting quick topics");
+      const suggestedTopics = extractQuickTopics(successfulFetches);
+      const quickMetadata = {
+        quickTitle,
+        quickEmoji,
+        quickDescription,
+        suggestedTopics
       };
+      logStep("quick-metadata", "\u{1F389}", "Quick metadata generated successfully", quickMetadata);
+      if (webId) {
+        logStep("quick-metadata", "\u{1F4BE}", "Database update will be handled by webhook");
+      } else {
+        logStep("quick-metadata", "\u{1F4BE}", "No webId provided, skipping database update");
+      }
+      logTiming("quick-metadata", stepStartTime);
+      return quickMetadata;
+    } catch (error) {
+      logError("quick-metadata", "Step failed", error);
+      logTiming("quick-metadata", stepStartTime, "Step failed");
+      throw error;
     }
-    const firstUrl = successfulFetches[0];
-    const quickTitle = firstUrl.title || extractDomainFromUrl(firstUrl.url);
-    const quickEmoji = generateQuickEmoji(firstUrl.content, urls);
-    const quickDescription = prompt ? `Analysis of ${urls.length} URL${urls.length > 1 ? "s" : ""} based on: "${prompt}"` : `Analysis of ${urls.length} web page${urls.length > 1 ? "s" : ""}`;
-    const suggestedTopics = extractQuickTopics(successfulFetches);
-    return {
-      quickTitle,
-      quickEmoji,
-      quickDescription,
-      suggestedTopics
-    };
   }
 });
 const detailedAnalysisStep = new Step({
@@ -347,15 +449,28 @@ const detailedAnalysisStep = new Step({
   inputSchema: urlFetchSchema,
   outputSchema: detailedAnalysisSchema,
   execute: async ({ context }) => {
-    const fetchData = context?.steps?.["fetch-urls"];
-    if (!fetchData || fetchData.status !== "success") {
-      throw new Error("Fetch data not found or failed");
-    }
-    const { prompt, fetchResults } = fetchData.output;
-    const successfulFetches = fetchResults.filter((f) => f.success);
-    console.log(`[detailed-analysis] Analyzing ${successfulFetches.length} URLs in detail`);
-    const urlAnalyses = await Promise.all(
-      successfulFetches.map(async (fetchedUrl) => {
+    const stepStartTime = Date.now();
+    logStep("detailed-analysis", "\u{1F9E0}", "Starting detailed analysis step");
+    try {
+      const fetchData = context?.steps?.["fetch-urls"];
+      logStep("detailed-analysis", "\u{1F50D}", "Checking fetch step data", {
+        hasFetchData: !!fetchData,
+        fetchStatus: fetchData?.status
+      });
+      if (!fetchData || fetchData.status !== "success") {
+        logError("detailed-analysis", "Fetch data not found or failed", { fetchData });
+        throw new Error("Fetch data not found or failed");
+      }
+      const { urls, prompt, fetchResults } = fetchData.output;
+      const successfulFetches = fetchResults.filter((f) => f.success);
+      logStep("detailed-analysis", "\u{1F4CA}", "Starting detailed URL analysis", {
+        totalUrls: urls.length,
+        successfulFetches: successfulFetches.length,
+        analysisPrompt: prompt || "General analysis"
+      });
+      const analysisPromises = successfulFetches.map(async (fetchedUrl, index) => {
+        const urlStartTime = Date.now();
+        logStep("detailed-analysis", "\u{1F52C}", `[${index + 1}/${successfulFetches.length}] Starting analysis for: ${fetchedUrl.url}`);
         try {
           const userMessage = prompt ? `Analyze this website content in detail and identify any related or referenced URLs: ${fetchedUrl.url}
 
@@ -364,14 +479,23 @@ Content: ${fetchedUrl.content}
 Specific request: ${prompt}` : `Analyze this website content in detail and identify any related or referenced URLs: ${fetchedUrl.url}
 
 Content: ${fetchedUrl.content}`;
-          console.log(`[detailed-analysis] Analyzing URL: ${fetchedUrl.url}`);
+          logStep("detailed-analysis", "\u{1F4AC}", `[${index + 1}/${successfulFetches.length}] Sending to AI agent`, {
+            url: fetchedUrl.url,
+            contentLength: fetchedUrl.content?.length || 0,
+            hasPrompt: !!prompt
+          });
           const response = await websAgent.generate([
             {
               role: "user",
               content: userMessage
             }
           ]);
-          console.log(`[detailed-analysis] Got response for URL: ${fetchedUrl.url}`);
+          const processingTime = Date.now() - urlStartTime;
+          logStep("detailed-analysis", "\u{1F4DD}", `[${index + 1}/${successfulFetches.length}] Got AI response`, {
+            url: fetchedUrl.url,
+            responseLength: response.text?.length || 0,
+            processingTime
+          });
           try {
             let jsonText = response.text;
             if (jsonText.startsWith("```json")) {
@@ -383,32 +507,68 @@ Content: ${fetchedUrl.content}`;
               jsonText = jsonText.slice(0, -3);
             }
             jsonText = jsonText.trim();
+            logStep("detailed-analysis", "\u{1F527}", `[${index + 1}/${successfulFetches.length}] Parsing JSON response`, {
+              url: fetchedUrl.url,
+              cleanedTextLength: jsonText.length
+            });
             const analysisData = JSON.parse(jsonText);
-            return {
+            const result2 = {
               url: fetchedUrl.url,
               ...analysisData,
               relatedUrls: analysisData.relatedUrls || []
             };
+            logStep("detailed-analysis", "\u2705", `[${index + 1}/${successfulFetches.length}] Analysis completed successfully`, {
+              url: fetchedUrl.url,
+              topics: analysisData.topics?.length || 0,
+              insights: analysisData.insights?.length || 0,
+              entities: analysisData.entities?.length || 0,
+              relatedUrls: (analysisData.relatedUrls || []).length,
+              sentiment: analysisData.sentiment,
+              confidence: analysisData.confidence,
+              processingTime
+            });
+            return result2;
           } catch (parseError) {
-            console.error(`[detailed-analysis] Failed to parse JSON for ${fetchedUrl.url}:`, parseError);
+            logError("detailed-analysis", `[${index + 1}/${successfulFetches.length}] JSON parsing failed for ${fetchedUrl.url}`, {
+              parseError,
+              responseText: response.text?.substring(0, 500)
+            });
             return null;
           }
         } catch (error) {
-          console.error(`[detailed-analysis] Failed to analyze ${fetchedUrl.url}:`, error);
+          logError("detailed-analysis", `[${index + 1}/${successfulFetches.length}] Analysis failed for ${fetchedUrl.url}`, error);
           return null;
         }
-      })
-    );
-    const successfulAnalyses = urlAnalyses.filter(Boolean);
-    const failedCount = urlAnalyses.length - successfulAnalyses.length;
-    if (successfulAnalyses.length === 0) {
-      throw new Error("All detailed analyses failed");
+      });
+      const urlAnalyses = await Promise.all(analysisPromises);
+      const successfulAnalyses = urlAnalyses.filter(Boolean);
+      const failedCount = urlAnalyses.length - successfulAnalyses.length;
+      logStep("detailed-analysis", "\u{1F4C8}", "Analysis results summary", {
+        totalAnalysisAttempts: urlAnalyses.length,
+        successfulAnalyses: successfulAnalyses.length,
+        failedAnalyses: failedCount,
+        successRate: `${Math.round(successfulAnalyses.length / urlAnalyses.length * 100)}%`
+      });
+      if (successfulAnalyses.length === 0) {
+        logError("detailed-analysis", "All detailed analyses failed");
+        throw new Error("All detailed analyses failed");
+      }
+      const result = {
+        urlAnalyses: successfulAnalyses,
+        successfulCount: successfulAnalyses.length,
+        failedCount
+      };
+      logTiming("detailed-analysis", stepStartTime);
+      logStep("detailed-analysis", "\u{1F3AF}", "Step completed successfully", {
+        resultKeys: Object.keys(result),
+        analysisCount: successfulAnalyses.length
+      });
+      return result;
+    } catch (error) {
+      logError("detailed-analysis", "Step failed", error);
+      logTiming("detailed-analysis", stepStartTime, "Step failed");
+      throw error;
     }
-    return {
-      urlAnalyses: successfulAnalyses,
-      successfulCount: successfulAnalyses.length,
-      failedCount
-    };
   }
 });
 const enhancedCombineStep = new Step({
@@ -417,28 +577,78 @@ const enhancedCombineStep = new Step({
   inputSchema: detailedAnalysisSchema,
   outputSchema: combinedAnalysisSchema,
   execute: async ({ context }) => {
-    const analysisData = context?.steps?.["detailed-analysis"];
-    if (!analysisData || analysisData.status !== "success") {
-      throw new Error("Analysis data not found or failed");
+    const stepStartTime = Date.now();
+    logStep("enhanced-combine", "\u{1F517}", "Starting enhanced combination step");
+    try {
+      const analysisData = context?.steps?.["detailed-analysis"];
+      logStep("enhanced-combine", "\u{1F50D}", "Checking analysis step data", {
+        hasAnalysisData: !!analysisData,
+        analysisStatus: analysisData?.status
+      });
+      if (!analysisData || analysisData.status !== "success") {
+        logError("enhanced-combine", "Analysis data not found or failed", { analysisData });
+        throw new Error("Analysis data not found or failed");
+      }
+      const { urlAnalyses } = analysisData.output;
+      logStep("enhanced-combine", "\u{1F9EE}", "Starting combination process", {
+        urlAnalysesCount: urlAnalyses.length,
+        urlList: urlAnalyses.map((a) => a.url)
+      });
+      logStep("enhanced-combine", "\u{1F4CA}", "Performing basic combination");
+      const topics = [...new Set(urlAnalyses.flatMap((a) => a?.topics || []))].filter((topic) => typeof topic === "string");
+      const sentiment = determineCombinedSentiment(urlAnalyses);
+      const insights = combineInsights(urlAnalyses);
+      const entities = combineEntities(urlAnalyses);
+      const readingTime = urlAnalyses.reduce((sum, a) => sum + (a?.readingTime || 0), 0);
+      const confidence = urlAnalyses.reduce((sum, a) => sum + (a?.confidence || 0), 0) / urlAnalyses.length;
+      const relatedUrls = [...new Set(urlAnalyses.flatMap((a) => a?.relatedUrls || []))].filter((url) => typeof url === "string");
+      const basicCombination = {
+        topics,
+        sentiment,
+        insights,
+        entities,
+        readingTime,
+        confidence,
+        relatedUrls
+      };
+      logStep("enhanced-combine", "\u{1F4CB}", "Basic combination results", {
+        topicsCount: topics.length,
+        combinedSentiment: sentiment,
+        insightsCount: insights.length,
+        entitiesCount: entities.length,
+        totalReadingTime: readingTime,
+        averageConfidence: Math.round(confidence * 100) / 100,
+        relatedUrlsCount: relatedUrls.length
+      });
+      logStep("enhanced-combine", "\u{1F52E}", "Generating enhanced insights");
+      const enhancedInsights = generateEnhancedInsights(urlAnalyses);
+      logStep("enhanced-combine", "\u{1F310}", "Finding cross-URL connections");
+      const crossUrlConnections = findCrossUrlConnections(urlAnalyses);
+      logStep("enhanced-combine", "\u{1F3A8}", "Enhanced analysis results", {
+        enhancedInsightsCount: enhancedInsights.length,
+        crossUrlConnectionsCount: crossUrlConnections.length,
+        enhancedInsights,
+        connections: crossUrlConnections.map((c) => ({
+          urls: c.urls,
+          connection: c.connection.substring(0, 100),
+          strength: c.strength
+        }))
+      });
+      const result = {
+        ...basicCombination,
+        enhancedInsights,
+        crossUrlConnections
+      };
+      logTiming("enhanced-combine", stepStartTime);
+      logStep("enhanced-combine", "\u{1F3AF}", "Enhanced combination completed", {
+        resultKeys: Object.keys(result)
+      });
+      return result;
+    } catch (error) {
+      logError("enhanced-combine", "Step failed", error);
+      logTiming("enhanced-combine", stepStartTime, "Step failed");
+      throw error;
     }
-    const { urlAnalyses } = analysisData.output;
-    console.log(`[enhanced-combine] Combining and enhancing ${urlAnalyses.length} analyses`);
-    const basicCombination = {
-      topics: [...new Set(urlAnalyses.flatMap((a) => a?.topics || []))].filter((topic) => typeof topic === "string"),
-      sentiment: determineCombinedSentiment(urlAnalyses),
-      insights: combineInsights(urlAnalyses),
-      entities: combineEntities(urlAnalyses),
-      readingTime: urlAnalyses.reduce((sum, a) => sum + (a?.readingTime || 0), 0),
-      confidence: urlAnalyses.reduce((sum, a) => sum + (a?.confidence || 0), 0) / urlAnalyses.length,
-      relatedUrls: [...new Set(urlAnalyses.flatMap((a) => a?.relatedUrls || []))].filter((url) => typeof url === "string")
-    };
-    const enhancedInsights = generateEnhancedInsights(urlAnalyses);
-    const crossUrlConnections = findCrossUrlConnections(urlAnalyses);
-    return {
-      ...basicCombination,
-      enhancedInsights,
-      crossUrlConnections
-    };
   }
 });
 const finalAssemblyStep = new Step({
@@ -447,34 +657,88 @@ const finalAssemblyStep = new Step({
   inputSchema: combinedAnalysisSchema,
   outputSchema: analysisResultSchema,
   execute: async ({ context }) => {
-    const fetchData = context?.steps?.["fetch-urls"];
-    const quickData = context?.steps?.["generate-quick-metadata"];
-    const analysisData = context?.steps?.["detailed-analysis"];
-    const combinedData = context?.steps?.["enhanced-combine"];
-    if (!fetchData || fetchData.status !== "success" || !quickData || quickData.status !== "success" || !analysisData || analysisData.status !== "success" || !combinedData || combinedData.status !== "success") {
-      throw new Error("Required step data not found or failed");
-    }
-    const { urls, prompt } = fetchData.output;
-    const { quickTitle, quickEmoji } = quickData.output;
-    const { urlAnalyses } = analysisData.output;
-    console.log(`[final-assembly] Assembling final result with enhanced title generation`);
-    const enhancedTitle = generateEnhancedTitle(urlAnalyses, prompt) || quickTitle;
-    const finalEmoji = selectBestEmoji(urlAnalyses) || quickEmoji;
-    const finalResult = {
-      urls,
-      prompt: prompt || null,
-      title: enhancedTitle,
-      description: prompt ? `Analysis of ${urls.length} URLs based on: "${prompt}"` : `Combined analysis of ${urls.length} web pages`,
-      ...combinedData.output,
-      emoji: finalEmoji,
-      urlAnalyses,
-      metadata: {
-        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-        urlCount: urls.length,
-        processingSteps: ["fetch-urls", "generate-quick-metadata", "detailed-analysis", "enhanced-combine", "final-assembly"]
+    const stepStartTime = Date.now();
+    logStep("final-assembly", "\u{1F3D7}\uFE0F", "Starting final assembly step");
+    try {
+      const fetchData = context?.steps?.["fetch-urls"];
+      const quickData = context?.steps?.["generate-quick-metadata"];
+      const analysisData = context?.steps?.["detailed-analysis"];
+      const combinedData = context?.steps?.["enhanced-combine"];
+      const triggerData = context?.triggerData?.triggerData || context?.triggerData;
+      const webId = triggerData?.webId;
+      logStep("final-assembly", "\u{1F50D}", "Checking all step data", {
+        fetchStatus: fetchData?.status,
+        quickStatus: quickData?.status,
+        analysisStatus: analysisData?.status,
+        combinedStatus: combinedData?.status,
+        hasWebId: !!webId,
+        webId
+      });
+      if (!fetchData || fetchData.status !== "success" || !quickData || quickData.status !== "success" || !analysisData || analysisData.status !== "success" || !combinedData || combinedData.status !== "success") {
+        logError("final-assembly", "Required step data not found or failed", {
+          fetchData: !!fetchData,
+          quickData: !!quickData,
+          analysisData: !!analysisData,
+          combinedData: !!combinedData
+        });
+        throw new Error("Required step data not found or failed");
       }
-    };
-    return finalResult;
+      const { urls, prompt } = fetchData.output;
+      const { quickTitle, quickEmoji } = quickData.output;
+      const { urlAnalyses } = analysisData.output;
+      logStep("final-assembly", "\u{1F3A8}", "Generating enhanced title and emoji", {
+        originalQuickTitle: quickTitle,
+        originalQuickEmoji: quickEmoji,
+        hasPrompt: !!prompt,
+        urlAnalysesCount: urlAnalyses.length
+      });
+      const enhancedTitle = generateEnhancedTitle(urlAnalyses, prompt) || quickTitle;
+      const finalEmoji = selectBestEmoji(urlAnalyses) || quickEmoji;
+      logStep("final-assembly", "\u2728", "Title and emoji selection", {
+        finalTitle: enhancedTitle,
+        finalEmoji,
+        titleSource: enhancedTitle === quickTitle ? "quick" : "enhanced",
+        emojiSource: finalEmoji === quickEmoji ? "quick" : "enhanced"
+      });
+      const finalResult = {
+        urls,
+        prompt: prompt || null,
+        title: enhancedTitle,
+        description: prompt ? `Analysis of ${urls.length} URLs based on: "${prompt}"` : `Combined analysis of ${urls.length} web pages`,
+        ...combinedData.output,
+        emoji: finalEmoji,
+        urlAnalyses,
+        metadata: {
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          urlCount: urls.length,
+          processingSteps: ["fetch-urls", "generate-quick-metadata", "detailed-analysis", "enhanced-combine", "final-assembly"]
+        }
+      };
+      logStep("final-assembly", "\u{1F389}", "Final result assembled", {
+        resultKeys: Object.keys(finalResult),
+        urlCount: finalResult.urls.length,
+        title: finalResult.title,
+        emoji: finalResult.emoji,
+        topicsCount: finalResult.topics.length,
+        insightsCount: finalResult.insights.length,
+        entitiesCount: finalResult.entities.length,
+        enhancedInsightsCount: finalResult.enhancedInsights?.length || 0,
+        crossUrlConnectionsCount: finalResult.crossUrlConnections?.length || 0,
+        timestamp: finalResult.metadata.timestamp
+      });
+      if (webId) {
+        logStep("final-assembly", "\u{1F4BE}", "Database update will be handled by webhook");
+      } else {
+        logStep("final-assembly", "\u{1F4BE}", "No webId provided, skipping final database update");
+      }
+      logTiming("final-assembly", stepStartTime);
+      logStep("final-assembly", "\u{1F3C1}", "Workflow completed successfully!");
+      return finalResult;
+    } catch (error) {
+      logError("final-assembly", "Step failed", error);
+      logTiming("final-assembly", stepStartTime, "Step failed");
+      throw error;
+    }
   }
 });
 function extractTitleFromContent(content) {
@@ -617,7 +881,7 @@ const analyzeWeb = new Workflow({
 
 const logger$1 = createLogger({
   name: "mastra",
-  level: "debug"
+  level: "info"
 });
 const mastra = new Mastra({
   agents: {
