@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Circle, SpinnerGap, Warning, Globe, Brain, Sparkle, Package, Check } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@repo/design/lib/utils';
-import type { WorkflowStep } from '@/hooks/code/web/workflow-stream';
+import type { WorkflowStep } from '@/hooks/web/use-web-stream';
 
 interface WorkflowProgressProps {
     steps: WorkflowStep[];
@@ -111,8 +111,8 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                 </div>
                 <div className="absolute -top-1 left-0 right-0 flex justify-between">
                     {allStepKeys.map((stepKey, index) => {
-                        const step = steps.find(s => s.step === stepKey);
-                        const isActive = currentStep?.step === stepKey;
+                        const step = steps.find(s => s.id === stepKey);
+                        const isActive = currentStep?.id === stepKey;
                         const position = (index / (allStepKeys.length - 1)) * 100;
 
                         return (
@@ -123,7 +123,7 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                             >
                                 <div className={cn(
                                     "w-4 h-4 rounded-full border-2 transition-all",
-                                    step?.status === 'completed'
+                                    step?.status === 'complete'
                                         ? "bg-green-600 border-green-600"
                                         : isActive
                                             ? "bg-white border-blue-600"
@@ -139,9 +139,9 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
             {/* Step list */}
             <div className="space-y-3">
                 {allStepKeys.map((stepKey) => {
-                    const step = steps.find(s => s.step === stepKey);
+                    const step = steps.find(s => s.id === stepKey);
                     const info = STEP_INFO[stepKey as keyof typeof STEP_INFO];
-                    const isActive = currentStep?.step === stepKey;
+                    const isActive = currentStep?.id === stepKey;
 
                     return (
                         <motion.div
@@ -151,7 +151,7 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                             className={cn(
                                 "flex items-center gap-3 p-3 rounded-lg transition-all",
                                 isActive && "bg-muted",
-                                step?.status === 'completed' && "opacity-70"
+                                step?.status === 'complete' && "opacity-70"
                             )}
                         >
                             <StepIcon step={stepKey} status={step?.status || 'pending'} />
@@ -165,7 +165,7 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                                     )}>
                                         {info.name}
                                     </span>
-                                    {step?.status === 'completed' && (
+                                    {step?.status === 'complete' && (
                                         <motion.span
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
@@ -180,9 +180,9 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                                 </span>
                             </div>
 
-                            {step?.timestamp && (
+                            {step?.startTime && (
                                 <span className="text-xs text-muted-foreground font-mono">
-                                    {new Date(step.timestamp).toLocaleTimeString()}
+                                    {new Date(step.startTime).toLocaleTimeString()}
                                 </span>
                             )}
                         </motion.div>
@@ -192,9 +192,9 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
 
             {/* Current step details */}
             <AnimatePresence mode="wait">
-                {currentStep && currentStep.status === 'started' && (
+                {currentStep && currentStep.status === 'running' && (
                     <motion.div
-                        key={currentStep.step}
+                        key={currentStep.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -203,7 +203,7 @@ export function WorkflowProgress({ steps, currentStep, progress, className }: Wo
                         <div className="flex items-center gap-2 text-sm">
                             <SpinnerGap size={16} className="animate-spin text-blue-600" />
                             <span className="text-blue-900 dark:text-blue-100">
-                                {STEP_INFO[currentStep.step as keyof typeof STEP_INFO]?.name || currentStep.step}...
+                                {STEP_INFO[currentStep.id as keyof typeof STEP_INFO]?.name || currentStep.id}...
                             </span>
                         </div>
                     </motion.div>

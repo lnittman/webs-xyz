@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'next-view-transitions';
-import { useWeb } from '@/hooks/code/web/queries';
-import { useUpdateWebEmoji } from '@/hooks/code/web/mutations';
-import { ClientLayout } from '@/components/shared/client-layout';
+import { useWeb } from '@/hooks/web/queries';
+import { useUpdateWebEmoji } from '@/hooks/web/mutations';
+import { ClientLayout } from '@/components/shared/layout/client-layout';
 import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
 import { cn } from '@repo/design/lib/utils';
 import { Brain, Tag, Sparkle, Clock, ChartLine, Hash, Quotes, Link as LinkIcon, Globe, Robot } from '@phosphor-icons/react/dist/ssr';
 import { useSetAtom } from 'jotai';
 import { startLoadingAtom, stopLoadingAtom } from '@/atoms/loading';
 import { toast } from '@repo/design/components/ui/sonner';
-import { WebChat } from '@/components/shared/web-chat';
+import { WebChat } from '@/components/web/web-chat';
 
 interface WebDetailPageProps {
     params: Promise<{

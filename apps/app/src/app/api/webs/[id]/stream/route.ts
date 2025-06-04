@@ -1,98 +1,197 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { database } from '@repo/database';
+import { NextRequest } from 'next/server';
+import { websService, mastraWorkflowService } from '@repo/api';
+import { withAuthenticatedUser } from '@repo/api/utils/auth';
+import { withErrorHandling } from '@repo/api/utils/response';
+import { ApiError } from '@repo/api/utils/error';
+import { ResourceType } from '@repo/api/constants';
 
-export async function GET(
+async function handleWorkflowStream(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params, userId }: { params: Promise<{ id: string }>; userId: string }
 ) {
-  const { id } = await params;
+  const { id: webId } = await params;
   
-  // Verify the web exists and get its run ID
-  const web = await database.web.findUnique({
-    where: { id },
-    select: { id: true, status: true }
-  });
-
-  if (!web) {
-    return new NextResponse('Web not found', { status: 404 });
+  // Verify web ownership
+  const web = await websService.getWebById(webId);
+  if (!web || web.userId !== userId) {
+    throw ApiError.notFound(ResourceType.WEB, webId);
   }
 
-  // Create a readable stream for Server-Sent Events
+  // Only stream for processing webs
+  if (web.status !== 'PROCESSING') {
+    return new Response('Web is not processing', { status: 400 });
+  }
+
+  const runId = web.analysis?.runId;
+  if (!runId) {
+    return new Response('No runId found', { status: 400 });
+  }
+
+  // Create a ReadableStream for Server-Sent Events
   const stream = new ReadableStream({
-    start(controller) {
-      // Send initial status
-      controller.enqueue(`data: ${JSON.stringify({
-        type: 'status',
-        status: web.status,
+    async start(controller) {
+      const encoder = new TextEncoder();
+      let isStreamActive = true;
+      
+      // Send initial connection message
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+        type: 'connected',
+        webId,
+        runId,
         timestamp: new Date().toISOString()
-      })}\n\n`);
+      })}\n\n`));
 
-      // Set up interval to check for updates
-      const interval = setInterval(async () => {
-        try {
-          const updatedWeb = await database.web.findUnique({
-            where: { id },
-            select: { 
-              id: true, 
-              status: true, 
-              title: true, 
-              emoji: true, 
-              description: true,
-              updatedAt: true 
-            }
-          });
+      try {
+        console.log(`[workflow-stream] Connecting to Mastra stream for runId: ${runId}`);
+        
+        // Use the Mastra workflow service to get the stream
+        const response = await mastraWorkflowService.streamWorkflowExecution('analyzeWeb', runId);
 
-          if (updatedWeb) {
-            controller.enqueue(`data: ${JSON.stringify({
-              type: 'update',
-              web: {
-                id: updatedWeb.id,
-                status: updatedWeb.status,
-                title: updatedWeb.title,
-                emoji: updatedWeb.emoji,
-                description: updatedWeb.description,
-                updatedAt: updatedWeb.updatedAt.toISOString(),
-              },
-              timestamp: new Date().toISOString()
-            })}\n\n`);
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No reader available');
+        }
 
-            // Close stream if completed or failed
-            if (updatedWeb.status === 'COMPLETE' || updatedWeb.status === 'FAILED') {
-              controller.enqueue(`data: ${JSON.stringify({
-                type: 'complete',
-                status: updatedWeb.status,
-                timestamp: new Date().toISOString()
-              })}\n\n`);
-              clearInterval(interval);
-              controller.close();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        console.log(`[workflow-stream] Successfully connected to Mastra stream`);
+
+        while (isStreamActive) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                console.log(`[workflow-stream] Received Mastra event:`, data);
+                
+                // Handle new streaming API events
+                switch (data.type) {
+                  case 'step-start':
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: 'step-progress',
+                      stepId: data.payload.id,
+                      status: 'running',
+                      timestamp: new Date().toISOString()
+                    })}\n\n`));
+                    break;
+                    
+                  case 'step-result':
+                    const stepId = data.payload.id;
+                    const output = data.payload.output;
+                    
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: 'step-progress',
+                      stepId,
+                      status: 'completed',
+                      output,
+                      timestamp: new Date().toISOString()
+                    })}\n\n`));
+                    
+                    // Handle quick metadata updates
+                    if (stepId === 'metadata' && output) {
+                      try {
+                        await websService.updateWebWithQuickMetadata(webId, {
+                          title: output.quickTitle,
+                          emoji: output.quickEmoji,
+                          description: output.quickDescription,
+                          topics: output.suggestedTopics,
+                        });
+                        console.log(`[workflow-stream] Updated quick metadata for web ${webId}`);
+                      } catch (error) {
+                        console.error(`[workflow-stream] Failed to update quick metadata:`, error);
+                      }
+                    }
+                    break;
+                    
+                  case 'step-finish':
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: 'step-progress',
+                      stepId: data.payload.id,
+                      status: 'complete',
+                      timestamp: new Date().toISOString()
+                    })}\n\n`));
+                    break;
+                    
+                  case 'finish':
+                    // Get the final result from the workflow
+                    const finalResult = await mastraWorkflowService.getWorkflowResult('analyzeWeb', runId);
+                    
+                    if (finalResult.status === 'success' && finalResult.result) {
+                      try {
+                        await websService.updateWebWithAnalysis(webId, finalResult.result);
+                        console.log(`[workflow-stream] Updated final analysis for web ${webId}`);
+                      } catch (error) {
+                        console.error(`[workflow-stream] Failed to update final analysis:`, error);
+                      }
+                    }
+                    
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: 'workflow-complete',
+                      timestamp: new Date().toISOString()
+                    })}\n\n`));
+                    
+                    isStreamActive = false;
+                    break;
+                    
+                  default:
+                    // Forward other events as-is
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+                }
+              } catch (error) {
+                console.error('[workflow-stream] Error parsing Mastra event:', error);
+              }
             }
           }
-        } catch (error) {
-          console.error('Error in stream:', error);
-          controller.enqueue(`data: ${JSON.stringify({
-            type: 'error',
-            error: 'Stream error',
-            timestamp: new Date().toISOString()
-          })}\n\n`);
-          clearInterval(interval);
-          controller.close();
         }
-      }, 1000); // Check every second
+        
+        reader.releaseLock();
+      } catch (error) {
+        // Check if workflow already completed
+        const currentWeb = await websService.getWebById(webId);
+        if (currentWeb && currentWeb.status === 'COMPLETE') {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+            type: 'workflow-complete',
+            message: 'Workflow already completed',
+            web: {
+              id: currentWeb.id,
+              status: currentWeb.status,
+              title: currentWeb.title,
+              emoji: currentWeb.emoji,
+              description: currentWeb.description,
+              topics: currentWeb.topics,
+              insights: currentWeb.insights,
+            },
+            timestamp: new Date().toISOString()
+          })}\n\n`));
+        } else {
+          console.error('[workflow-stream] Error in stream:', error);
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+            type: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString()
+          })}\n\n`));
+        }
+      }
 
-      // Clean up on close
-      return () => {
-        clearInterval(interval);
-      };
+      controller.close();
     },
   });
 
-  return new NextResponse(stream, {
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control',
+      'X-Accel-Buffering': 'no', // Disable Nginx buffering
     },
   });
-} 
+}
+
+export const GET = withErrorHandling(withAuthenticatedUser(handleWorkflowStream)); 

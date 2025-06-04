@@ -1,20 +1,21 @@
-export * from './page';
+export * from './layout/page';
 export * from './posthog-identifier';
-export { PromptBar } from './prompt-bar';
-export { ContextBar } from './context-bar';
-export { UserMenu } from './user-menu';
-export { DocsMenu } from './docs-menu';
-export { FeedbackMenu } from './feedback-menu';
-export { NotificationsWrapper } from './notifications-wrapper';
-export { NotificationsMenu } from './notifications-menu';
-export { WebsAsciiLogo } from './webs-ascii';
-export { ClientLayout } from './client-layout';
-export { SearchModal } from './search-modal';
+
+export { UserMenu } from './menu/user-menu';
+export { DocsMenu } from './menu/docs-menu';
+export { FeedbackMenu } from './menu/feedback-menu';
+export { NotificationsWrapper } from './menu/notifications/notifications-wrapper';
+export { NotificationsMenu } from './menu/notifications/notifications-menu';
+
+export { WebsAsciiLogo } from './ascii/webs-ascii';
+export { SearchModal } from './modal/search-modal';
 export { FontLoader } from './font-loader';
-export { ProgressBar } from './progress-bar';
+export { ProgressBar } from './layout/progress-bar';
 export { ThemeSwitcher } from './theme-switcher';
-export { BrowserTabsModal } from './browser-tabs-modal';
-export * from './footer';
-export * from './navigation';
-export { WebChat } from './web-chat';
+export { BrowserTabsModal } from './modal/browser-tabs-modal';
+
+export * from './layout/footer';
+export * from './layout/navigation';
+
+export { WebChat } from '../web/web-chat';
 export { WorkflowProgress } from './workflow-progress'; 

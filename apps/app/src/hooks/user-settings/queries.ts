@@ -10,6 +10,8 @@ export function useUserSettings() {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateOnMount: true,
+      dedupingInterval: 0,
     }
   );
 

@@ -1,13 +1,14 @@
 import 'server-only';
 import { database } from '@repo/database';
 import { z } from 'zod';
-import type { FeedbackTopic, FeedbackStatus } from '@repo/database';
+import type { FeedbackTopic, FeedbackStatus, FeedbackSentiment } from '@repo/database';
 
 // Types
 export interface Feedback {
   id: string;
   topic: FeedbackTopic;
   message: string;
+  sentiment: FeedbackSentiment | null;
   userAgent: string | null;
   url: string | null;
   userId: string | null;
@@ -20,6 +21,7 @@ export interface Feedback {
 export const feedbackSchema = z.object({
   topic: z.enum(['BUG', 'FEATURE', 'UI', 'PERFORMANCE', 'GENERAL']),
   message: z.string().min(1).max(5000),
+  sentiment: z.enum(['POSITIVE', 'NEGATIVE']).nullable().optional(),
   userAgent: z.string().optional(),
   url: z.string().url().optional(),
   userId: z.string().optional(),

@@ -39,14 +39,46 @@ export function getFontValue(fontId: string): string {
 }
 
 export function applyFont(fontId: string): void {
+  console.log('[applyFont] Applying font:', fontId);
+  
   const font = fonts.find(f => f.id === fontId);
-  if (font) {
-    // Update CSS custom property directly for immediate effect
-    const fontValue = getFontValue(fontId);
-    document.documentElement.style.setProperty('--font-mono', fontValue);
-    
-    // Also add the font class to document root for consistency
-    fonts.forEach(f => document.documentElement.classList.remove(f.className));
-    document.documentElement.classList.add(font.className);
+  if (!font) {
+    console.warn('[applyFont] Font not found:', fontId);
+    return;
+  }
+
+  // Remove all font classes from both html and body
+  fonts.forEach(f => {
+    document.documentElement.classList.remove(f.className);
+    document.body.classList.remove(f.className);
+  });
+  
+  // Add the font class to the html element (root)
+  // This is important because the CSS uses these classes to set the --font-mono variable
+  document.documentElement.classList.add(font.className);
+  
+  // Also update the CSS variable directly as a fallback
+  const fontValue = getFontValue(fontId);
+  document.documentElement.style.setProperty('--font-mono', fontValue);
+  
+  // Store the font preference in localStorage for persistence
+  localStorage.setItem('preferred-font', fontId);
+  
+  console.log('[applyFont] Font applied:', fontId, 'Class:', font.className, 'CSS var:', fontValue);
+  
+  // Log current state for debugging
+  console.log('[applyFont] HTML classes:', document.documentElement.className);
+  console.log('[applyFont] Computed font:', getComputedStyle(document.body).fontFamily);
+}
+
+// Apply font from localStorage on page load (before React hydration)
+if (typeof window !== 'undefined') {
+  const savedFont = localStorage.getItem('preferred-font');
+  if (savedFont) {
+    // Apply immediately to prevent flash
+    const font = fonts.find(f => f.id === savedFont);
+    if (font) {
+      document.documentElement.classList.add(font.className);
+    }
   }
 } 

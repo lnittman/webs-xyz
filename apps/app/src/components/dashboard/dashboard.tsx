@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useAtom } from 'jotai';
 
 import { promptFocusedAtom } from '@/atoms/chat';
-import { PromptBar } from '@/components/shared/prompt-bar';
-import { ClientLayout } from '@/components/shared/client-layout';
+import { PromptBar } from '@/components/dashboard/prompt-bar';
+import { ClientLayout } from '@/components/shared/layout/client-layout';
 import { useDashboard } from '@/hooks/use-dashboard';
 import type { Web } from '@/types/dashboard';
 

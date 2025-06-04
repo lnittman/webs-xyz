@@ -83,7 +83,8 @@ export class WebsService {
    */
   async createWeb(input: unknown): Promise<Web> {
     const data = createWebInputSchema.parse(input);
-    
+    console.log('websService.ts: [createWeb] Parsed data:', data);
+
     // Use urls array if provided, otherwise fall back to single url
     const urls = data.urls || (data.url ? [data.url] : []);
     if (urls.length === 0) {
@@ -92,7 +93,7 @@ export class WebsService {
     
     const primaryUrl = urls[0];
     const domain = new URL(primaryUrl).hostname.replace('www.', '');
-    
+
     const web = await database.web.create({
       data: {
         userId: data.userId,
@@ -107,6 +108,8 @@ export class WebsService {
         entities: true,
       },
     });
+
+    console.log('websService.ts: [createWeb] Web created:', web);
 
     return this.serializeWeb(web);
   }
@@ -186,6 +189,9 @@ export class WebsService {
     // Get web for notification
     const web = await this.getWebById(webId);
     
+    // Preserve the runId if it exists
+    const existingRunId = web?.analysis?.runId;
+    
     const updated = await database.web.update({
       where: { id: webId },
       data: {
@@ -199,7 +205,10 @@ export class WebsService {
         readingTime: analysisResult.readingTime,
         insights: analysisResult.insights,
         relatedUrls: analysisResult.relatedUrls,
-        analysis: analysisResult,
+        analysis: {
+          ...analysisResult,
+          runId: existingRunId || analysisResult.runId, // Preserve runId
+        },
         entities: analysisResult.entities ? {
           deleteMany: {},
           create: analysisResult.entities.map((entity: any) => ({
@@ -298,116 +307,6 @@ export class WebsService {
         createdAt: e.createdAt.toISOString(),
       })) || [],
     };
-  }
-
-  /**
-   * Create a web and trigger analysis workflow
-   */
-  async createWebAndAnalyze(input: unknown): Promise<Web> {
-    // Create the web first
-    const web = await this.createWeb(input);
-    
-    // Trigger analysis workflow
-    try {
-      const runId = await this.triggerAnalysisWorkflow({
-        urls: web.urls,
-        prompt: web.prompt,
-        webId: web.id,
-      });
-      // Mark as processing with runId
-      await this.markWebAsProcessing(web.id, runId);
-    } catch (error) {
-      console.error('Failed to trigger analysis workflow:', error);
-      await this.markWebAsFailed(web.id, error instanceof Error ? error.message : 'Unknown error');
-    }
-    
-    return web;
-  }
-
-  /**
-   * Trigger analysis workflow for an existing web
-   */
-  async analyzeWebAsync(webData: { url: string; prompt?: string; webId?: string }): Promise<string> {
-    const web = webData.webId ? await this.getWebById(webData.webId) : null;
-    if (!web && webData.webId) {
-      throw new Error('Web not found');
-    }
-    
-    const analysisData = {
-      urls: [webData.url],
-      prompt: webData.prompt,
-      webId: webData.webId,
-    };
-    
-    return this.triggerAnalysisWorkflow(analysisData);
-  }
-
-  /**
-   * Trigger the Mastra workflow for web analysis
-   */
-  private async triggerAnalysisWorkflow(data: any): Promise<string> {
-    const mastraUrl = process.env.NEXT_PUBLIC_AI_URL || 'http://localhost:2100';
-    
-    try {
-      console.log(`[triggerAnalysisWorkflow] Creating run for workflow: analyzeWeb`);
-      
-      // First, create a run
-      const createRunResponse = await fetch(`${mastraUrl}/api/workflows/analyzeWeb/createRun`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!createRunResponse.ok) {
-        const error = await createRunResponse.text();
-        console.error(`[triggerAnalysisWorkflow] Failed to create run:`, error);
-        throw new Error(`Failed to create workflow run: ${createRunResponse.statusText}`);
-      }
-
-      const createRunResult = await createRunResponse.json();
-      const { runId } = createRunResult;
-      console.log(`[triggerAnalysisWorkflow] Created run with ID: ${runId}`);
-
-      // Get the app URL for webhook
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:2102';
-      const webhookUrl = `${appUrl}/api/webhooks/mastra`;
-      console.log(`[triggerAnalysisWorkflow] Using webhook URL: ${webhookUrl}`);
-
-      // Then start the workflow asynchronously
-      console.log(`[triggerAnalysisWorkflow] Starting workflow with runId: ${runId}`);
-      const startResponse = await fetch(`${mastraUrl}/api/workflows/analyzeWeb/start-async`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          runId,
-          triggerData: data,
-          metadata: {
-            webId: data.webId,
-          },
-          webhook: {
-            url: webhookUrl,
-            method: 'POST',
-          },
-        }),
-      });
-
-      if (!startResponse.ok) {
-        const error = await startResponse.text();
-        console.error(`[triggerAnalysisWorkflow] Failed to start workflow:`, error);
-        throw new Error(`Failed to start workflow: ${startResponse.statusText}`);
-      }
-
-      const result = await startResponse.json();
-      console.log(`[triggerAnalysisWorkflow] Workflow started, result:`, result);
-      
-      return runId;
-    } catch (error) {
-      console.error('Failed to trigger analysis workflow:', error);
-      throw error;
-    }
   }
 }
 

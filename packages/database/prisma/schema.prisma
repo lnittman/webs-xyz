@@ -54,7 +54,6 @@ model WebEntity {
   @@index([webId])
   @@index([type])
 }
-
 model Message {
   id        String      @id @default(uuid())
   webId     String?
@@ -67,15 +66,16 @@ model Message {
 }
 
 model Feedback {
-  id        String         @id @default(uuid())
+  id        String             @id @default(uuid())
   topic     FeedbackTopic
   message   String
+  sentiment FeedbackSentiment? // thumbs up/down
   userAgent String? // Browser/device info
   url       String? // Page where feedback was submitted
   userId    String? // Optional user ID if authenticated
-  status    FeedbackStatus @default(OPEN)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  status    FeedbackStatus     @default(OPEN)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   @@index([topic])
   @@index([status])
@@ -121,6 +121,11 @@ enum FeedbackTopic {
   UI
   PERFORMANCE
   GENERAL
+}
+
+enum FeedbackSentiment {
+  POSITIVE
+  NEGATIVE
 }
 
 enum FeedbackStatus {

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { websService, webIdParamSchema } from '@repo/api';
+import { websService, webIdParamSchema, mastraWorkflowService } from '@repo/api';
 import { withErrorHandling, ApiResponse } from '@repo/api/utils/response';
 import { withAuthenticatedUser } from '@repo/api/utils/auth';
 import { validateWith } from '@repo/api/utils/validation';
@@ -29,9 +29,9 @@ async function handleRetryWeb(
   }
   
   try {
-    // Use the analyzeWebAsync method to retry analysis
-    const runId = await websService.analyzeWebAsync({
-      url: web.url,
+    // Trigger the analysis workflow
+    const runId = await mastraWorkflowService.triggerAnalyzeWeb({
+      urls: web.urls || [web.url],
       prompt: web.prompt || undefined,
       webId: id,
     });

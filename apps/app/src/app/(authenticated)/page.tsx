@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard';
-import { useWebs } from '@/hooks/code/web/queries';
-import { useCreateWeb } from '@/hooks/code/web/mutations';
-import { useUserSettings } from '@/hooks/user-settings';
+import { useWebs } from '@/hooks/web/queries';
+import { useCreateWeb } from '@/hooks/web/mutations';
+import { useUserSettings } from '@/hooks/user-settings/queries';
 import { useSetAtom } from 'jotai';
 import { inputTextAtom } from '@/atoms/urls';
 import { startLoadingAtom, stopLoadingAtom } from '@/atoms/loading';

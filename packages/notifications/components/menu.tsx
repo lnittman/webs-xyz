@@ -423,20 +423,25 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        {/* Archive button - only show on hover and for inbox items */}
-                                                        {hoveredNotification === notification.id && activeTab === 'inbox' && (
-                                                            <motion.button
-                                                                initial={{ opacity: 0 }}
-                                                                animate={{ opacity: 1 }}
-                                                                exit={{ opacity: 0 }}
-                                                                onClick={(e) => archiveNotification(notification, e)}
-                                                                className="p-1 text-muted-foreground hover:text-foreground transition-all duration-200 rounded"
-                                                                title="Archive notification"
-                                                            >
-                                                                <Archive className="w-4 h-4" weight="duotone" />
-                                                            </motion.button>
-                                                        )}
                                                     </div>
+                                                    {/* Archive button - absolutely positioned relative to notification container */}
+                                                    {activeTab === 'inbox' && (
+                                                        <motion.button
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{
+                                                                opacity: hoveredNotification === notification.id ? 1 : 0
+                                                            }}
+                                                            transition={{ duration: 0.2 }}
+                                                            onClick={(e) => archiveNotification(notification, e)}
+                                                            className={cn(
+                                                                "absolute right-3 top-3 p-1 text-muted-foreground hover:text-foreground transition-all duration-200 rounded",
+                                                                hoveredNotification !== notification.id && "pointer-events-none"
+                                                            )}
+                                                            title="Archive notification"
+                                                        >
+                                                            <Archive className="w-4 h-4" weight="duotone" />
+                                                        </motion.button>
+                                                    )}
                                                 </div>
                                                 {index < filteredNotifications.length - 1 && <DropdownMenuSeparator className="my-0" />}
                                             </div>

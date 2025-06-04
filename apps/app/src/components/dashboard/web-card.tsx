@@ -2,13 +2,13 @@ import { Link } from 'next-view-transitions';
 import { cn } from '@repo/design/lib/utils';
 import { extractDomain, formatRelativeTime } from '@/lib/dashboard-utils';
 import type { Web } from '@/types/dashboard';
-import { ScrollFadeContainer } from '@/components/shared/scroll-fade-container';
+import { ScrollFadeContainer } from '@/components/shared/layout/scroll-fade-container';
 import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
-import { useUpdateWebEmoji } from '@/hooks/code/web/mutations';
+import { useUpdateWebEmoji } from '@/hooks/web/mutations';
 import { useState, useEffect } from 'react';
 import { WebActionMenu } from './web-action-menu';
 import { toast } from '@repo/design/components/ui/sonner';
-import { useWebStream } from '@/hooks/code/web/use-web-stream';
+import { useWebStream } from '@/hooks/web/use-web-stream';
 
 interface WebCardProps {
     web: Web;
@@ -33,21 +33,9 @@ export function WebCard({
     const { updateEmoji } = useUpdateWebEmoji();
 
     // Stream quick metadata for PROCESSING webs
-    const { webUpdate, startAnalysis } = useWebStream(
+    const { webUpdate } = useWebStream(
         web.status === 'PROCESSING' ? web.id : null
     );
-
-    // Auto-start streaming for PROCESSING webs
-    useEffect(() => {
-        if (web.status === 'PROCESSING' && startAnalysis) {
-            // Small delay to ensure component is mounted
-            const timer = setTimeout(() => {
-                startAnalysis();
-            }, 100);
-
-            return () => clearTimeout(timer);
-        }
-    }, [web.id, web.status]); // Only depend on stable values, not startAnalysis
 
     // Use streamed data if available, otherwise fall back to web data
     const displayTitle = webUpdate?.title || web.title;

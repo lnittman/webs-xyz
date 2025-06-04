@@ -1,2 +1,1 @@
-// Export analyze-web workflow
-export { analyzeWeb } from './analyze-web';
+export { analyzeWeb } from './web/analyze';

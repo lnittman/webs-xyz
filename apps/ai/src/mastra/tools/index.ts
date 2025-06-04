@@ -1,9 +1,7 @@
 // Server-side tools
-export { scrapeWithJina } from './scrape-with-jina';
+export { jinaReader } from './jina/reader';
 
 // Client-side tools for UI interactions
-export { 
-  addUrlToWebTool,
-  reanalyzeWebTool,
-  compareWebsTool,
-} from './add-url-to-web';
+export { reanalyzeWebTool } from './webs/reanalyze';
+export { addUrlTool } from './webs/add-url';
+export { compareWebsTool } from './webs/compare';

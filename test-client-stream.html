@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Stream Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        .status.processing { background: #cce5ff; color: #004085; }
+        .web-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .web-info h3 { margin-top: 0; }
+        .steps {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .step {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step.pending { background: #f8f9fa; color: #6c757d; }
+        .step.running { background: #fff3cd; color: #856404; }
+        .step.complete { background: #d4edda; color: #155724; }
+        .step-icon { font-size: 20px; }
+        .events {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+        }
+        .event {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .event-time { color: #6c757d; }
+        .quick-metadata {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .quick-metadata .emoji { font-size: 48px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SSE Stream Test Client</h1>
+        
+        <div class="controls">
+            <button id="simulateBtn" onclick="connectToSimulated()">Test Simulated Stream</button>
+            <button id="createBtn" onclick="createAndStream()">Create New Web</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div id="webInfo" class="web-info" style="display: none;">
+            <h3>Web Information</h3>
+            <div id="webDetails"></div>
+        </div>
+        
+        <div id="quickMetadata" class="quick-metadata" style="display: none;">
+            <h3>Quick Analysis</h3>
+            <div class="emoji" id="quickEmoji"></div>
+            <h4 id="quickTitle"></h4>
+            <p id="quickDescription"></p>
+            <div id="quickTopics"></div>
+        </div>
+        
+        <h3>Workflow Steps</h3>
+        <div id="steps" class="steps">
+            <div class="step pending" data-step="fetch-urls">
+                <span class="step-icon">🌐</span>
+                <span>Fetch URLs</span>
+            </div>
+            <div class="step pending" data-step="generate-quick-metadata">
+                <span class="step-icon">⚡</span>
+                <span>Generate Quick Metadata</span>
+            </div>
+            <div class="step pending" data-step="detailed-analysis">
+                <span class="step-icon">🔍</span>
+                <span>Detailed Analysis</span>
+            </div>
+            <div class="step pending" data-step="enhanced-combine">
+                <span class="step-icon">🔗</span>
+                <span>Enhanced Combine</span>
+            </div>
+            <div class="step pending" data-step="final-assembly">
+                <span class="step-icon">🏗️</span>
+                <span>Final Assembly</span>
+            </div>
+        </div>
+        
+        <h3>Event Log</h3>
+        <div id="events" class="events"></div>
+    </div>
+
+    <script>
+        let eventSource = null;
+        let webId = null;
+
+        function updateStatus(status, message) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = message;
+        }
+
+        function logEvent(event) {
+            const eventsEl = document.getElementById('events');
+            const eventEl = document.createElement('div');
+            eventEl.className = 'event';
+            const time = new Date().toLocaleTimeString();
+            eventEl.innerHTML = `<span class="event-time">[${time}]</span> ${JSON.stringify(event, null, 2)}`;
+            eventsEl.insertBefore(eventEl, eventsEl.firstChild);
+        }
+
+        function updateStep(stepId, status) {
+            const stepEl = document.querySelector(`[data-step="${stepId}"]`);
+            if (stepEl) {
+                stepEl.className = `step ${status}`;
+            }
+        }
+
+        function updateQuickMetadata(data) {
+            const container = document.getElementById('quickMetadata');
+            container.style.display = 'block';
+            
+            document.getElementById('quickEmoji').textContent = data.quickEmoji || '📄';
+            document.getElementById('quickTitle').textContent = data.quickTitle || 'Processing...';
+            document.getElementById('quickDescription').textContent = data.quickDescription || '';
+            
+            if (data.suggestedTopics && data.suggestedTopics.length > 0) {
+                document.getElementById('quickTopics').innerHTML = 
+                    '<strong>Topics:</strong> ' + data.suggestedTopics.join(', ');
+            }
+        }
+
+        function handleSSEMessage(event) {
+            try {
+                const data = JSON.parse(event.data);
+                logEvent(data);
+
+                switch (data.type) {
+                    case 'connected':
+                        updateStatus('connected', `Connected to stream (Run ID: ${data.runId})`);
+                        break;
+                        
+                    case 'step-progress':
+                        updateStep(data.stepId, data.status === 'completed' ? 'complete' : data.status);
+                        
+                        // Handle quick metadata
+                        if (data.stepId === 'generate-quick-metadata' && 
+                            data.status === 'completed' && 
+                            data.output) {
+                            updateQuickMetadata(data.output);
+                        }
+                        break;
+                        
+                    case 'workflow-complete':
+                        updateStatus('connected', 'Workflow completed successfully!');
+                        setTimeout(() => disconnect(), 2000);
+                        break;
+                        
+                    case 'workflow-failed':
+                        updateStatus('disconnected', 'Workflow failed!');
+                        disconnect();
+                        break;
+                        
+                    case 'error':
+                        updateStatus('disconnected', `Error: ${data.error}`);
+                        break;
+                }
+            } catch (error) {
+                console.error('Error parsing SSE event:', error);
+            }
+        }
+
+        function connectToSimulated() {
+            disconnect();
+            
+            updateStatus('processing', 'Connecting to simulated stream...');
+            
+            eventSource = new EventSource('/api/test-stream/simulate?delay=1000');
+            
+            eventSource.onopen = () => {
+                document.getElementById('simulateBtn').disabled = true;
+                document.getElementById('createBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+            };
+            
+            eventSource.onmessage = handleSSEMessage;
+            
+            eventSource.onerror = (error) => {
+                console.error('SSE error:', error);
+                updateStatus('disconnected', 'Connection error');
+                disconnect();
+            };
+        }
+
+        async function createAndStream() {
+            disconnect();
+            
+            updateStatus('processing', 'Creating web...');
+            
+            try {
+                const response = await fetch('/api/test-stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: 'https://example.com',
+                        prompt: 'Test analysis from browser'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    webId = result.webId;
+                    
+                    // Update web info
+                    document.getElementById('webInfo').style.display = 'block';
+                    document.getElementById('webDetails').innerHTML = `
+                        <strong>Web ID:</strong> ${result.webId}<br>
+                        <strong>Status:</strong> ${result.status}<br>
+                        <strong>Stream URL:</strong> ${result.streamUrl}
+                    `;
+                    
+                    // Connect to stream
+                    updateStatus('processing', 'Connecting to stream...');
+                    
+                    eventSource = new EventSource(`/api/test-stream?webId=${webId}`);
+                    
+                    eventSource.onopen = () => {
+                        document.getElementById('simulateBtn').disabled = true;
+                        document.getElementById('createBtn').disabled = true;
+                        document.getElementById('disconnectBtn').disabled = false;
+                    };
+                    
+                    eventSource.onmessage = handleSSEMessage;
+                    
+                    eventSource.onerror = (error) => {
+                        console.error('SSE error:', error);
+                        updateStatus('disconnected', 'Connection error');
+                        disconnect();
+                    };
+                } else {
+                    updateStatus('disconnected', `Error: ${result.error}`);
+                }
+            } catch (error) {
+                updateStatus('disconnected', `Error: ${error.message}`);
+            }
+        }
+
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            
+            document.getElementById('simulateBtn').disabled = false;
+            document.getElementById('createBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+            
+            updateStatus('disconnected', 'Disconnected');
+        }
+
+        // Reset steps
+        function resetSteps() {
+            document.querySelectorAll('.step').forEach(step => {
+                step.className = 'step pending';
+            });
+        }
+    </script>
+</body>
+</html> 

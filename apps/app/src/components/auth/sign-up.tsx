@@ -6,7 +6,7 @@ import * as Clerk from '@clerk/elements/common';
 import * as SignUp from '@clerk/elements/sign-up';
 import { Eye, EyeSlash, ArrowRight } from '@phosphor-icons/react/dist/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WebsAsciiLogo } from '@/components/shared/webs-ascii';
+import { WebsAsciiLogo } from '@/components/shared/ascii/webs-ascii';
 
 // Custom Apple Icon that works in both light and dark modes
 const AppleIcon = ({ className }: { className?: string }) => (

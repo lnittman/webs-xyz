@@ -1,7 +1,7 @@
 'use client';
 
 import { WorkflowProgress } from '@/components/shared/workflow-progress';
-import { useWebStream } from '@/hooks/code/web/use-web-stream';
+import { useWebStream } from '@/hooks/web/use-web-stream';
 import { Card } from '@repo/design/components/ui/card';
 import { Badge } from '@repo/design/components/ui/badge';
 import { Brain, Sparkle, Globe } from '@phosphor-icons/react/dist/ssr';

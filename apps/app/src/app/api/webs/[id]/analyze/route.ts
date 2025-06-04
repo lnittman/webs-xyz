@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { websService } from '@repo/api';
+import { websService, mastraWorkflowService } from '@repo/api';
 import { withAuthenticatedUser } from '@repo/api/utils/auth';
 import { withErrorHandling, ApiResponse } from '@repo/api/utils/response';
 import { ApiError } from '@repo/api/utils/error';
@@ -20,7 +20,19 @@ async function handleAnalyzeWeb(
 
   // Only allow analysis for FAILED webs (for retry) or new analysis
   if (web.status === 'PROCESSING') {
-    throw ApiError.invalidParam('status', 'Web is already being processed');
+    // Check if we have a runId stored
+    const runId = web.analysis?.runId;
+    if (runId) {
+      return ApiResponse.success({
+        message: 'Analysis already in progress',
+        webId,
+        runId,
+        status: 'PROCESSING',
+        webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:2102'}/api/webhooks/mastra`,
+        info: 'The workflow is already running'
+      });
+    }
+    // If no runId, something went wrong, allow retry
   }
 
   if (web.status === 'COMPLETE' && !urls && !prompt) {
@@ -29,8 +41,8 @@ async function handleAnalyzeWeb(
 
   try {
     // Trigger the analysis workflow
-    const runId = await websService.analyzeWebAsync({
-      url: web.url,
+    const runId = await mastraWorkflowService.triggerAnalyzeWeb({
+      urls: urls || [web.url],
       prompt: prompt || web.prompt || undefined,
       webId,
     });
