@@ -7,7 +7,7 @@ import { logStep, logError, logTiming } from "../../../../../utils/logger";
 
 // Import other steps for reference
 import { fetchStep } from "../fetch";
-import { metadataStep } from "../metadata";
+import { quickMetadataStep } from "../quick-metadata";
 import { analysisStep } from "../analysis";
 
 // Step 4: Final combination using webCombineAgent - combines all analysis and creates final structured output
@@ -23,32 +23,32 @@ export const combineStep = createStep({
     try {
       // Get results from previous steps
       const fetchData = getStepResult(fetchStep);
-      const metadataData = getStepResult(metadataStep);
+      const quickMetadataData = getStepResult(quickMetadataStep);
       const analysisData = getStepResult(analysisStep);
       
       logStep("final-combine", "🔍", "Checking all step data", {
         hasFetchData: !!fetchData,
-        hasMetadataData: !!metadataData,
+        hasQuickMetadataData: !!quickMetadataData,
         hasAnalysisData: !!analysisData,
       });
       
-      if (!fetchData || !metadataData || !analysisData) {
+      if (!fetchData || !quickMetadataData || !analysisData) {
         logError("final-combine", "Required step data not found or failed", {
           fetchData: !!fetchData,
-          metadataData: !!metadataData,
+          quickMetadataData: !!quickMetadataData,
           analysisData: !!analysisData
         });
         throw new Error("Required step data not found or failed");
       }
 
       const { urls, prompt } = fetchData;
-      const metadata = metadataData;
+      const quickMetadata = quickMetadataData;
       const { urlAnalyses } = analysisData;
 
       logStep("final-combine", "🤖", "Calling webCombineAgent", {
         urlCount: urls.length,
         hasPrompt: !!prompt,
-        title: metadata.quickTitle,
+        title: quickMetadata.title,
         analysisCount: urlAnalyses.length
       });
 

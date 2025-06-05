@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Input schema for the generate-quick-metadata step (receives output from fetch-urls)
-export const generateMetadataInputSchema = z.object({
+export const quickMetadataInputSchema = z.object({
   urls: z.array(z.string()),
   prompt: z.string().nullable(),
   fetchResults: z.array(z.object({
@@ -19,7 +19,7 @@ export const generateMetadataInputSchema = z.object({
 });
 
 // Output schema for the generate-metadata step
-export const generateMetadataOutputSchema = z.object({
+export const quickMetadataOutputSchema = z.object({
   title: z.string().optional(),
   emoji: z.string().optional(),
   description: z.string().optional(),

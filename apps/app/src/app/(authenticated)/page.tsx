@@ -13,10 +13,13 @@ const LOADING_ID = 'webs-dashboard';
 
 export default function RootPage() {
   const { webs, isLoading } = useWebs();
-  const { createWeb } = useCreateWeb();
   const { settings } = useUserSettings();
+
+  const { createWeb } = useCreateWeb();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState('claude-4-sonnet');
+
   const setInputText = useSetAtom(inputTextAtom);
   const startLoading = useSetAtom(startLoadingAtom);
   const stopLoading = useSetAtom(stopLoadingAtom);

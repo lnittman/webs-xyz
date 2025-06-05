@@ -25,6 +25,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@mastra/client-js": "^0.10.2",
     "@repo/auth": "workspace:*",
     "@repo/database": "workspace:*",
     "next": "15.3.2",
@@ -36,4 +37,4 @@
     "@types/node": "22.14.1",
     "typescript": "^5.8.3"
   }
-} 
+}

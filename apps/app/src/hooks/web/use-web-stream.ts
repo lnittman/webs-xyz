@@ -17,7 +17,7 @@ export interface WebUpdate {
   description?: string;
   topics?: string[];
   insights?: string[];
-  status?: string;
+  progress?: number;
 }
 
 interface UseWebStreamOptions {
@@ -25,11 +25,10 @@ interface UseWebStreamOptions {
   onStepComplete?: (step: WorkflowStep) => void;
   onWorkflowComplete?: (result: any) => void;
   onError?: (error: string) => void;
-  pollingInterval?: number;
 }
 
 /**
- * Hook for monitoring web analysis workflow progress using Server-Sent Events
+ * Hook for monitoring web analysis workflow progress using Mastra streaming API
  */
 export function useWebStream(webId: string | null, options: UseWebStreamOptions = {}) {
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
@@ -38,7 +37,7 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isWorkflowComplete, setIsWorkflowComplete] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const previousStatusRef = useRef<string | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -56,7 +55,7 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
       
       // Handle status transitions
       if (web.status === 'PROCESSING' && !isWorkflowComplete) {
-        // Automatically start SSE connection for PROCESSING webs
+        // Automatically start streaming connection for PROCESSING webs
         setIsStarted(true);
         // Start streaming will be called in a separate effect
       } else if (web.status === 'COMPLETE') {
@@ -76,94 +75,140 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
     }
   }, [web, webId, isWorkflowComplete, options]);
   
-  // Start SSE connection to workflow stream
-  const startStreaming = useCallback(() => {
-    if (!webId || eventSourceRef.current || isWorkflowComplete) return;
+  // Start streaming connection to workflow
+  const startStreaming = useCallback(async () => {
+    if (!webId || abortControllerRef.current || isWorkflowComplete) return;
     
-    console.log('[WebStream] Starting SSE connection for web:', webId);
+    console.log('[WebStream] Starting streaming connection for web:', webId);
     
-    const eventSource = new EventSource(`/api/webs/${webId}/stream`);
-    eventSourceRef.current = eventSource;
+    // Create an AbortController for the fetch request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
     
-    eventSource.onopen = () => {
-      console.log('[WebStream] SSE connection opened');
+    try {
+      // Use fetch to connect to the server's streaming endpoint
+      const response = await fetch(`/api/webs/${webId}/stream`, {
+        signal: abortController.signal,
+        headers: {
+          'Accept': 'text/event-stream',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
       setIsConnected(true);
       setError(null);
-      // Clear any pending reconnect
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
-    };
-    
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('[WebStream] Received SSE event:', data);
-        
-        handleStreamEvent(data);
-      } catch (error) {
-        console.error('[WebStream] Error parsing SSE event:', error);
-      }
-    };
-    
-    eventSource.onerror = (error) => {
-      console.error('[WebStream] SSE error:', error);
-      setError('Connection error');
-      setIsConnected(false);
-      closeConnection();
       
-      // Only retry if workflow is not complete and we're still in PROCESSING status
-      if (!isWorkflowComplete && web?.status === 'PROCESSING') {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (!isWorkflowComplete && web?.status === 'PROCESSING') {
-            startStreaming();
+      // Use the streaming API to process the response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      // Process the stream chunk by chunk
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // Decode the chunk and add it to the buffer
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process complete messages in the buffer
+        const messages = buffer.split('\n\n');
+        buffer = messages.pop() || ''; // Keep the last incomplete message in the buffer
+        
+        for (const message of messages) {
+          if (message.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(message.slice(6)); // Remove 'data: ' prefix
+              handleStreamEvent(data);
+            } catch (error) {
+              console.error('[WebStream] Error parsing event data:', error);
+            }
           }
-        }, 5000);
+        }
       }
-    };
+      
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('[WebStream] Streaming error:', error);
+        setError('Connection error');
+        setIsConnected(false);
+        
+        // Only retry if workflow is not complete and we're still in PROCESSING status
+        if (!isWorkflowComplete && web?.status === 'PROCESSING') {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (!isWorkflowComplete && web?.status === 'PROCESSING') {
+              closeConnection();
+              startStreaming();
+            }
+          }, 5000);
+        }
+      }
+    }
   }, [webId, web?.status, isWorkflowComplete]);
   
-  // Handle different types of stream events
+  // Handle different types of stream events from Mastra
   const handleStreamEvent = useCallback((data: any) => {
-    const { type } = data;
+    const { type, payload } = data;
     
     switch (type) {
-      case 'connected':
-        console.log('[WebStream] Connected to workflow stream');
+      case 'start':
+        console.log('[WebStream] Workflow started:', payload);
         setIsConnected(true);
         break;
         
-      case 'step-progress':
-        console.log('[WebStream] Step progress:', data.stepId, data.status);
-        
-        // Update steps array
+      case 'step-start':
+        console.log('[WebStream] Step started:', payload.id);
+        // Add or update step in steps array
         setSteps(prev => {
-          const existing = prev.find(s => s.id === data.stepId);
+          const existing = prev.find(s => s.id === payload.id);
           if (existing) {
             return prev.map(s => 
-              s.id === data.stepId 
-                ? { ...s, status: mapStepStatus(data.status), result: data.output }
+              s.id === payload.id 
+                ? { ...s, status: 'running' as const, startTime: Date.now() }
                 : s
             );
           } else {
             return [...prev, {
-              id: data.stepId,
-              name: getStepDisplayName(data.stepId),
-              status: mapStepStatus(data.status),
-              result: data.output,
+              id: payload.id,
+              name: getStepDisplayName(payload.id),
+              status: 'running' as const,
               startTime: Date.now(),
             }];
           }
         });
+        break;
+        
+      case 'step-result':
+        console.log('[WebStream] Step result:', payload.id, payload.status);
+        
+        // Update step status and result
+        setSteps(prev => {
+          return prev.map(s => 
+            s.id === payload.id 
+              ? { 
+                  ...s, 
+                  status: payload.status === 'success' ? 'complete' as const : 'error' as const,
+                  result: payload.output,
+                  error: payload.status === 'error' ? payload.error : undefined
+                }
+              : s
+          );
+        });
         
         // Handle quick metadata updates
-        if (data.stepId === 'metadata' && data.status === 'completed' && data.output) {
+        if (payload.id === 'quick-metadata' && payload.status === 'success' && payload.output) {
           const update = {
-            title: data.output.quickTitle,
-            emoji: data.output.quickEmoji,
-            description: data.output.quickDescription,
-            topics: data.output.suggestedTopics,
+            title: payload.output.quickTitle,
+            emoji: payload.output.quickEmoji,
+            description: payload.output.quickDescription,
+            topics: payload.output.suggestedTopics,
           };
           
           setWebUpdate(update);
@@ -174,32 +219,21 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
         }
         
         // Notify step completion
-        if (data.status === 'completed') {
+        if (payload.status === 'success') {
           options.onStepComplete?.({
-            id: data.stepId,
-            name: getStepDisplayName(data.stepId),
+            id: payload.id,
+            name: getStepDisplayName(payload.id),
             status: 'complete',
-            result: data.output,
+            result: payload.output,
           });
         }
         break;
         
-      case 'workflow-status':
-        console.log('[WebStream] Workflow status:', data.status);
+      case 'step-finish':
+        console.log('[WebStream] Step finished:', payload.id);
         break;
         
-      case 'workflow-waiting':
-        console.log('[WebStream] Workflow waiting:', data.message);
-        // Don't set as complete, but close this connection and let it reconnect after a delay
-        setTimeout(() => {
-          closeConnection();
-          if (!isWorkflowComplete && web?.status === 'PROCESSING') {
-            setTimeout(() => startStreaming(), 3000); // Wait 3 seconds before reconnecting
-          }
-        }, 100);
-        break;
-        
-      case 'workflow-complete':
+      case 'finish':
         console.log('[WebStream] Workflow completed');
         setIsWorkflowComplete(true);
         // Refresh web data to get final results
@@ -209,19 +243,20 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
         setTimeout(() => closeConnection(), 100);
         break;
         
-      case 'workflow-failed':
-        console.log('[WebStream] Workflow failed');
-        setError('Workflow failed');
-        setIsWorkflowComplete(true);
-        options.onError?.('Workflow failed');
-        // Close connection after failure
-        setTimeout(() => closeConnection(), 100);
+      case 'error':
+        console.error('[WebStream] Stream error:', data.error || 'Unknown error');
+        setError(data.error || 'Unknown error');
+        options.onError?.(data.error || 'Unknown error');
         break;
         
-      case 'error':
-        console.error('[WebStream] Stream error:', data.error);
-        setError(data.error);
-        options.onError?.(data.error);
+      // Handle tool calls for more granular progress updates
+      case 'tool-call':
+      case 'tool-call-streaming-start':
+        console.log('[WebStream] Tool call:', data.toolName);
+        break;
+        
+      case 'tool-call-delta':
+        // Could use this for more granular progress updates
         break;
         
       default:
@@ -229,12 +264,12 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
     }
   }, [options, mutateWeb]);
   
-  // Close SSE connection
+  // Close streaming connection
   const closeConnection = useCallback(() => {
-    if (eventSourceRef.current) {
-      console.log('[WebStream] Closing SSE connection');
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    if (abortControllerRef.current) {
+      console.log('[WebStream] Closing stream connection');
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
       setIsConnected(false);
     }
     
@@ -254,61 +289,17 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
   
   // Start streaming when isStarted becomes true
   useEffect(() => {
-    if (isStarted && !eventSourceRef.current) {
+    if (isStarted && !abortControllerRef.current) {
       startStreaming();
     }
   }, [isStarted, startStreaming]);
   
-  // Start analysis function
-  const startAnalysis = useCallback(async () => {
-    if (!webId || isStarted) return;
-    
-    console.log('[WebStream] Starting analysis for web:', webId);
-    setIsStarted(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`/api/webs/${webId}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to start analysis');
-      }
-      
-      const result = await response.json();
-      console.log('[WebStream] Analysis response:', result);
-      
-      // Force immediate refresh to get the PROCESSING status
-      mutateWeb();
-    } catch (err) {
-      console.error('[WebStream] Failed to start analysis:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start analysis');
-      options.onError?.(err instanceof Error ? err.message : 'Failed to start analysis');
-      setIsStarted(false);
-    }
-  }, [webId, isStarted, mutateWeb, options]);
-  
-  // Helper functions
-  function mapStepStatus(status: string): WorkflowStep['status'] {
-    switch (status) {
-      case 'running': return 'running';
-      case 'completed': return 'complete';
-      case 'complete': return 'complete';
-      case 'failed': return 'error';
-      default: return 'pending';
-    }
-  }
-  
+  // Helper function to get display names for steps
   function getStepDisplayName(stepId: string): string {
     const names: Record<string, string> = {
       'fetch': 'Fetching URLs',
       'metadata': 'Generating Metadata',
+      'quick-metadata': 'Generating Metadata',
       'analysis': 'Analyzing Content',
       'mapper': 'Processing Results',
       'combine': 'Finalizing Analysis',
@@ -328,10 +319,6 @@ export function useWebStream(webId: string | null, options: UseWebStreamOptions 
   const isComplete = web?.status === 'COMPLETE';
   
   return {
-    // Stream control
-    startAnalysis: webId && web?.status !== 'PROCESSING' ? startAnalysis : undefined,
-    
-    // State
     steps,
     currentStep,
     progress,

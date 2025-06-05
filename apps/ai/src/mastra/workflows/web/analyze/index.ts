@@ -5,11 +5,11 @@ import { analysisStep } from "./steps/analysis";
 import { combineStep } from "./steps/combine";
 import { fetchStep } from "./steps/fetch";
 import { mapperStep } from "./steps/mapper";
-import { metadataStep } from "./steps/metadata";
+import { quickMetadataStep } from "./steps/quick-metadata";
 
 
 // 1. fetchStep - fetches content from URLs
-// 2. metadataStep and analysisStep run in parallel (both use fetchStep output)
+// 2. quickMetadataStep and analysisStep run in parallel (both use fetchStep output)
 // 3. mapperStep - transforms parallel output to combine input format
 // 4. combineStep - combines all results
 export const analyzeWeb = createWorkflow({
@@ -17,10 +17,10 @@ export const analyzeWeb = createWorkflow({
   description: "Analyzes web content from one or more URLs",
   inputSchema: analyzeWebInputSchema,
   outputSchema: analyzeWebOutputSchema,
-  steps: [fetchStep, metadataStep, analysisStep, mapperStep, combineStep],
+  steps: [fetchStep, quickMetadataStep, analysisStep, mapperStep, combineStep],
 })
   .then(fetchStep)
-  .parallel([metadataStep, analysisStep])
+  .parallel([quickMetadataStep, analysisStep])
   .then(mapperStep)
   .then(combineStep)
   .commit();

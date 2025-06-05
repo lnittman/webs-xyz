@@ -275,3 +275,5 @@ packages/database/generated
 
 # Sentry
 .sentryclirc
+
+.mastra/

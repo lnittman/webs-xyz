@@ -39,8 +39,6 @@ export const combineInputSchema = z.object({
 export const combineOutputSchema = z.object({
   urls: z.array(z.string()),
   prompt: z.string().nullable(),
-  title: z.string().optional(),
-  description: z.string().optional(),
   topics: z.array(z.string()),
   sentiment: z.enum(["positive", "neutral", "negative"]),
   insights: z.array(z.string()),
@@ -51,8 +49,8 @@ export const combineOutputSchema = z.object({
   readingTime: z.number(),
   confidence: z.number(),
   relatedUrls: z.array(z.string()),
-  emoji: z.string().optional().describe("A representative emoji for the combined analysis"),
   urlAnalyses: z.array(singleUrlAnalysisSchema),
+  fullDescription: z.string().describe("Comprehensive long-form analysis of the web content"),
   enhancedInsights: z.array(z.string()).optional(),
   crossUrlConnections: z.array(z.object({
     urls: z.array(z.string()),

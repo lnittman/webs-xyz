@@ -196,9 +196,10 @@ export class WebsService {
       where: { id: webId },
       data: {
         status: 'COMPLETE',
-        title: analysisResult.title || analysisResult.quickTitle,
-        emoji: analysisResult.emoji || analysisResult.quickEmoji,
-        description: analysisResult.description || analysisResult.quickDescription,
+        // Only update title, emoji, description if they're provided (not undefined)
+        ...(analysisResult.title !== undefined && { title: analysisResult.title }),
+        ...(analysisResult.emoji !== undefined && { emoji: analysisResult.emoji }),
+        ...(analysisResult.description !== undefined && { description: analysisResult.description }),
         topics: analysisResult.topics,
         sentiment: analysisResult.sentiment,
         confidence: analysisResult.confidence,
@@ -208,6 +209,7 @@ export class WebsService {
         analysis: {
           ...analysisResult,
           runId: existingRunId || analysisResult.runId, // Preserve runId
+          fullDescription: analysisResult.fullDescription, // Ensure fullDescription is included
         },
         entities: analysisResult.entities ? {
           deleteMany: {},

@@ -292,6 +292,23 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
                                         <p className="text-sm leading-relaxed">{web.description}</p>
                                     </div>
                                 )}
+
+                                {/* Full Description - Long-form analysis */}
+                                {web.analysis?.fullDescription && (
+                                    <div className="border border-border bg-card p-6 rounded-lg">
+                                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <Brain size={12} weight="duotone" />
+                                            COMPREHENSIVE ANALYSIS
+                                        </div>
+                                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                                            {web.analysis.fullDescription.split('\n\n').map((paragraph: string, index: number) => (
+                                                <p key={index} className="text-sm leading-relaxed mb-4 last:mb-0">
+                                                    {paragraph}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

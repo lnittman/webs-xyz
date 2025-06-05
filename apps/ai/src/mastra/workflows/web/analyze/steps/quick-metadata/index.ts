@@ -1,6 +1,6 @@
 import { createStep } from "@mastra/core/workflows";
 
-import { generateMetadataInputSchema, generateMetadataOutputSchema } from "./schema";
+import { quickMetadataInputSchema, quickMetadataOutputSchema } from "./schema";
 
 import { webMetadataAgent } from "../../../../../agents";
 import { logStep, logError, logTiming } from "../../../../../utils/logger";
@@ -9,11 +9,11 @@ import { logStep, logError, logTiming } from "../../../../../utils/logger";
 import { fetchStep } from "../fetch";
 
 // Step 2: Generate quick metadata using AI agent
-export const metadataStep = createStep({
-  id: "metadata",
+export const quickMetadataStep = createStep({
+  id: "quick-metadata",
   description: "Uses AI agent to generate quick title, emoji, description, and topics",
-  inputSchema: generateMetadataInputSchema,
-  outputSchema: generateMetadataOutputSchema,
+  inputSchema: quickMetadataInputSchema,
+  outputSchema: quickMetadataOutputSchema,
   execute: async ({ inputData, mastra, getStepResult, getInitData, runtimeContext }) => {
     const stepStartTime = Date.now();
     logStep("quick-metadata", "⚡", "Starting quick metadata generation with AI agent");

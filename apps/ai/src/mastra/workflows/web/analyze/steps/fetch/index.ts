@@ -1,6 +1,6 @@
 import { createStep } from "@mastra/core/workflows";
 
-import { fetchInputSchema, fetchOutputSchema } from "./schemas";
+import { fetchInputSchema, fetchOutputSchema } from "./schema";
 
 import { logStep, logError, logTiming } from "../../../../../utils/logger";
 
@@ -176,4 +176,4 @@ export const fetchStep = createStep({
 });
 
 // Export everything for easy access
-export * from "./schemas"; 
+export * from "./schema"; 
