@@ -24,7 +24,52 @@ export const metadata: Metadata = createMetadata({
   twitter: {
     card: 'summary_large_image',
   },
+  icons: {
+    icon: '/logo/1.png',
+    shortcut: '/logo/1.png',
+    apple: '/logo/1.png',
+  },
 });
+
+// Dynamic favicon rotation script
+const faviconRotationScript = `
+  (function() {
+    const logos = [1, 2, 3, 4, 5, 6, 7, 10]; // Available logo numbers
+    let currentIndex = 0;
+    
+    function updateFavicon() {
+      const logoNumber = logos[currentIndex];
+      const favicon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
+      
+      if (favicon) {
+        favicon.href = '/logo/' + logoNumber + '.png';
+      } else {
+        // Create favicon if it doesn't exist
+        const newFavicon = document.createElement('link');
+        newFavicon.rel = 'icon';
+        newFavicon.href = '/logo/' + logoNumber + '.png';
+        document.head.appendChild(newFavicon);
+      }
+      
+      currentIndex = (currentIndex + 1) % logos.length;
+    }
+    
+    // Start rotation after page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          updateFavicon();
+          setInterval(updateFavicon, 3000); // Rotate every 3 seconds
+        }, 1000); // Wait 1 second before starting
+      });
+    } else {
+      setTimeout(function() {
+        updateFavicon();
+        setInterval(updateFavicon, 3000);
+      }, 1000);
+    }
+  })();
+`;
 
 type RootLayoutProperties = {
   readonly children: ReactNode;
@@ -33,6 +78,9 @@ type RootLayoutProperties = {
 const RootLayout = ({ children }: RootLayoutProperties) => (
   <ViewTransitions>
     <html lang="en" className={fonts} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: faviconRotationScript }} />
+      </head>
       <body>
         <DesignSystemProvider>
           {children}
