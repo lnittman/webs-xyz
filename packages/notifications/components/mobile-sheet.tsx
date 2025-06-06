@@ -23,25 +23,24 @@ import {
     useNotificationStore,
 } from "@knocklabs/react";
 import ReactMarkdown from 'react-markdown';
-
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@repo/design/components/ui/dropdown-menu";
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@repo/design/components/ui/sheet";
 import { cn } from "@repo/design/lib/utils";
 import { keys } from '../keys';
 
 type TabType = 'inbox' | 'archive' | 'comments';
 
-interface NotificationsMenuProps {
+interface MobileNotificationsSheetProps {
     onNavigate?: (path: string) => void;
 }
 
-export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
-    const [menuOpen, setMenuOpen] = useState(false);
+export function MobileNotificationsSheet({ onNavigate }: MobileNotificationsSheetProps) {
+    const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('inbox');
     const [hoveredNotification, setHoveredNotification] = useState<string | null>(null);
 
@@ -93,10 +92,8 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
     const deleteAllArchived = async () => {
         if (!feed) return;
         try {
-            // Get all archived notifications and delete them
             const archivedNotifications = items?.filter((item: any) => item.archived_at) || [];
             for (const notification of archivedNotifications) {
-                // Use the correct Knock method for deleting notifications
                 await feed.markAsInteracted(notification);
             }
         } catch (err) {
@@ -105,7 +102,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
     };
 
     const handleSettingsClick = () => {
-        setMenuOpen(false);
+        setIsOpen(false);
         if (onNavigate) {
             onNavigate('/settings?tab=notifications');
         }
@@ -114,19 +111,16 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
     const handleActionClick = async (action: any, e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // Handle different action types
         if (action.url) {
-            // Navigate to URL
             if (action.url.startsWith('/')) {
                 if (onNavigate) {
                     onNavigate(action.url);
                 }
-                setMenuOpen(false);
+                setIsOpen(false);
             } else {
                 window.open(action.url, '_blank');
             }
         } else if (action.method && action.endpoint) {
-            // API call action
             try {
                 await fetch(action.endpoint, {
                     method: action.method,
@@ -176,7 +170,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
             case 'archive':
                 return items.filter((item: any) => item.archived_at);
             case 'comments':
-                return []; // Disabled for now
+                return [];
             default:
                 return items.filter((item: any) => !item.archived_at);
         }
@@ -210,14 +204,14 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
     }
 
     return (
-        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
                 <button
                     className={cn(
                         "relative h-8 w-8 bg-transparent text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200",
                         "hover:bg-accent hover:text-foreground hover:border-foreground/20",
                         "focus:outline-none",
-                        menuOpen ? "bg-accent/80 text-foreground border-foreground/30" : ""
+                        isOpen ? "bg-accent/80 text-foreground border-foreground/30" : ""
                     )}
                     aria-label="Notifications"
                 >
@@ -228,19 +222,16 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                         </span>
                     )}
                 </button>
-            </DropdownMenuTrigger>
+            </SheetTrigger>
 
-            <DropdownMenuContent
-                align="end"
+            <SheetContent
                 side="bottom"
-                sideOffset={8}
-                className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden"
-                style={{ width: '384px', minWidth: '384px', height: '800px', minHeight: '800px' }}
+                className="p-0 bg-popover border-border/50 rounded-t-lg font-mono overflow-hidden h-[60vh]"
             >
                 <motion.div
-                    initial={{ opacity: 0, y: -8 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
+                    exit={{ opacity: 0, y: 20 }}
                     transition={{
                         type: "spring",
                         stiffness: 500,
@@ -250,13 +241,13 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                     className="h-full flex flex-col"
                 >
                     {/* Header with tabs and settings */}
-                    <div className="px-3 py-2 border-b border-border flex-shrink-0">
+                    <div className="px-6 py-4 border-b border-border flex-shrink-0">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1">
                                 <button
                                     onClick={() => setActiveTab('inbox')}
                                     className={cn(
-                                        "px-2 py-1 text-xs rounded transition-all duration-200",
+                                        "px-3 py-1.5 text-sm rounded transition-all duration-200",
                                         activeTab === 'inbox'
                                             ? "bg-accent text-foreground"
                                             : "text-muted-foreground hover:text-foreground"
@@ -267,7 +258,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                 <button
                                     onClick={() => setActiveTab('archive')}
                                     className={cn(
-                                        "px-2 py-1 text-xs rounded transition-all duration-200",
+                                        "px-3 py-1.5 text-sm rounded transition-all duration-200",
                                         activeTab === 'archive'
                                             ? "bg-accent text-foreground"
                                             : "text-muted-foreground hover:text-foreground"
@@ -279,7 +270,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                     onClick={() => setActiveTab('comments')}
                                     disabled
                                     className={cn(
-                                        "px-2 py-1 text-xs rounded transition-all duration-200 opacity-50 cursor-not-allowed",
+                                        "px-3 py-1.5 text-sm rounded transition-all duration-200 opacity-50 cursor-not-allowed",
                                         "text-muted-foreground"
                                     )}
                                 >
@@ -288,7 +279,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                             </div>
                             <button
                                 onClick={handleSettingsClick}
-                                className="p-1 text-muted-foreground hover:text-foreground transition-all duration-200 rounded"
+                                className="h-8 w-8 bg-muted/50 text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200 hover:bg-muted/80 hover:text-foreground"
                                 title="Notification settings"
                             >
                                 <Gear className="w-4 h-4" weight="duotone" />
@@ -308,41 +299,60 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                 className="absolute inset-0 flex flex-col"
                             >
                                 {loading ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center px-3 py-8">
-                                        <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center mb-4">
-                                            <ChatCircle className="w-8 h-8 text-muted-foreground/60 animate-pulse" weight="duotone" />
+                                    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+                                        <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-6">
+                                            <Lightning className="w-10 h-10 text-muted-foreground/50 animate-pulse" weight="duotone" />
                                         </div>
-                                        <p className="text-sm text-muted-foreground">Loading notifications...</p>
+                                        <h3 className="text-lg font-medium text-foreground mb-2">Loading notifications...</h3>
+                                        <p className="text-sm text-muted-foreground text-center">
+                                            Please wait while we fetch your latest updates.
+                                        </p>
                                     </div>
                                 ) : error ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center px-3 py-8">
-                                        <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center mb-4">
-                                            <Warning className="w-8 h-8 text-red-500/60" weight="duotone" />
+                                    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+                                        <div className="w-20 h-20 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
+                                            <Warning className="w-10 h-10 text-red-500/60" weight="duotone" />
                                         </div>
-                                        <p className="text-sm text-red-500">{error}</p>
+                                        <h3 className="text-lg font-medium text-foreground mb-2">Something went wrong</h3>
+                                        <p className="text-sm text-red-500 text-center max-w-xs mb-4">{error}</p>
+                                        <button
+                                            onClick={() => window.location.reload()}
+                                            className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors"
+                                        >
+                                            Try again
+                                        </button>
                                     </div>
                                 ) : filteredNotifications.length === 0 ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center px-3 py-8">
+                                    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
                                         {activeTab === 'inbox' ? (
                                             <>
-                                                <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center mb-4">
-                                                    <Tray className="w-8 h-8 text-muted-foreground/60" weight="duotone" />
+                                                <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-6">
+                                                    <Tray className="w-10 h-10 text-muted-foreground/50" weight="duotone" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">No new notifications</p>
+                                                <h3 className="text-lg font-medium text-foreground mb-2">All caught up!</h3>
+                                                <p className="text-sm text-muted-foreground text-center max-w-xs">
+                                                    You're all set. New notifications will appear here when they arrive.
+                                                </p>
                                             </>
                                         ) : activeTab === 'archive' ? (
                                             <>
-                                                <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center mb-4">
-                                                    <TrashSimple className="w-8 h-8 text-muted-foreground/60" weight="duotone" />
+                                                <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-6">
+                                                    <Archive className="w-10 h-10 text-muted-foreground/50" weight="duotone" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">No archived notifications</p>
+                                                <h3 className="text-lg font-medium text-foreground mb-2">No archived notifications</h3>
+                                                <p className="text-sm text-muted-foreground text-center max-w-xs">
+                                                    Notifications you archive will be stored here for later reference.
+                                                </p>
                                             </>
                                         ) : (
                                             <>
-                                                <div className="w-16 h-16 rounded-md bg-muted/50 flex items-center justify-center mb-4">
-                                                    <ChatCircle className="w-8 h-8 text-muted-foreground/60" weight="duotone" />
+                                                <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-6">
+                                                    <ChatCircle className="w-10 h-10 text-muted-foreground/50" weight="duotone" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">Comments coming soon</p>
+                                                <h3 className="text-lg font-medium text-foreground mb-2">Comments coming soon</h3>
+                                                <p className="text-sm text-muted-foreground text-center max-w-xs">
+                                                    Stay tuned for comment notifications and discussions.
+                                                </p>
                                             </>
                                         )}
                                     </div>
@@ -352,7 +362,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                             <div key={notification.id}>
                                                 <div
                                                     className={cn(
-                                                        "px-3 py-3 hover:bg-accent/50 cursor-pointer transition-all duration-200 relative",
+                                                        "px-6 py-4 hover:bg-accent/50 cursor-pointer transition-all duration-200 relative",
                                                         !notification.read_at && "bg-accent/20"
                                                     )}
                                                     onClick={() => markAsRead(notification)}
@@ -371,7 +381,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                                 )}
                                                             </div>
                                                             {notification.data?.body && (
-                                                                <div className="text-xs text-muted-foreground mt-0.5 prose prose-xs prose-invert max-w-none">
+                                                                <div className="text-xs text-muted-foreground mt-1 prose prose-xs prose-invert max-w-none">
                                                                     <ReactMarkdown
                                                                         components={{
                                                                             a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
@@ -384,7 +394,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                                                             if (onNavigate) {
                                                                                                 onNavigate(href);
                                                                                             }
-                                                                                            setMenuOpen(false);
+                                                                                            setIsOpen(false);
                                                                                         } else {
                                                                                             window.open(href, '_blank');
                                                                                         }
@@ -400,18 +410,18 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                                     </ReactMarkdown>
                                                                 </div>
                                                             )}
-                                                            <p className="text-xs text-muted-foreground mt-1">
+                                                            <p className="text-xs text-muted-foreground mt-2">
                                                                 {formatTimestamp(notification.inserted_at)}
                                                             </p>
                                                             {/* Action buttons */}
                                                             {notification.data?.actions && notification.data.actions.length > 0 && (
-                                                                <div className="flex items-center gap-2 mt-2">
+                                                                <div className="flex items-center gap-2 mt-3">
                                                                     {notification.data.actions.map((action: any, actionIndex: number) => (
                                                                         <button
                                                                             key={actionIndex}
                                                                             onClick={(e) => handleActionClick(action, e)}
                                                                             className={cn(
-                                                                                "px-2 py-1 text-xs rounded transition-all duration-200",
+                                                                                "px-3 py-1.5 text-xs rounded transition-all duration-200",
                                                                                 action.primary
                                                                                     ? "bg-foreground text-background hover:bg-foreground/90"
                                                                                     : "bg-accent text-foreground hover:bg-accent/80"
@@ -424,7 +434,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {/* Archive button - absolutely positioned relative to notification container */}
+                                                    {/* Archive button */}
                                                     {activeTab === 'inbox' && (
                                                         <motion.button
                                                             initial={{ opacity: 0 }}
@@ -434,7 +444,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                             transition={{ duration: 0.2 }}
                                                             onClick={(e) => archiveNotification(notification, e)}
                                                             className={cn(
-                                                                "absolute right-3 top-3 p-1 text-muted-foreground hover:text-foreground transition-all duration-200 rounded",
+                                                                "absolute right-6 top-4 h-8 w-8 bg-muted/50 text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200 hover:bg-muted/80 hover:text-foreground",
                                                                 hoveredNotification !== notification.id && "pointer-events-none"
                                                             )}
                                                             title="Archive notification"
@@ -443,7 +453,9 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                                         </motion.button>
                                                     )}
                                                 </div>
-                                                {index < filteredNotifications.length - 1 && <DropdownMenuSeparator className="my-0" />}
+                                                {index < filteredNotifications.length - 1 && (
+                                                    <div className="border-b border-border mx-6" />
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -468,7 +480,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                             onClick={markAllAsRead}
                                             disabled={unreadCount === 0}
                                             className={cn(
-                                                "w-full text-sm transition-all duration-200 py-3 px-3 text-center",
+                                                "w-full text-sm transition-all duration-200 py-4 px-6 text-center",
                                                 unreadCount > 0
                                                     ? "text-muted-foreground hover:text-foreground"
                                                     : "text-muted-foreground/50 cursor-not-allowed"
@@ -481,7 +493,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                                             onClick={deleteAllArchived}
                                             disabled={filteredNotifications.length === 0}
                                             className={cn(
-                                                "w-full text-sm transition-all duration-200 py-3 px-3 text-center",
+                                                "w-full text-sm transition-all duration-200 py-4 px-6 text-center",
                                                 filteredNotifications.length > 0
                                                     ? "text-red-600 hover:text-red-500"
                                                     : "text-muted-foreground/50 cursor-not-allowed"
@@ -495,7 +507,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                         </div>
                     )}
                 </motion.div>
-            </DropdownMenuContent>
-        </DropdownMenu>
+            </SheetContent>
+        </Sheet>
     );
 } 
