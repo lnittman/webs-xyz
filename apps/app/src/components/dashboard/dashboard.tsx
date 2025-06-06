@@ -5,7 +5,6 @@ import { useAtom } from 'jotai';
 
 import { promptFocusedAtom } from '@/atoms/chat';
 import { PromptBar } from '@/components/dashboard/prompt-bar';
-import { ClientLayout } from '@/components/shared/layout/client-layout';
 import { useDashboard } from '@/hooks/use-dashboard';
 import type { Web } from '@/types/dashboard';
 
@@ -42,11 +41,11 @@ export function Dashboard({
     };
 
     return (
-        <ClientLayout>
+        <>
             {/* Command interface */}
-            <div className="bg-card/50 border-b border-border">
+            <div className="bg-card/50 border-b border-border pt-4 pb-4">
                 <div className="w-full flex justify-center">
-                    <div className="w-full max-w-4xl px-6 py-4">
+                    <div className="w-full max-w-4xl px-6">
                         <PromptBar
                             onSubmit={onSubmit}
                             isSubmitting={isSubmitting}
@@ -75,6 +74,6 @@ export function Dashboard({
                 topDomains={topDomains}
                 selectedModelId={selectedModelId}
             />
-        </ClientLayout>
+        </>
     );
 } 

@@ -5,7 +5,8 @@ export enum ResourceType {
   WEB = 'Web',
   USER = 'User',
   FEEDBACK = 'Feedback',
-  USER_SETTINGS = 'UserSettings'
+  USER_SETTINGS = 'UserSettings',
+  SPACE = 'Space'
 }
 
 export { ErrorType, ErrorMessage, ERROR_MESSAGES } from './error'; 

@@ -18,11 +18,11 @@ export function NavigationToolbar({ resultsCount, processingCount, isLoadingResu
     return (
         <div className={cn(
             "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky z-30",
-            processingCount > 0 ? "top-[113px]" : "top-14"
+            processingCount > 0 ? "top-[152px]" : "top-[104px]"
         )}>
-            <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center py-4">
                 <div className="w-full max-w-4xl px-6">
-                    <div className="flex h-14 items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4">
                         {/* Left section - Search */}
                         <div className="flex-1 max-w-md">
                             <button

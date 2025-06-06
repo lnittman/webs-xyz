@@ -42,6 +42,10 @@ export function ClientLayout({
             <FontLoader />
             <Navigation webTitle={webTitle} webId={webId} />
 
+            <main className="flex-1 flex flex-col pt-[104px]">
+                {children}
+            </main>
+
             {/* Global Search Modal */}
             <SearchModal
                 isOpen={isSearchModalOpen}
@@ -51,14 +55,6 @@ export function ClientLayout({
 
             {/* Global Progress Bar */}
             <ProgressBar />
-
-            <main className="flex-1 flex flex-col pt-14">
-                {children}
-            </main>
-
-            {/* Terminal scanline effect
-            <div className="terminal-scanlines" aria-hidden="true" />
-            */}
         </div>
     );
 } 

@@ -1,193 +1,60 @@
 import { NextRequest } from 'next/server';
-import { streamText, createDataStreamResponse, tool } from 'ai';
+import { Message, streamText, generateId } from 'ai';
+import { messageService } from '@repo/api';
+import { withAuthenticatedUser } from '@repo/api/utils/auth';
+import { ApiResponse, withErrorHandling } from '@repo/api/utils/response';
+import { ApiError } from '@repo/api/utils/error';
+import { ErrorType } from '@repo/api/constants/error';
+import { websService } from '@repo/api';
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { database } from '@repo/database';
-import { auth } from '@repo/auth/server';
-import { z } from 'zod';
 
 const openRouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { userId } = await auth();
-  if (!userId) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  const { id: webId } = await params;
-  
-  // Verify the web exists and belongs to the user
-  const web = await database.web.findFirst({
-    where: { 
-      id: webId,
-      userId,
-    },
-    include: {
-      entities: true,
-    },
-  });
-
-  if (!web) {
-    return new Response('Web not found', { status: 404 });
-  }
-
-  const { messages } = await request.json();
-
-  // Create tools with closure over request context
-  const tools = {
-    addUrlToWeb: tool({
-      description: 'Add a new URL to the current web analysis',
-      parameters: z.object({
-        url: z.string().url().describe('The URL to add to the web'),
-        reason: z.string().optional().describe('Why this URL is relevant'),
-      }),
-      execute: async ({ url, reason }) => {
-        const updatedUrls = [...web.urls, url];
-        await database.web.update({
-          where: { id: webId },
-          data: { 
-            urls: updatedUrls,
-            relatedUrls: {
-              push: url,
-            },
-          },
-        });
-        
-        return { 
-          success: true, 
-          url, 
-          reason: reason || 'Added by user request',
-          updatedUrlCount: updatedUrls.length,
-        };
-      },
-    }),
+export const GET = withErrorHandling(
+  withAuthenticatedUser(async (
+    request: NextRequest,
+    { params, userId }: { params: Promise<{ id: string }>; userId: string }
+  ) => {
+    const { id: webId } = await params;
     
-    updateWebEmoji: tool({
-      description: 'Update the emoji for the current web',
-      parameters: z.object({
-        emoji: z.string().describe('A single emoji character'),
-      }),
-      execute: async ({ emoji }) => {
-        await database.web.update({
-          where: { id: webId },
-          data: { emoji },
-        });
-        
-        return { success: true, emoji, webId };
-      },
-    }),
+    // Verify the web exists and belongs to the user using the service
+    const web = await websService.getWebById(webId);
     
-    searchRelatedWebs: tool({
-      description: 'Search for other webs related to current topics',
-      parameters: z.object({
-        query: z.string().describe('Search query based on topics or entities'),
-        limit: z.number().optional().default(5),
-      }),
-      execute: async ({ query, limit }) => {
-        const relatedWebs = await database.web.findMany({
-          where: {
-            userId,
-            OR: [
-              { title: { contains: query, mode: 'insensitive' } },
-              { topics: { hasSome: query.split(' ') } },
-            ],
-            NOT: { id: webId },
-          },
-          take: limit || 5,
-          select: {
-            id: true,
-            title: true,
-            url: true,
-            emoji: true,
-            topics: true,
-            createdAt: true,
-          },
-        });
-        
-        return {
-          query,
-          count: relatedWebs.length,
-          webs: relatedWebs.map(w => ({
-            ...w,
-            createdAt: w.createdAt.toISOString(),
-          })),
-        };
-      },
-    }),
+    if (!web || web.userId !== userId) {
+      throw new ApiError(ErrorType.NOT_FOUND, 'Web not found');
+    }
+
+    // Load messages using the service
+    const messages = await messageService.getMessagesByWebId(webId, userId);
     
-    getDetailedInsight: tool({
-      description: 'Get more detailed information about a specific aspect of the web analysis',
-      parameters: z.object({
-        aspect: z.enum(['topics', 'entities', 'sentiment', 'connections']),
-        filter: z.string().optional(),
-      }),
-      execute: async ({ aspect, filter }) => {
-        let detailedInfo: any = {};
-        
-        switch (aspect) {
-          case 'topics':
-            detailedInfo = {
-              allTopics: web.topics,
-              count: web.topics?.length || 0,
-              filtered: filter 
-                ? web.topics?.filter(t => t.toLowerCase().includes(filter.toLowerCase()))
-                : web.topics,
-            };
-            break;
-          case 'entities':
-            detailedInfo = {
-              allEntities: web.entities,
-              byType: web.entities?.reduce((acc, e) => {
-                if (!acc[e.type]) acc[e.type] = [];
-                acc[e.type].push(e.value);
-                return acc;
-              }, {} as Record<string, string[]>),
-              filtered: filter
-                ? web.entities?.filter(e => 
-                    e.value.toLowerCase().includes(filter.toLowerCase()) ||
-                    e.type.toLowerCase().includes(filter.toLowerCase())
-                  )
-                : web.entities,
-            };
-            break;
-          case 'sentiment':
-            detailedInfo = {
-              overall: web.sentiment,
-              confidence: web.confidence,
-              insights: web.insights?.filter(i => 
-                i.toLowerCase().includes('sentiment') || 
-                i.toLowerCase().includes('positive') ||
-                i.toLowerCase().includes('negative') ||
-                i.toLowerCase().includes('neutral')
-              ),
-            };
-            break;
-          case 'connections':
-            detailedInfo = {
-              relatedUrls: web.relatedUrls,
-              urlCount: web.urls.length,
-              analysis: web.analysis,
-            };
-            break;
-        }
-        
-        return {
-          aspect,
-          filter,
-          details: detailedInfo,
-        };
-      },
-    }),
-  };
+    // Convert to AI SDK format
+    const aiSdkMessages = messages.map(msg => messageService.messageToAiSdk(msg));
+    
+    return ApiResponse.success(aiSdkMessages);
+  })
+);
 
-  // Create a system prompt with web context
-  const systemPrompt = `You are an AI assistant helping to explore and understand web content analysis.
+export const POST = withErrorHandling(
+  withAuthenticatedUser(async (
+    request: NextRequest,
+    { params, userId }: { params: Promise<{ id: string }>; userId: string }
+  ) => {
+    const { id: webId } = await params;
+    
+    // Verify the web exists and belongs to the user using the service
+    const web = await websService.getWebById(webId);
+    
+    if (!web || web.userId !== userId) {
+      throw new ApiError(ErrorType.NOT_FOUND, 'Web not found');
+    }
 
-Current Web Context:
+    const { messages } = await request.json();
+
+    // Add web context as system message
+    const webContext = `Current Web Analysis Context:
+- Web ID: ${webId}
 - Title: ${web.title || 'Untitled'}
 - URL(s): ${web.urls.join(', ')}
 - Topics: ${web.topics?.join(', ') || 'None identified'}
@@ -198,53 +65,48 @@ ${web.description ? `Summary: ${web.description}` : ''}
 ${web.insights?.length ? `Key Insights:\n${web.insights.map((i, idx) => `${idx + 1}. ${i}`).join('\n')}` : ''}
 ${web.entities?.length ? `\nEntities Found:\n${web.entities.map(e => `- ${e.type}: ${e.value}`).join('\n')}` : ''}
 
-You can use tools to:
-- Add related URLs to expand the analysis
-- Update the web's emoji
-- Search for related webs
-- Get detailed insights about specific aspects
+You are an AI assistant helping users understand this web analysis. You can help them explore the content, find insights, and answer questions about the analyzed web pages.
 
-Be helpful, conversational, and proactive in suggesting ways to explore the content further.`;
+When users ask for actions like finding related webs or adding URLs, explain that those are features available in the interface but focus on helping them understand and explore the current analysis.`;
 
-  return createDataStreamResponse({
-    async execute(dataStream) {
-      const result = streamText({
-        model: openRouter('openai/gpt-4'),
-        system: systemPrompt,
-        messages,
-        tools,
-        maxSteps: 5,
-        toolChoice: 'auto',
-        onChunk: ({ chunk }) => {
-          // Track streaming progress
-          if (chunk.type === 'text-delta') {
-            dataStream.writeMessageAnnotation({
-              streaming: true,
-              chunkType: chunk.type,
-            });
-          }
-          if (chunk.type === 'tool-call-streaming-start') {
-            dataStream.writeMessageAnnotation({
-              toolCallStart: true,
-              toolName: chunk.toolName,
-            });
-          }
-        },
-        onFinish: ({ text, toolCalls, toolResults, finishReason }) => {
-          // Write completion annotation
-          dataStream.writeMessageAnnotation({
-            finishReason,
-            toolCallCount: toolCalls?.length || 0,
-            hasToolResults: !!toolResults?.length,
+    // Convert to AI SDK format and add context
+    const aiSdkMessages = [
+      { role: 'system', content: webContext },
+      ...messages
+    ];
+
+    try {
+      // Save only user messages (not system messages) individually
+      for (const message of messages) {
+        if (message.role === 'user') {
+          await messageService.addMessageToWeb(webId, {
+            type: 'TEXT',
+            content: message.content,
+          });
+        }
+      }
+
+      // Use AI SDK's streamText with OpenRouter
+      const result = await streamText({
+        model: openRouter('openai/gpt-4o'),
+        messages: aiSdkMessages,
+        temperature: 0.7,
+        maxTokens: 1500,
+        onFinish: async (finishResult) => {
+          // Save the assistant's response to database
+          await messageService.addMessageToWeb(webId, {
+            type: 'AI',
+            content: finishResult.text,
           });
         },
       });
 
-      result.mergeIntoDataStream(dataStream);
-    },
-    onError: (error) => {
-      console.error('Chat error:', error);
-      return error instanceof Error ? error.message : 'Chat error';
-    },
-  });
-} 
+      // Return AI SDK compatible stream response
+      return result.toDataStreamResponse();
+
+    } catch (error) {
+      console.error('[Chat] Error generating response:', error);
+      throw new ApiError(ErrorType.SERVER_ERROR, 'Failed to process chat request');
+    }
+  })
+); 

@@ -52,9 +52,20 @@ export class WebsService {
   async listWebs(userId: string): Promise<Web[]> {
     const webs = await database.web.findMany({
       where: { userId },
-      include: { 
-        messages: true,
+      include: {
+        messages: {
+          take: 5,
+          orderBy: { createdAt: 'desc' }
+        },
         entities: true,
+        space: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            isDefault: true
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -94,6 +105,18 @@ export class WebsService {
     const primaryUrl = urls[0];
     const domain = new URL(primaryUrl).hostname.replace('www.', '');
 
+    // Use provided spaceId or find the user's default space
+    let spaceId = data.spaceId;
+    if (!spaceId) {
+      const defaultSpace = await database.space.findFirst({
+        where: { 
+          userId: data.userId, 
+          isDefault: true 
+        }
+      });
+      spaceId = defaultSpace?.id || null;
+    }
+
     const web = await database.web.create({
       data: {
         userId: data.userId,
@@ -102,6 +125,7 @@ export class WebsService {
         domain,
         prompt: data.prompt,
         status: 'PENDING', // Start in pending state
+        spaceId: spaceId,
       },
       include: { 
         messages: true,

@@ -1,6 +1,7 @@
 import useSWR from 'swr';
 import { useEffect, useState } from 'react';
 import type { Web } from '@/types/web';
+import type { Message } from 'ai';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -59,6 +60,26 @@ export function useWeb(webId: string | null) {
   return {
     web: data,
     isLoading: !error && !data,
+    isError: error,
+    mutate,
+  };
+}
+
+export function useWebChatMessages(webId: string | null) {
+  const { data, error, mutate } = useSWR<Message[]>(
+    webId ? `/api/webs/${webId}/chat` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateOnMount: true,
+      dedupingInterval: 5000, // Don't refetch for 5 seconds
+    }
+  );
+
+  return {
+    messages: data || [],
+    isLoading: !error && !data && webId !== null,
     isError: error,
     mutate,
   };

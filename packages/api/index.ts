@@ -1,7 +1,9 @@
-// Export service instances
+// Export all API services
 export { websService } from './services/web';
-export { feedbackService } from './services/feedback';
 export { userSettingsService } from './services/user-settings';
+export { feedbackService } from './services/feedback';
+export { messageService } from './services/message';
+export { spaceService } from './services/space';
 
 // Export Mastra services
 export { 
@@ -29,3 +31,17 @@ export {
   userSettingsSchema,
   updateUserSettingsSchema 
 } from './schemas/userSettings';
+
+export { 
+  spaceSchema,
+  createSpaceSchema,
+  updateSpaceSchema,
+  spaceIdParamSchema,
+  assignWebToSpaceSchema
+} from './schemas/space';
+
+// Export utilities
+export { withAuthenticatedUser } from './utils/auth';
+export { ApiResponse, withErrorHandling } from './utils/response';
+export { ApiError } from './utils/error';
+export { ErrorType } from './constants/error';

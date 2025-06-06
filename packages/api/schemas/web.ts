@@ -48,6 +48,7 @@ export const webSchema = z.object({
   description: z.string().nullable().optional(),
   prompt: z.string().nullable().optional(),
   status: z.enum(['PENDING', 'PROCESSING', 'COMPLETE', 'FAILED']),
+  spaceId: z.string().uuid().nullable().optional(),
   // Analysis results
   analysis: z.any().nullable().optional(),
   topics: z.array(z.string()).optional(),
@@ -72,6 +73,7 @@ export const createWebSchema = z.object({
   url: z.string().url('Invalid URL format'),
   urls: z.array(z.string().url('Invalid URL format')).optional(),
   prompt: z.string().min(1).max(2000).optional(),
+  spaceId: z.string().uuid().nullable().optional(),
   userId: z.string(),
 });
 

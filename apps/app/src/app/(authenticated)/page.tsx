@@ -1,85 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Dashboard } from '@/components/dashboard';
-import { useWebs } from '@/hooks/web/queries';
-import { useCreateWeb } from '@/hooks/web/mutations';
-import { useUserSettings } from '@/hooks/user-settings/queries';
-import { useSetAtom } from 'jotai';
-import { inputTextAtom } from '@/atoms/urls';
-import { startLoadingAtom, stopLoadingAtom } from '@/atoms/loading';
-
-const LOADING_ID = 'webs-dashboard';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSpaces } from '@/hooks/spaces';
 
 export default function RootPage() {
-  const { webs, isLoading } = useWebs();
-  const { settings } = useUserSettings();
+  const router = useRouter();
+  const { spaces, isLoading } = useSpaces();
 
-  const { createWeb } = useCreateWeb();
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedModelId, setSelectedModelId] = useState('claude-4-sonnet');
-
-  const setInputText = useSetAtom(inputTextAtom);
-  const startLoading = useSetAtom(startLoadingAtom);
-  const stopLoading = useSetAtom(stopLoadingAtom);
-
-  // Manage loading state with atoms
   useEffect(() => {
-    if (isLoading) {
-      startLoading(LOADING_ID);
-    } else {
-      stopLoading(LOADING_ID);
+    if (!isLoading && spaces.length > 0) {
+      // Find default space or use first space
+      const defaultSpace = spaces.find(s => s.isDefault) || spaces[0];
+
+      // Convert space name to URL format (kebab-case)
+      const spaceUrlName = defaultSpace.name.toLowerCase().replace(/\s+/g, '-');
+
+      // Redirect to default space
+      router.replace(`/${spaceUrlName}`);
     }
-  }, [isLoading, startLoading, stopLoading]);
+  }, [spaces, isLoading, router]);
 
-  // Update selected model when user settings load
-  useEffect(() => {
-    if (settings?.defaultModel) {
-      setSelectedModelId(settings.defaultModel);
-    }
-  }, [settings?.defaultModel]);
-
-  const handleSubmit = async (input: string) => {
-    setIsSubmitting(true);
-    try {
-      // Extract all URLs from the input
-      const urlRegex = /https?:\/\/[^\s]+/g;
-      const urls = input.match(urlRegex) || [];
-
-      // Extract prompt by removing all URLs
-      const prompt = input.replace(urlRegex, '').trim() || undefined;
-
-      if (urls.length === 0) {
-        console.warn('No URLs found in input');
-        return;
-      }
-
-      // Create web with multiple URLs
-      await createWeb({
-        urls,
-        prompt,
-        url: urls[0] || '', // Primary URL for backward compatibility
-      });
-
-      // Clear the prompt bar
-      setInputText('');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleModelChange = (modelId: string) => {
-    setSelectedModelId(modelId);
-  };
-
+  // Show loading state while redirecting
   return (
-    <Dashboard
-      webs={webs}
-      onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
-      onModelChange={handleModelChange}
-      selectedModelId={selectedModelId}
-    />
+    <div className="flex-1 flex items-center justify-center">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
   );
 } 

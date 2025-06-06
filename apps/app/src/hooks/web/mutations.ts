@@ -24,8 +24,9 @@ export function useCreateWeb() {
 
     console.log('[useCreateWeb] Web created:', web);
     
-    // Revalidate the webs list
+    // Revalidate both webs and spaces lists
     mutate('/api/webs');
+    mutate('/api/spaces'); // This ensures spaces menu updates immediately
     
     return web;
   };
@@ -52,8 +53,9 @@ export function useRetryWeb() {
 
     const data = await response.json();
       
-    // Revalidate the webs list
+    // Revalidate both webs and spaces lists
     mutate('/api/webs');
+    mutate('/api/spaces');
       
     return data;
   };
@@ -71,8 +73,9 @@ export function useUpdateWebEmoji() {
       throw new Error(result.error);
     }
     
-    // Revalidate the webs list to update the UI
+    // Revalidate both webs and spaces lists to update the UI
     mutate('/api/webs');
+    mutate('/api/spaces');
     
     return result.data;
   };

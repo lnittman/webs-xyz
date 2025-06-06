@@ -34,6 +34,7 @@
     "@ai-sdk/openai": "^1.3.22",
     "@ai-sdk/react": "^1.2.12",
     "ai": "^4.3.16",
+    "friendlier-words": "^1.1.3",
     "zod": "^3.25.42"
   }
 }

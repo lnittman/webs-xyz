@@ -300,6 +300,20 @@
   animation: terminal-fade-in 0.3s ease-out;
 }
 
+/* Streaming cursor animation */
+@keyframes streaming-cursor {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.streaming-cursor {
+  animation: streaming-cursor 1s ease-in-out infinite;
+}
+
 /* HIGHEST PRIORITY: Logo font override - must be at the very end */
 html .webs-logo-fixed-font,
 html .webs-logo-fixed-font *,

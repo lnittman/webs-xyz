@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent, forwardRef, useImperativeHandle } from 'react';
 
 import { Plus } from '@phosphor-icons/react/dist/ssr';
 
@@ -18,7 +18,11 @@ interface UrlInputProps {
     placeholder?: string;
 }
 
-export function UrlInput({
+export interface UrlInputRef {
+    focus: () => void;
+}
+
+export const UrlInput = forwardRef<UrlInputRef, UrlInputProps>(({
     value,
     onChange,
     onSubmit,
@@ -26,12 +30,21 @@ export function UrlInput({
     onBlur,
     isFocused,
     placeholder = "example.com"
-}: UrlInputProps) {
+}, ref) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState<number>();
+
+    // Expose focus method to parent components
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+            }
+        }
+    }), []);
 
     // Mock suggestions for calculating navigation bounds
     const mockSuggestions = [
@@ -60,6 +73,13 @@ export function UrlInput({
     useEffect(() => {
         setSelectedIndex(-1);
     }, [value]);
+
+    // Focus input when isFocused prop becomes true (keeping for backward compatibility)
+    useEffect(() => {
+        if (isFocused && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isFocused]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (!showSuggestions) {
@@ -218,4 +238,6 @@ export function UrlInput({
             />
         </div>
     );
-} 
+});
+
+UrlInput.displayName = 'UrlInput'; 

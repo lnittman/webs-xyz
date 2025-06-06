@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAtom } from 'jotai';
@@ -17,8 +17,9 @@ import {
   updateStableUrlsAtom,
   stableUrlsAtom
 } from '@/atoms/urls';
+import { promptFocusedAtom } from '@/atoms/chat';
 
-import { UrlInput } from './components/url-input';
+import { UrlInput, type UrlInputRef } from './components/url-input';
 import { ScrollFadeContainer } from '../../shared/layout/scroll-fade-container';
 import { ModelPicker } from '../../shared/menu/model-picker';
 
@@ -112,7 +113,18 @@ export function PromptBar({
   const [urlInput, setUrlInput] = useState('');
   const [browserTabs, setBrowserTabs] = useState<BrowserTab[]>([]);
   const [hasBrowserTabsLoaded, setHasBrowserTabsLoaded] = useState(false);
+  const [promptFocused, setPromptFocused] = useAtom(promptFocusedAtom);
+  const urlInputRef = useRef<UrlInputRef>(null);
   const { open } = useModals();
+
+  // Watch for focus triggers from external components (like spaces menu)
+  useEffect(() => {
+    if (promptFocused && urlInputRef.current) {
+      urlInputRef.current.focus();
+      // Reset the atom to prevent future re-renders from triggering focus
+      setPromptFocused(false);
+    }
+  }, [promptFocused, setPromptFocused]);
 
   // Load browser tabs on mount
   useEffect(() => {
@@ -182,6 +194,7 @@ export function PromptBar({
         {/* URL Input */}
         <div className="flex-1 max-w-md">
           <UrlInput
+            ref={urlInputRef}
             value={urlInput}
             onChange={setUrlInput}
             onSubmit={handleUrlSubmit}

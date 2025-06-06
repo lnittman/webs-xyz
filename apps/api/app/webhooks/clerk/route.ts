@@ -12,6 +12,26 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { sendWelcomeNotification } from '@repo/notifications/server';
+import { spaceService } from '@repo/api';
+import { friendlyWords } from 'friendlier-words';
+
+const SPACE_EMOJIS = [
+  '🚀', '⭐', '🌟', '✨', '🔥', '💎', '🎯', '🌊',
+  '🏔️', '🌈', '🎨', '🔮', '💫', '🌸', '🍃', '🎭',
+  '🎪', '🎨', '🔍', '📚', '💡', '🎵', '🌺', '🦋',
+  '🍀', '🌙', '☀️', '⚡', '🔥', '💰', '🎲', '🎪'
+];
+
+function generateRandomSpaceName(): string {
+  return friendlyWords(2, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function generateRandomSpaceEmoji(): string {
+  return SPACE_EMOJIS[Math.floor(Math.random() * SPACE_EMOJIS.length)];
+}
 
 const handleUserCreated = async (data: UserJSON) => {
   analytics.identify({
@@ -30,6 +50,20 @@ const handleUserCreated = async (data: UserJSON) => {
     event: 'User Created',
     distinctId: data.id,
   });
+
+  // Create default space for new user
+  try {
+    await spaceService.createSpace({
+      userId: data.id,
+      name: generateRandomSpaceName(),
+      emoji: generateRandomSpaceEmoji(),
+      description: null,
+      isDefault: true,
+    });
+    log.info('Created default space for new user:', { userId: data.id });
+  } catch (error) {
+    log.error('Failed to create default space:', { error, userId: data.id });
+  }
 
   // Send welcome notification
   try {

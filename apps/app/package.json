@@ -31,6 +31,7 @@
     "@repo/seo": "workspace:*",
     "@sentry/nextjs": "^9.12.0",
     "@t3-oss/env-nextjs": "^0.12.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "ai": "^4.3.16",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.12.2",
@@ -45,7 +46,9 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
     "react-wrap-balancer": "^1.1.1",
+    "remark-gfm": "^4.0.1",
     "require-in-the-middle": "^7.5.2",
     "swr": "^2.3.3",
     "zod": "^3.25.28"

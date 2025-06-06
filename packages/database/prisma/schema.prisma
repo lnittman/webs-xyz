@@ -12,9 +12,30 @@ datasource db {
   relationMode = "prisma"
 }
 
+model Space {
+  id          String   @id @default(uuid())
+  userId      String // Clerk user ID for multi-tenancy
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  color       String?  @db.VarChar(7) // Hex color code
+  emoji       String?  @db.VarChar(10)
+  isDefault   Boolean  @default(false) // One default space per user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  webs Web[]
+
+  @@unique([userId, name]) // Space names must be unique per user
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
 model Web {
   id          String      @id @default(uuid())
   userId      String // Clerk user ID for multi-tenancy
+  spaceId     String? // Optional space assignment
+  space       Space?      @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   url         String      @db.Text // Primary URL (deprecated - use urls)
   urls        String[] // Array of URLs to analyze
   domain      String? // Primary domain for grouping
@@ -38,6 +59,7 @@ model Web {
   entities    WebEntity[] // Extracted entities
 
   @@index([userId])
+  @@index([spaceId])
   @@index([domain])
   @@index([createdAt])
   @@index([status])
@@ -54,6 +76,7 @@ model WebEntity {
   @@index([webId])
   @@index([type])
 }
+
 model Message {
   id        String      @id @default(uuid())
   webId     String?
