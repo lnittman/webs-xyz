@@ -5,6 +5,7 @@ import { useAtom } from 'jotai';
 import { notFound } from 'next/navigation';
 import { useSpaces } from '@/hooks/spaces';
 import { currentSpaceIdAtom, currentSpaceAtom } from '@/atoms/spaces';
+import { SpaceSettings } from '@/components/space/space-settings';
 
 interface SpaceSettingsPageProps {
     params: Promise<{
@@ -45,24 +46,5 @@ export default function SpaceSettingsPage({ params }: SpaceSettingsPageProps) {
         return <div className="flex-1" />;
     }
 
-    return (
-        <div className="flex-1 py-8">
-            <div className="w-full flex justify-center">
-                <div className="w-full max-w-4xl px-6">
-                    <div className="mb-8">
-                        <h1 className="text-2xl font-semibold mb-2">Settings</h1>
-                        <p className="text-muted-foreground">
-                            Manage settings for <span className="font-mono">{currentSpace.name}</span> space
-                        </p>
-                    </div>
-
-                    <div className="border border-border rounded-lg p-8 text-center">
-                        <div className="text-muted-foreground">
-                            ⚙️ Space settings coming soon...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    return <SpaceSettings space={currentSpace} />;
 } 

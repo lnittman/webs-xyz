@@ -152,7 +152,7 @@ function UserMenuContent() {
     // Navigate to settings page
     const handleOpenSettings = () => {
         setMenuOpen(false);
-        router.push('/settings');
+        router.push('/account/settings');
     };
 
     // Navigate to dashboard

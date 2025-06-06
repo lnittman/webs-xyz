@@ -124,7 +124,7 @@ function MobileUserMenuOverlayContent() {
     // Navigate to settings page
     const handleOpenSettings = () => {
         setIsOpen(false);
-        router.push('/settings');
+        router.push('/account/settings');
     };
 
     // Navigate to dashboard

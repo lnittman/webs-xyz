@@ -152,6 +152,15 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
     // Generate tab items based on current page
     const getTabItems = () => {
+        // Check if we're on account pages
+        if (pathname.startsWith('/account')) {
+            return [
+                { label: 'Overview', href: '/account', exact: true },
+                { label: 'Activity', href: '/account/activity' },
+                { label: 'Settings', href: '/account/settings' },
+            ];
+        }
+
         // Check if we're on a web detail page (any route starting with /w/)
         if (pathname.startsWith('/w/') && currentWebId) {
             // Web detail page tabs
@@ -164,6 +173,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
                 { label: 'Raw Data', href: `${baseUrl}/raw` },
             ];
         }
+
         // Space page tabs
         const spaceUrlName = currentSpace?.name.toLowerCase().replace(/\s+/g, '-') || '';
         const baseUrl = `/${spaceUrlName}`;
@@ -178,7 +188,12 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
     const breadcrumbItems = getBreadcrumbItems();
     const tabItems = getTabItems();
 
-    const isTabActive = (tab: { href: string; exact?: boolean }) => {
+    const isTabActive = (tab: { href: string; exact?: boolean; label?: string }) => {
+        // Special logic for account Overview tab - should be active for account overview pages
+        if (pathname.startsWith('/account') && tab.href === '/account' && tab.label === 'Overview') {
+            return pathname === '/account' || pathname === '/account/spaces' || pathname === '/account/webs';
+        }
+
         if (tab.exact) {
             return pathname === tab.href;
         }

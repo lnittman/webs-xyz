@@ -1,7 +1,7 @@
 import 'server-only';
 import { database } from '@repo/database';
 import type { Prisma } from '@repo/database';
-import { createSpaceSchema, updateSpaceSchema } from '../schemas/space';
+import { createSpaceSchema, updateSpaceSchema, updateSpaceSettingsSchema } from '../schemas/space';
 
 // Types
 export interface Space {
@@ -12,6 +12,11 @@ export interface Space {
   color: string | null;
   emoji: string | null;
   isDefault: boolean;
+  // Space settings
+  defaultModel: string;
+  notifyWebComplete: boolean;
+  notifyWebFailed: boolean;
+  visibility: string;
   createdAt: string;
   updatedAt: string;
   webs?: Web[];
@@ -173,6 +178,33 @@ export class SpaceService {
       color: data.color,
       emoji: data.emoji,
       isDefault: data.isDefault,
+      updatedAt: new Date(),
+    };
+
+    const space = await database.space.update({
+      where: { id },
+      data: updateData,
+      include: {
+        _count: {
+          select: { webs: true }
+        }
+      },
+    });
+
+    return this.serializeSpace(space);
+  }
+
+  /**
+   * Update space settings only
+   */
+  async updateSpaceSettings(id: string, input: unknown): Promise<Space | null> {
+    const data = updateSpaceSettingsSchema.parse(input);
+
+    const updateData: Prisma.SpaceUpdateInput = {
+      defaultModel: data.defaultModel,
+      notifyWebComplete: data.notifyWebComplete,
+      notifyWebFailed: data.notifyWebFailed,
+      visibility: data.visibility,
       updatedAt: new Date(),
     };
 

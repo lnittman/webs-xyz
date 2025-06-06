@@ -1,115 +1,108 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { Link as LinkTransition } from 'next-view-transitions';
 import {
     User,
-    Palette,
-    Database,
     Bell,
     ShieldCheck,
-    CreditCard,
+    Users,
+    Trash,
     MagnifyingGlass,
     X
 } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@repo/design/lib/utils';
 
-// Define subsections for each main section
-const settingsData = [
+interface SpaceSettingsNavigationProps {
+    spaceName?: string;
+}
+
+// Define space settings sections
+const spaceSettingsData = [
     {
         title: 'General',
-        href: '/account/settings',
         icon: User,
-        description: 'Personal information and preferences',
+        description: 'Basic space settings and preferences',
         subsections: [
-            'Profile',
-            'Account',
-            'Email',
-            'Username',
-            'Personal Information'
-        ]
-    },
-    {
-        title: 'Appearance',
-        href: '/account/settings/appearance',
-        icon: Palette,
-        description: 'Customize the look and feel',
-        subsections: [
-            'Theme',
-            'Font Family',
-            'Colors',
-            'Layout'
+            'Name & Description',
+            'Emoji & Color',
+            'Default Model',
+            'Workspace Settings'
         ]
     },
     {
         title: 'Notifications',
-        href: '/account/settings/notifications',
         icon: Bell,
-        description: 'Email and push notification preferences',
+        description: 'Notification preferences for this space',
         subsections: [
-            'Email Notifications',
-            'Push Notifications',
-            'Desktop Alerts',
-            'Mobile Alerts'
+            'Web Processing',
+            'Error Alerts',
+            'Daily Summaries',
+            'Email Preferences'
         ]
     },
     {
-        title: 'Data & Privacy',
-        href: '/account/settings/data',
-        icon: Database,
-        description: 'Export or delete your data',
-        subsections: [
-            'Export Data',
-            'Delete Account',
-            'Privacy Settings',
-            'Data Usage',
-            'Storage'
-        ]
-    },
-    {
-        title: 'Security',
-        href: '/account/settings/security',
+        title: 'Privacy & Sharing',
         icon: ShieldCheck,
-        description: 'Password and authentication',
+        description: 'Control who can access this space',
         subsections: [
-            'Password',
-            'Two-Factor Authentication',
-            'Sessions',
-            'API Keys'
+            'Visibility Settings',
+            'Access Permissions',
+            'Share Links',
+            'Export Data'
         ]
     },
     {
-        title: 'Billing',
-        href: '/account/settings/billing',
-        icon: CreditCard,
-        description: 'Subscription and payment methods',
+        title: 'Members',
+        icon: Users,
+        description: 'Manage space members and permissions',
         subsections: [
-            'Subscription',
-            'Payment Methods',
-            'Invoices',
-            'Billing Address',
-            'Usage'
+            'Invite Members',
+            'Member Roles',
+            'Pending Invitations',
+            'Team Settings'
+        ]
+    },
+    {
+        title: 'Advanced',
+        icon: Trash,
+        description: 'Advanced settings and danger zone',
+        subsections: [
+            'API Settings',
+            'Webhooks',
+            'Export Space',
+            'Delete Space'
         ]
     },
 ];
 
-export const settingsNavigation = settingsData;
-
-export function SettingsNavigation() {
+export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSettingsNavigationProps) {
     const pathname = usePathname();
+    const params = useParams();
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Get space name from params or props
+    const spaceName = propSpaceName || (params.spaceName as string);
+
+    // Build href based on space name
+    const buildHref = (section: string) => {
+        const baseHref = `/${spaceName}/settings`;
+        if (section === 'General') {
+            return baseHref;
+        }
+        return `${baseHref}/${section.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`;
+    };
 
     // Filter settings based on search query
     const filteredSettings = useMemo(() => {
         if (!searchQuery.trim()) {
-            return settingsData;
+            return spaceSettingsData;
         }
 
         const query = searchQuery.toLowerCase();
 
-        return settingsData.filter(item => {
+        return spaceSettingsData.filter(item => {
             // Check if main title matches
             const titleMatch = item.title.toLowerCase().includes(query);
 
@@ -144,7 +137,7 @@ export function SettingsNavigation() {
                     />
                     <input
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search settings..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={cn(
@@ -155,7 +148,7 @@ export function SettingsNavigation() {
                             "transition-colors"
                         )}
                     />
-                    {/* Clear button with fade animation */}
+                    {/* Clear button */}
                     <button
                         onClick={handleClearSearch}
                         className={cn(
@@ -179,13 +172,14 @@ export function SettingsNavigation() {
                     </p>
                 ) : (
                     filteredSettings.map((item) => {
-                        const isActive = pathname === item.href;
+                        const href = buildHref(item.title);
+                        const isActive = pathname === href;
                         const Icon = item.icon;
 
                         return (
-                            <div key={item.href}>
+                            <div key={item.title}>
                                 <LinkTransition
-                                    href={item.href}
+                                    href={href}
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                                         "hover:bg-accent/50",
@@ -211,8 +205,8 @@ export function SettingsNavigation() {
                                             )
                                             .map((subsection) => (
                                                 <LinkTransition
-                                                    key={`${item.href}-${subsection}`}
-                                                    href={item.href}
+                                                    key={`${item.title}-${subsection}`}
+                                                    href={href}
                                                     className="block px-3 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
                                                 >
                                                     {subsection}

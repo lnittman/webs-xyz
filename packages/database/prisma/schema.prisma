@@ -13,15 +13,22 @@ datasource db {
 }
 
 model Space {
-  id          String   @id @default(uuid())
-  userId      String // Clerk user ID for multi-tenancy
-  name        String   @db.VarChar(100)
-  description String?  @db.Text
-  color       String?  @db.VarChar(7) // Hex color code
-  emoji       String?  @db.VarChar(10)
-  isDefault   Boolean  @default(false) // One default space per user
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(uuid())
+  userId            String // Clerk user ID for multi-tenancy
+  name              String   @db.VarChar(100)
+  description       String?  @db.Text
+  color             String?  @db.VarChar(7) // Hex color code
+  emoji             String?  @db.VarChar(10)
+  isDefault         Boolean  @default(false) // One default space per user
+  // Space settings
+  defaultModel      String   @default("claude-4-sonnet") // Default model for this space
+  // Notification settings for this space
+  notifyWebComplete Boolean  @default(true) // Notify when web processing completes
+  notifyWebFailed   Boolean  @default(true) // Notify when web processing fails
+  // Display settings
+  visibility        String   @default("PRIVATE") // PRIVATE, SHARED, PUBLIC
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
   webs Web[]

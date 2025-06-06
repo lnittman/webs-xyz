@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@repo/design/components/ui/sonner';
 import { cn } from '@repo/design/lib/utils';
 import {
@@ -10,9 +10,6 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
 } from '@repo/design/components/ui/dropdown-menu';
 import {
     DotsThree,
@@ -23,10 +20,11 @@ import {
     PencilSimple,
     Folder,
     FolderOpen,
-    Check
+    CaretRight
 } from '@phosphor-icons/react/dist/ssr';
 import type { Web } from '@/types/dashboard';
 import { assignWebToSpace } from '@/app/actions/spaces';
+import { deleteWeb } from '@/app/actions/webs';
 
 interface Space {
     id: string;
@@ -58,6 +56,9 @@ export function WebActionMenu({
     const [spaces, setSpaces] = useState<Space[]>([]);
     const [loadingSpaces, setLoadingSpaces] = useState(false);
     const [assigningToSpace, setAssigningToSpace] = useState<string | null>(null);
+    const [deletingWeb, setDeletingWeb] = useState(false);
+    const [reassignSubMenuOpen, setReassignSubMenuOpen] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Use external state if provided, otherwise use internal state
     const menuOpen = isOpen !== undefined ? isOpen : internalOpen;
@@ -69,6 +70,25 @@ export function WebActionMenu({
             loadSpaces();
         }
     }, [menuOpen]);
+
+    // Close submenu when main menu closes
+    useEffect(() => {
+        if (!menuOpen) {
+            setReassignSubMenuOpen(false);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        }
+    }, [menuOpen]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const loadSpaces = async () => {
         try {
@@ -106,12 +126,62 @@ export function WebActionMenu({
         }
     };
 
+    const handleDelete = async () => {
+        try {
+            setDeletingWeb(true);
+            const result = await deleteWeb({ webId: web.id });
+
+            if ('success' in result && result.success) {
+                toast.success(result.message);
+                setMenuOpen(false);
+                // Call the optional onDelete callback if provided (for parent component to handle UI updates)
+                onDelete?.(web.id);
+            } else if ('error' in result) {
+                toast.error(result.error);
+            }
+        } catch (error) {
+            console.error('Failed to delete web:', error);
+            toast.error('Failed to delete web');
+        } finally {
+            setDeletingWeb(false);
+        }
+    };
+
     const handleMenuClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
     };
 
+    const handleReassignMouseEnter = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setReassignSubMenuOpen(true);
+    };
+
+    const handleReassignMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setReassignSubMenuOpen(false);
+        }, 200);
+    };
+
+    const handleSubmenuMouseEnter = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setReassignSubMenuOpen(true);
+    };
+
+    const handleSubmenuMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setReassignSubMenuOpen(false);
+        }, 100);
+    };
+
     const currentSpace = spaces.find(s => s.id === web.spaceId);
+
+    // Get available spaces (excluding current space)
+    const availableSpaces = spaces.filter(s => s.id !== web.spaceId);
 
     return (
         <div onClick={handleMenuClick}>
@@ -152,69 +222,105 @@ export function WebActionMenu({
                             </DropdownMenuItem>
                         )}
 
-                        {/* Space assignment submenu */}
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200">
-                                <Folder className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
-                                <span className="transition-colors duration-200">
-                                    {currentSpace ? `Move from ${currentSpace.name}` : 'Move to space'}
-                                </span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent className="w-[180px] p-1 bg-popover border-border/50 rounded-lg font-mono">
-                                {loadingSpaces ? (
-                                    <div className="px-2 py-1.5 text-xs text-muted-foreground">Loading...</div>
-                                ) : (
-                                    <>
-                                        {/* Remove from space option */}
-                                        {web.spaceId && (
-                                            <>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleAssignToSpace(null)}
-                                                    disabled={assigningToSpace === null}
-                                                    className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
-                                                >
-                                                    <FolderOpen className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
-                                                    <span className="transition-colors duration-200">Remove from space</span>
-                                                    {assigningToSpace === null && (
-                                                        <div className="ml-auto w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                                                    )}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator className="my-1" />
-                                            </>
-                                        )}
+                        {/* Space reassignment submenu */}
+                        <div
+                            className="relative"
+                            onMouseEnter={handleReassignMouseEnter}
+                            onMouseLeave={handleReassignMouseLeave}
+                        >
+                            <div
+                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200 hover:bg-accent flex items-center justify-between"
+                                onSelect={(e: any) => e?.preventDefault()}
+                            >
+                                <div className="flex items-center">
+                                    <Folder className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                    <span className="transition-colors duration-200">Reassign</span>
+                                </div>
+                                <CaretRight className={cn(
+                                    "w-3 h-3 text-muted-foreground transition-all duration-200",
+                                    reassignSubMenuOpen && "rotate-90"
+                                )} weight="duotone" />
+                            </div>
 
-                                        {/* Available spaces */}
-                                        {spaces.filter(s => s.id !== web.spaceId).map((space) => (
-                                            <DropdownMenuItem
-                                                key={space.id}
-                                                onClick={() => handleAssignToSpace(space.id)}
-                                                disabled={assigningToSpace === space.id}
-                                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
-                                            >
-                                                <div className="flex items-center mr-2">
-                                                    {space.emoji ? (
-                                                        <span className="text-sm">{space.emoji}</span>
-                                                    ) : (
-                                                        <Folder className="w-4 h-4" weight="duotone" />
-                                                    )}
+                            {/* Portal-like positioning for submenu */}
+                            {reassignSubMenuOpen && (
+                                <div
+                                    className="fixed z-[200] min-w-[200px] p-1 bg-popover border border-border/50 rounded-lg shadow-xl font-mono"
+                                    style={{
+                                        left: 'calc(100% + 8px)',
+                                        top: 0,
+                                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                                        position: 'absolute'
+                                    }}
+                                    onMouseEnter={handleSubmenuMouseEnter}
+                                    onMouseLeave={handleSubmenuMouseLeave}
+                                >
+                                    {loadingSpaces ? (
+                                        <div className="px-3 py-2 text-xs text-muted-foreground">Loading spaces...</div>
+                                    ) : (
+                                        <>
+                                            {/* Remove from space option */}
+                                            {web.spaceId && (
+                                                <>
+                                                        <div
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAssignToSpace(null);
+                                                            }}
+                                                            className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200 hover:bg-accent flex items-center"
+                                                        >
+                                                            <FolderOpen className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
+                                                            <span className="transition-colors duration-200 flex-1">Remove from space</span>
+                                                            {assigningToSpace === null && (
+                                                                <div className="ml-2 w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                                                            )}
+                                                        </div>
+                                                        {availableSpaces.length > 0 && (
+                                                            <div className="my-1 border-t border-border/30" />
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {/* Available spaces */}
+                                                {availableSpaces.length > 0 ? (
+                                                    availableSpaces.map((space) => (
+                                                        <div
+                                                            key={space.id}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAssignToSpace(space.id);
+                                                            }}
+                                                            className="rounded-md px-2 py-1.5 text-sm cursor-pointer transition-all duration-200 hover:bg-accent flex items-center"
+                                                        >
+                                                            <div className="flex items-center mr-2">
+                                                                {space.emoji ? (
+                                                                    <span className="text-sm">{space.emoji}</span>
+                                                                ) : (
+                                                                    <Folder className="w-4 h-4" weight="duotone" />
+                                                                )}
+                                                            </div>
+                                                            <span className="transition-colors duration-200 flex-1 truncate">{space.name}</span>
+                                                            <div className="flex items-center ml-2 gap-1">
+                                                                {space.isDefault && (
+                                                                    <Star className="w-3 h-3 text-yellow-500" weight="fill" />
+                                                                )}
+                                                                {assigningToSpace === space.id && (
+                                                                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                            ) : !web.spaceId && (
+                                                <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+                                                    <Folder className="w-6 h-6 mx-auto mb-2 text-muted-foreground/50" weight="duotone" />
+                                                    No spaces available
                                                 </div>
-                                                <span className="transition-colors duration-200 flex-1">{space.name}</span>
-                                                {space.isDefault && (
-                                                    <Star className="w-3 h-3 text-yellow-500 ml-1" weight="fill" />
-                                                )}
-                                                {assigningToSpace === space.id && (
-                                                    <div className="ml-auto w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                                                )}
-                                            </DropdownMenuItem>
-                                        ))}
-
-                                        {spaces.filter(s => s.id !== web.spaceId).length === 0 && !web.spaceId && (
-                                            <div className="px-2 py-1.5 text-xs text-muted-foreground">No spaces available</div>
-                                        )}
-                                    </>
-                                )}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         <DropdownMenuItem
                             onClick={() => {
@@ -249,18 +355,19 @@ export function WebActionMenu({
                             </DropdownMenuItem>
                         )}
 
-                        {(onRename || onShare || onFavorite) && onDelete && <DropdownMenuSeparator className="my-1" />}
+                        {(onRename || onShare || onFavorite) && <DropdownMenuSeparator className="my-1" />}
 
-                        {onDelete && (
-                            <DropdownMenuItem
-                                onClick={() => onDelete(web.id)}
-                                disabled={!onDelete}
-                                className="rounded-md px-2 py-1.5 text-sm cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-600/10 transition-all duration-200"
-                            >
-                                <Trash className="w-4 h-4 mr-2 transition-all duration-200" weight="duotone" />
-                                <span className="transition-colors duration-200">Delete</span>
-                            </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem
+                            onClick={handleDelete}
+                            disabled={deletingWeb}
+                            className="rounded-md px-2 py-1.5 text-sm cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-600/10 transition-all duration-200"
+                        >
+                            <Trash className="w-4 h-4 mr-2 transition-all duration-200 text-red-600" weight="duotone" />
+                            <span className="transition-colors duration-200">Delete</span>
+                            {deletingWeb && (
+                                <div className="ml-auto w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                            )}
+                        </DropdownMenuItem>
                     </motion.div>
                 </DropdownMenuContent>
             </DropdownMenu>

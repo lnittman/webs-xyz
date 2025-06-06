@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { viewModeAtom } from '@/atoms/dashboard';
@@ -25,6 +26,7 @@ export function WebsGrid({
 }: WebsGridProps) {
     const [viewMode] = useAtom(viewModeAtom);
     const [isLoading] = useAtom(isLoadingAtom);
+    const [deletingWebs, setDeletingWebs] = useState<Set<string>>(new Set());
 
     const fadeTransition = {
         initial: { opacity: 0 },
@@ -40,16 +42,34 @@ export function WebsGrid({
         transition: { duration: 0.4, ease: 'easeOut' }
     };
 
+    // Animation variants for individual web items
+    const webItemVariants = {
+        initial: { opacity: 0, scale: 0.95 },
+        animate: {
+            opacity: 1,
+            scale: 1,
+            transition: { duration: 0.3, ease: 'easeOut' }
+        },
+        exit: {
+            opacity: 0,
+            scale: 0.95,
+            transition: { duration: 0.2, ease: 'easeIn' }
+        }
+    };
+
     // Callback functions for WebCard actions
     const handleDelete = (id: string) => {
-        toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 500)), // Replace with actual delete API call
-            {
-                loading: 'Deleting web...',
-                success: 'Web deleted successfully',
-                error: 'Failed to delete web'
-            }
-        );
+        // Mark web as deleting for immediate UI feedback
+        setDeletingWebs(prev => new Set(prev).add(id));
+
+        // Remove from deleting set after a short delay to allow for server action completion
+        setTimeout(() => {
+            setDeletingWebs(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(id);
+                return newSet;
+            });
+        }, 1000); // Give time for the actual deletion to complete
     };
 
     const handleShare = (id: string) => {
@@ -66,13 +86,16 @@ export function WebsGrid({
         toast('Rename functionality coming soon');
     };
 
+    // Filter out deleting webs for smooth animation
+    const displayWebs = webs.filter(web => !deletingWebs.has(web.id));
+
     // Show empty content area while loading (progress bar is handled globally)
     if (isLoading) {
         return <div className="flex-1" style={{ minHeight: '60vh' }} />;
     }
 
     // Show search empty state if there's a search query but no results
-    if (searchQuery && webs.length === 0) {
+    if (searchQuery && displayWebs.length === 0) {
         return (
             <AnimatePresence mode="wait">
                 <motion.div
@@ -88,7 +111,7 @@ export function WebsGrid({
     }
 
     // Show general empty state if no webs at all
-    if (webs.length === 0) {
+    if (displayWebs.length === 0) {
         return (
             <AnimatePresence mode="wait">
                 <motion.div
@@ -114,27 +137,30 @@ export function WebsGrid({
                     {...fadeTransition}
                     className="space-y-3"
                 >
-                    {webs.map((web, index) => (
-                        <motion.div
-                            key={web.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{
-                                duration: 0.3,
-                                ease: 'easeOut',
-                                delay: Math.min(index * 0.05, 0.3) // Stagger with max delay
-                            }}
-                        >
-                            <WebCard
-                                web={web}
-                                variant="list"
-                                onDelete={handleDelete}
-                                onShare={handleShare}
-                                onFavorite={handleFavorite}
-                                onRename={handleRename}
-                            />
-                        </motion.div>
-                    ))}
+                    <AnimatePresence>
+                        {displayWebs.map((web, index) => (
+                            <motion.div
+                                key={web.id}
+                                variants={webItemVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                layout
+                                style={{
+                                    transitionDelay: `${Math.min(index * 0.05, 0.3)}s`
+                                }}
+                            >
+                                <WebCard
+                                    web={web}
+                                    variant="list"
+                                    onDelete={handleDelete}
+                                    onShare={handleShare}
+                                    onFavorite={handleFavorite}
+                                    onRename={handleRename}
+                                />
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 </motion.div>
             ) : (
                 <motion.div
@@ -145,28 +171,31 @@ export function WebsGrid({
                         : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
                         } gap-4 auto-rows-fr`}
                     >
-                        {webs.map((web, index) => (
-                            <motion.div
-                                key={web.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{
-                                    duration: 0.3,
-                                    ease: 'easeOut',
-                                    delay: Math.min(index * 0.05, 0.3) // Stagger with max delay
-                                }}
-                                className="h-fit"
-                            >
-                                <WebCard
-                                    web={web}
-                                    variant="grid"
-                                    onDelete={handleDelete}
-                                    onShare={handleShare}
-                                    onFavorite={handleFavorite}
-                                    onRename={handleRename}
-                                />
-                            </motion.div>
-                        ))}
+                        <AnimatePresence>
+                            {displayWebs.map((web, index) => (
+                                <motion.div
+                                    key={web.id}
+                                    variants={webItemVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    layout
+                                    className="h-fit"
+                                    style={{
+                                        transitionDelay: `${Math.min(index * 0.05, 0.3)}s`
+                                    }}
+                                >
+                                    <WebCard
+                                        web={web}
+                                        variant="grid"
+                                        onDelete={handleDelete}
+                                        onShare={handleShare}
+                                        onFavorite={handleFavorite}
+                                        onRename={handleRename}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                 </motion.div>
             )}
         </AnimatePresence>

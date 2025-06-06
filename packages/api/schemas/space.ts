@@ -20,6 +20,11 @@ export const spaceSchema = z.object({
   color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color").nullable().optional(),
   emoji: z.string().max(10).nullable().optional(),
   isDefault: z.boolean(),
+  // Space settings
+  defaultModel: z.string(),
+  notifyWebComplete: z.boolean(),
+  notifyWebFailed: z.boolean(),
+  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]),
   createdAt: z.string(),
   updatedAt: z.string(),
   webs: z.array(z.any()).optional(), // Will be Web[] when populated
@@ -36,6 +41,11 @@ export const createSpaceSchema = z.object({
   color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid hex color").optional(),
   emoji: z.string().max(10, "Emoji must be 10 characters or less").optional(),
   isDefault: z.boolean().optional(),
+  // Space settings (optional during creation, will use defaults)
+  defaultModel: z.string().optional(),
+  notifyWebComplete: z.boolean().optional(),
+  notifyWebFailed: z.boolean().optional(),
+  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]).optional(),
   userId: z.string(),
 });
 
@@ -62,6 +72,18 @@ export const assignWebToSpaceSchema = z.object({
 });
 
 export type AssignWebToSpace = z.infer<typeof assignWebToSpaceSchema>;
+
+/**
+ * Schema for updating space settings
+ */
+export const updateSpaceSettingsSchema = z.object({
+  defaultModel: z.string().optional(),
+  notifyWebComplete: z.boolean().optional(),
+  notifyWebFailed: z.boolean().optional(),
+  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]).optional(),
+});
+
+export type UpdateSpaceSettings = z.infer<typeof updateSpaceSettingsSchema>;
 
 // Legacy exports for backward compatibility
 export const createSpaceInputSchema = createSpaceSchema;
