@@ -41,6 +41,13 @@ export default function SpaceActivityPage({ params }: SpaceActivityPageProps) {
         }
     }, [spaceName, spaces, setCurrentSpaceId, setCurrentSpace]);
 
+    // Update document title dynamically
+    useEffect(() => {
+        if (currentSpace?.name) {
+            document.title = `${currentSpace.name} Activity | webs`;
+        }
+    }, [currentSpace?.name]);
+
     if (!spaceName || !currentSpace) {
         return <div className="flex-1" />;
     }

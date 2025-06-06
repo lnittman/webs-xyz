@@ -41,6 +41,13 @@ export default function SpaceAnalyticsPage({ params }: SpaceAnalyticsPageProps) 
         }
     }, [spaceName, spaces, setCurrentSpaceId, setCurrentSpace]);
 
+    // Update document title dynamically
+    useEffect(() => {
+        if (currentSpace?.name) {
+            document.title = `${currentSpace.name} Analytics | webs`;
+        }
+    }, [currentSpace?.name]);
+
     if (!spaceName || !currentSpace) {
         return <div className="flex-1" />;
     }

@@ -61,6 +61,13 @@ export default function SpacePage({ params }: SpacePageProps) {
         }
     }, [spaceName, spaces, setCurrentSpaceId, setCurrentSpace]);
 
+    // Update document title dynamically based on current space
+    useEffect(() => {
+        if (currentSpace?.name) {
+            document.title = `${currentSpace.name} | webs`;
+        }
+    }, [currentSpace?.name]);
+
     // Manage loading state with atoms
     useEffect(() => {
         if (isLoading) {

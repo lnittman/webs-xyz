@@ -9,7 +9,7 @@ import { createMetadata } from '@repo/seo/metadata';
 
 import '../styles/globals.css';
 
-const title = 'webs';
+const title = 'spin your space';
 const description = 'AI-native web analysis and insights platform. Analyze, understand, and extract meaningful insights from any website using advanced AI technology.';
 
 export const metadata: Metadata = createMetadata({

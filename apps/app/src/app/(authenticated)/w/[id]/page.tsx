@@ -63,6 +63,15 @@ export default function WebDetailPage({ params }: WebDetailPageProps) {
         params.then(({ id }) => setId(id));
     }, [params]);
 
+    // Update document title dynamically based on web data
+    useEffect(() => {
+        if (web?.title) {
+            document.title = `${web.title} | webs`;
+        } else if (id) {
+            document.title = `Web ${id} | webs`;
+        }
+    }, [web?.title, id]);
+
     // Manage loading state with atoms
     useEffect(() => {
         if (isLoading) {
