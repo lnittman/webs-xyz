@@ -1,5 +1,3 @@
-import { Metadata } from "next";
-
 import { auth, currentUser } from '@repo/auth/server';
 import { secure } from '@repo/security';
 import { NotificationsProvider } from '@repo/notifications/components/provider';
@@ -7,10 +5,6 @@ import { NotificationsProvider } from '@repo/notifications/components/provider';
 import { env } from '../../../env';
 import { ClientLayout } from '@/components/shared/layout/client-layout';
 import { PostHogIdentifier } from '@/components/shared/posthog-identifier';
-
-export const metadata: Metadata = {
-  title: "webs"
-};
 
 import type { ReactNode } from 'react';
 
