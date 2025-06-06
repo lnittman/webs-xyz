@@ -42,7 +42,7 @@ export function ClientLayout({
             <FontLoader />
             <Navigation webTitle={webTitle} webId={webId} />
 
-            <main className="flex-1 flex flex-col pt-[104px]">
+            <main className="flex-1 flex flex-col">
                 {children}
             </main>
 

@@ -43,7 +43,7 @@ export function Dashboard({
     return (
         <>
             {/* Command interface */}
-            <div className="bg-card/50 border-b border-border pt-4 pb-4">
+            <div className="bg-card/50 border-b border-border">
                 <div className="w-full flex justify-center">
                     <div className="w-full max-w-4xl px-6">
                         <PromptBar

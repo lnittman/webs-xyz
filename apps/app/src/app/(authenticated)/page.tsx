@@ -1,30 +1,29 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { currentUser } from '@repo/auth/server';
+import { spaceService } from '@repo/api';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSpaces } from '@/hooks/spaces';
+export default async function RootPage() {
+  const user = await currentUser();
 
-export default function RootPage() {
-  const router = useRouter();
-  const { spaces, isLoading } = useSpaces();
+  if (!user) {
+    // This shouldn't happen due to middleware, but just in case
+    redirect('/sign-in');
+  }
 
-  useEffect(() => {
-    if (!isLoading && spaces.length > 0) {
-      // Find default space or use first space
-      const defaultSpace = spaces.find(s => s.isDefault) || spaces[0];
+  // Fetch user's spaces using the proper service
+  const spaces = await spaceService.listSpaces(user.id);
 
-      // Convert space name to URL format (kebab-case)
-      const spaceUrlName = defaultSpace.name.toLowerCase().replace(/\s+/g, '-');
+  if (spaces.length === 0) {
+    // No spaces found - redirect to settings to create one
+    redirect('/settings');
+  }
 
-      // Redirect to default space
-      router.replace(`/${spaceUrlName}`);
-    }
-  }, [spaces, isLoading, router]);
+  // Find default space or use first space
+  const defaultSpace = spaces.find(s => s.isDefault) || spaces[0];
 
-  // Show loading state while redirecting
-  return (
-    <div className="flex-1 flex items-center justify-center">
-      <div className="text-muted-foreground">Loading...</div>
-    </div>
-  );
+  // Convert space name to URL format (kebab-case)
+  const spaceUrlName = defaultSpace.name.toLowerCase().replace(/\s+/g, '-');
+
+  // Server-side redirect to default space
+  redirect(`/${spaceUrlName}`);
 } 

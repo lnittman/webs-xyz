@@ -174,7 +174,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <nav className="z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 {/* Top navigation bar */}
                 <div className="flex h-14 items-center justify-between px-4">
                     {/* Left side - Logo and Breadcrumbs */}
