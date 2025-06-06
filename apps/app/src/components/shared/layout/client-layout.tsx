@@ -3,12 +3,12 @@
 import { ReactNode, useEffect } from 'react';
 import { useAtom } from 'jotai';
 
+import { searchModalOpenAtom } from '@/atoms/search';
 import { Navigation } from '@/components/shared/layout/navigation';
 import { SearchModal } from '@/components/shared/modal/search-modal';
 import { FontLoader } from '@/components/shared/font-loader';
 import { ProgressBar } from '@/components/shared/layout/progress-bar';
 import { useWebs } from '@/hooks/web/queries';
-import { searchModalOpenAtom } from '@/atoms/search';
 
 interface ClientLayoutProps {
     children: ReactNode;

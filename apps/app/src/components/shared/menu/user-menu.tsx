@@ -39,10 +39,101 @@ function UserMenuSkeleton() {
     );
 }
 
+// Theme selector component that prevents hydration issues
+function ThemeSelector() {
+    const { setTheme: setNextTheme, theme } = useTheme();
+    const [mounted, setMounted] = React.useState(false);
+
+    // Ensure we only render after hydration to prevent SSR mismatch
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const handleThemeChange = (value: string) => {
+        setNextTheme(value);
+    };
+
+    // Don't render the active states until mounted (prevents hydration mismatch)
+    if (!mounted) {
+        return (
+            <div className="flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200">
+                <div className="flex items-center gap-2">
+                    <span className="transition-colors duration-200">Theme</span>
+                </div>
+                <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-md transition-all duration-200">
+                    <button
+                        className="p-1 rounded transition-all duration-200 text-muted-foreground"
+                        title="Light theme"
+                    >
+                        <Sun size={14} weight="duotone" />
+                    </button>
+                    <button
+                        className="p-1 rounded transition-all duration-200 text-muted-foreground"
+                        title="Dark theme"
+                    >
+                        <Moon size={14} weight="duotone" />
+                    </button>
+                    <button
+                        className="p-1 rounded transition-all duration-200 text-muted-foreground"
+                        title="System theme"
+                    >
+                        <Desktop size={14} weight="duotone" />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200">
+            <div className="flex items-center gap-2">
+                <span className="transition-colors duration-200">Theme</span>
+            </div>
+            <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-md transition-all duration-200">
+                <button
+                    onClick={() => handleThemeChange('light')}
+                    className={cn(
+                        "p-1 rounded transition-all duration-200",
+                        theme === 'light'
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Light theme"
+                >
+                    <Sun size={14} weight="duotone" />
+                </button>
+                <button
+                    onClick={() => handleThemeChange('dark')}
+                    className={cn(
+                        "p-1 rounded transition-all duration-200",
+                        theme === 'dark'
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Dark theme"
+                >
+                    <Moon size={14} weight="duotone" />
+                </button>
+                <button
+                    onClick={() => handleThemeChange('system')}
+                    className={cn(
+                        "p-1 rounded transition-all duration-200",
+                        theme === 'system'
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="System theme"
+                >
+                    <Desktop size={14} weight="duotone" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // Main user menu content component
 function UserMenuContent() {
     const { isLoaded } = useAuth();
-    const { setTheme: setNextTheme, theme } = useTheme();
     const { user } = useUser();
 
     const router = useTransitionRouter();
@@ -57,10 +148,6 @@ function UserMenuContent() {
             .toUpperCase()
             .substring(0, 2)
         : user?.emailAddresses?.[0]?.emailAddress?.charAt(0).toUpperCase() || "?";
-
-    const handleThemeChange = (value: string) => {
-        setNextTheme(value);
-    };
 
     // Navigate to settings page
     const handleOpenSettings = () => {
@@ -162,50 +249,8 @@ function UserMenuContent() {
                                 <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded transition-all duration-200">⌘K</kbd>
                             </DropdownMenuItem>
 
-                            {/* Theme selector - inline style */}
-                            <div className="flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200">
-                                <div className="flex items-center gap-2">
-                                    <span className="transition-colors duration-200">Theme</span>
-                                </div>
-                                <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-md transition-all duration-200">
-                                    <button
-                                        onClick={() => handleThemeChange('light')}
-                                        className={cn(
-                                            "p-1 rounded transition-all duration-200",
-                                            theme === 'light'
-                                                ? "bg-background text-foreground shadow-sm"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        )}
-                                        title="Light theme"
-                                    >
-                                        <Sun size={14} weight="duotone" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleThemeChange('dark')}
-                                        className={cn(
-                                            "p-1 rounded transition-all duration-200",
-                                            theme === 'dark'
-                                                ? "bg-background text-foreground shadow-sm"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        )}
-                                        title="Dark theme"
-                                    >
-                                        <Moon size={14} weight="duotone" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleThemeChange('system')}
-                                        className={cn(
-                                            "p-1 rounded transition-all duration-200",
-                                            theme === 'system'
-                                                ? "bg-background text-foreground shadow-sm"
-                                                : "text-muted-foreground hover:text-foreground"
-                                        )}
-                                        title="System theme"
-                                    >
-                                        <Desktop size={14} weight="duotone" />
-                                    </button>
-                                </div>
-                            </div>
+                            {/* Theme selector - now using consistent component */}
+                            <ThemeSelector />
                         </div>
 
                         <DropdownMenuSeparator className="my-0" />
