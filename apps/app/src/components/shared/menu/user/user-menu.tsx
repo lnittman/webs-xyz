@@ -231,7 +231,7 @@ function UserMenuContent() {
                             <DropdownMenuItem
                                 className="rounded-md mx-1 px-2 py-1.5 text-sm cursor-pointer transition-all duration-200"
                             >
-                                <span className="transition-colors duration-200">Create Team</span>
+                                <span className="transition-colors duration-200">Create Space</span>
                                 <div className="ml-auto">
                                     <Plus className="w-3 h-3 transition-all duration-200" weight="duotone" />
                                 </div>

@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+// For optimal mobile experience without zoom, ensure your HTML includes:
+// <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { useAtom } from "jotai";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -41,10 +44,30 @@ function MobileFeedbackOverlayContent() {
     const [showTopicDropdown, setShowTopicDropdown] = useState(false);
     const [sentiment, setSentiment] = useState<'positive' | 'negative' | null>(null);
 
+    // Ref for the textarea to handle autofocus
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
     const handleClose = () => {
         setIsOpen(false);
         setShowTopicDropdown(false);
     };
+
+    // Autofocus textarea when overlay opens, with mobile-friendly approach
+    useEffect(() => {
+        if (isOpen && textareaRef.current && !isSubmitted) {
+            // Use setTimeout to ensure the sheet animation completes first
+            const timeoutId = setTimeout(() => {
+                if (textareaRef.current) {
+                    textareaRef.current.focus();
+                    // On mobile Safari, we need to trigger focus after a small delay
+                    // and ensure the input has the right font size to prevent zoom
+                    textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [isOpen, isSubmitted]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -100,6 +123,8 @@ function MobileFeedbackOverlayContent() {
             isOpen={isOpen}
             onClose={handleClose}
             title="Feedback"
+            showCloseButton={true}
+            position="top"
         >
             <div className="p-6">
                 {isSubmitted ? (
@@ -197,10 +222,12 @@ function MobileFeedbackOverlayContent() {
                         {/* Feedback Text */}
                             <div className="space-y-3">
                             <textarea
+                                    ref={textareaRef}
                                 value={feedback}
                                 onChange={(e) => setFeedback(e.target.value)}
                                 placeholder="Tell us what's on your mind..."
-                                className="w-full h-32 px-4 py-3 bg-background border border-border rounded-lg text-sm resize-none hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all duration-200 placeholder:text-muted-foreground font-mono"
+                                    className="w-full h-32 px-4 py-3 bg-background border border-border rounded-lg resize-none hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all duration-200 placeholder:text-muted-foreground font-mono text-base"
+                                    style={{ fontSize: '16px' }} // Prevent zoom on iOS
                                 required
                             />
                             <div className="flex items-center justify-end">

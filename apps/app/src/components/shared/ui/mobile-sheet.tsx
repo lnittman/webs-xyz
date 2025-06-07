@@ -10,6 +10,7 @@ interface MobileSheetProps {
     onClose: () => void;
     title?: string;
     showCloseButton?: boolean;
+    position?: 'top' | 'bottom';
     children: React.ReactNode;
     className?: string;
 }
@@ -19,6 +20,7 @@ export function MobileSheet({
     onClose,
     title,
     showCloseButton = false,
+    position = 'bottom',
     children,
     className
 }: MobileSheetProps) {
@@ -37,21 +39,30 @@ export function MobileSheet({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md"
+                    className="fixed inset-0 z-[80] bg-background/80 backdrop-blur-md"
                     onClick={handleBackdropClick}
                 >
-                    {/* Bottom-aligned sheet content */}
+                    {/* Sheet content - positioned from top or bottom */}
                     <motion.div
-                        initial={{ opacity: 0, y: 50 }}
+                        initial={{
+                            opacity: 0,
+                            y: position === 'top' ? -50 : 50
+                        }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
+                        exit={{
+                            opacity: 0,
+                            y: position === 'top' ? -50 : 50
+                        }}
                         transition={{
                             type: "spring",
                             stiffness: 300,
                             damping: 30,
                             mass: 0.8
                         }}
-                        className="absolute bottom-8 left-6 right-6"
+                        className={cn(
+                            "absolute left-6 right-6",
+                            position === 'top' ? "top-8" : "bottom-8"
+                        )}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className={cn(
@@ -69,7 +80,12 @@ export function MobileSheet({
                                     {showCloseButton && (
                                         <button
                                             onClick={onClose}
-                                            className="h-8 w-8 bg-muted/50 text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200 hover:bg-muted/80 hover:text-foreground"
+                                            className={cn(
+                                                "h-8 w-8 bg-muted/20 text-muted-foreground flex items-center justify-center rounded-lg border border-border transition-all duration-200",
+                                                "hover:bg-muted/40 hover:text-foreground hover:border-foreground/20",
+                                                "focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                                            )}
+                                            aria-label="Close"
                                         >
                                             <X className="w-4 h-4" weight="duotone" />
                                         </button>

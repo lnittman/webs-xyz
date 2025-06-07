@@ -132,7 +132,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
         items.push({
             label: (
                 <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 bg-foreground text-background flex items-center justify-center text-xs font-medium rounded-full">
+                    <div className="h-8 w-8 bg-transparent text-foreground flex items-center justify-center text-xs font-medium border border-border rounded-full">
                         {userInitials}
                     </div>
                     <span>{userDisplayName}</span>
@@ -209,7 +209,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
     return (
         <>
-            <nav className="z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <nav className="z-[70] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 {/* Top navigation bar */}
                 <div className="flex h-14 items-center justify-between px-4">
                     {/* Left side - Logo and Breadcrumbs */}

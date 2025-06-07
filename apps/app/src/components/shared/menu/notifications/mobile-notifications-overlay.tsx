@@ -36,6 +36,7 @@ function MobileNotificationsOverlayContent({ onNavigate }: MobileNotificationsOv
             isOpen={isOpen}
             onClose={handleClose}
             title="Notifications"
+            showCloseButton={true}
             className="h-[70vh]"
         >
             <MobileNotificationsContent onNavigate={handleNavigate} />

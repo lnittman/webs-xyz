@@ -4,13 +4,10 @@ import React, { useState, Suspense } from "react";
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
 import {
     SignOut,
-    Gear,
-    House,
-    Users,
-    Command,
-    Palette,
-    Plus,
     ArrowUpRight,
+    House,
+    Gear,
+    Plus,
 } from "@phosphor-icons/react/dist/ssr";
 import { useTransitionRouter } from "next-view-transitions";
 import { useAtom } from "jotai";
@@ -85,6 +82,11 @@ function MobileUserMenuOverlayContent() {
         setIsOpen(false);
     };
 
+    const handleContactClick = () => {
+        // Add contact functionality here
+        setIsOpen(false);
+    };
+
     // Close on backdrop click
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -100,32 +102,32 @@ function MobileUserMenuOverlayContent() {
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Full page solid overlay */}
+                    {/* Full page solid overlay - positioned below navigation */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="fixed inset-0 z-[100] bg-background"
+                        className="fixed inset-x-0 bottom-0 top-14 z-[60] bg-background"
                         onClick={handleBackdropClick}
                     />
 
-                    {/* Menu content - positioned from bottom */}
+                    {/* Menu content - positioned from top for finger friendliness */}
                     <motion.div
-                        initial={{ opacity: 0, y: 100 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 100 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{
                             duration: 0.4,
-                            ease: [0.23, 1, 0.32, 1], // Custom ease for smooth feel
+                            ease: [0.23, 1, 0.32, 1],
                             delay: 0.1
                         }}
-                        className="fixed inset-x-0 bottom-0 z-[101] p-6 font-mono"
+                        className="fixed inset-x-0 top-14 z-[61] p-6 font-mono"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="w-full max-w-md mx-auto space-y-4">
+                        <div className="w-full max-w-md mx-auto space-y-6">
                             {/* User info */}
-                            <div className="bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 mb-6">
+                            <div className="bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6">
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 bg-foreground text-background flex items-center justify-center text-base font-medium rounded-full">
                                         {initials}
@@ -141,80 +143,94 @@ function MobileUserMenuOverlayContent() {
                                 </div>
                             </div>
 
-                            {/* Full width action buttons */}
+                            {/* Primary action buttons with borders */}
                             <div className="space-y-3">
+                                {/* Upgrade to Pro - moved to top */}
+                                <button className="w-full bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 rounded-xl p-4 text-base font-medium">
+                                    Upgrade to Pro
+                                </button>
+
+                                {/* Contact button */}
+                                <button
+                                    onClick={handleContactClick}
+                                    className="w-full flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border text-base font-medium"
+                                >
+                                    Contact
+                                </button>
+                            </div>
+
+                            {/* Menu list items - no borders, no icons */}
+                            <div className="space-y-1">
                                 <button
                                     onClick={handleOpenDashboard}
-                                    className="w-full flex items-center gap-4 p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
+                                    className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
                                 >
-                                    <House className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                    <span className="text-base">Dashboard</span>
+                                    <span>Dashboard</span>
+                                    <House className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                 </button>
 
                                 <button
                                     onClick={handleOpenSettings}
-                                    className="w-full flex items-center gap-4 p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
+                                    className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
                                 >
-                                    <Gear className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                    <span className="text-base">Account Settings</span>
+                                    <span>Account Settings</span>
+                                    <Gear className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                 </button>
 
                                 <button
-                                    className="w-full flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
+                                    className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <Users className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                        <span className="text-base">Create Team</span>
-                                    </div>
+                                    <span>Create Space</span>
                                     <Plus className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                 </button>
 
                                 <button
-                                    className="w-full flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
+                                    className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <Command className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                        <span className="text-base">Command Menu</span>
-                                    </div>
+                                    <span>Command Menu</span>
                                     <kbd className="text-sm bg-muted/50 px-2 py-1 rounded">⌘K</kbd>
                                 </button>
+
+                                {/* Theme selector */}
+                                <div className="flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50">
+                                    <span className="text-base">Theme</span>
+                                    <ThemeSwitcher />
+                                </div>
                             </div>
 
-                            {/* Documentation links */}
-                            <div className="space-y-2 pt-3 border-t border-border/30">
+                            {/* Documentation links - no borders, no icons */}
+                            <div className="space-y-1 pt-3 border-t border-border/30">
+                                <div className="px-4 py-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Resources</span>
+                                </div>
                                 {docLinks.map((link) => (
                                     <button
                                         key={link.id}
                                         onClick={() => handleDocLinkClick(link.url)}
-                                        className="w-full flex items-center justify-between p-3 bg-background/60 backdrop-blur-sm border border-border/30 rounded-lg transition-all duration-200 hover:bg-background/80 hover:border-border/50"
+                                        className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
                                     >
-                                        <span className="text-sm text-foreground">{link.title}</span>
+                                        <span>{link.title}</span>
                                         <ArrowUpRight className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                     </button>
                                 ))}
-                            </div>
 
-                            {/* Theme selector */}
-                            <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <Palette className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                    <span className="text-base">Theme</span>
-                                </div>
-                                <ThemeSwitcher />
-                            </div>
-
-                            {/* Sign out button */}
-                            <SignOutButton>
-                                <button className="w-full flex items-center gap-4 p-4 bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 rounded-xl transition-all duration-200 hover:bg-red-500/20 hover:border-red-500/30">
-                                    <SignOut className="w-5 h-5" weight="duotone" />
-                                    <span className="text-base">Sign Out</span>
+                                <button
+                                    className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 hover:bg-background/50 text-base"
+                                >
+                                    <span>Home page</span>
+                                    <ArrowUpRight className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                 </button>
-                            </SignOutButton>
+                            </div>
 
-                            {/* Upgrade section */}
-                            <button className="w-full bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 rounded-xl p-4 text-base font-medium">
-                                Upgrade to Pro
-                            </button>
+                            {/* Sign out button - keep red styling */}
+                            <div className="pt-3 border-t border-border/30">
+                                <SignOutButton>
+                                    <button className="w-full flex items-center gap-4 p-4 text-red-600 rounded-xl transition-all duration-200 hover:bg-red-500/10 text-base">
+                                        <SignOut className="w-5 h-5" weight="duotone" />
+                                        <span>Sign Out</span>
+                                    </button>
+                                </SignOutButton>
+                            </div>
                         </div>
                     </motion.div>
                 </>

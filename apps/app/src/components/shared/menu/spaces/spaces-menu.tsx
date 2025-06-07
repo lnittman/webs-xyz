@@ -266,7 +266,7 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
                 align="start"
                 side="bottom"
                 sideOffset={8}
-                className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden"
+                className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden z-[90]"
                 style={{ width: '480px', minWidth: '480px', height: '400px', minHeight: '400px' }}
             >
                 <motion.div

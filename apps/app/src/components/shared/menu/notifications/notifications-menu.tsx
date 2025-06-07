@@ -250,7 +250,7 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
                 align="end"
                 side="bottom"
                 sideOffset={8}
-                className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden"
+                className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden z-[90]"
                 style={{ width: '384px', minWidth: '384px', height: '720px', minHeight: '720px' }}
             >
                 <motion.div
