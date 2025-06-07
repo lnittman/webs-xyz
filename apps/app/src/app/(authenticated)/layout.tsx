@@ -3,7 +3,7 @@ import { secure } from '@repo/security';
 import { NotificationsProvider } from '@repo/notifications/components/provider';
 
 import { env } from '../../../env';
-import { ClientLayout } from '@/components/shared/layout/client-layout';
+import { ClientLayout } from '@/app/(authenticated)/client-layout';
 import { PostHogIdentifier } from '@/components/shared/posthog-identifier';
 
 import type { ReactNode } from 'react';

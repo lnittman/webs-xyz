@@ -1,9 +1,9 @@
 export * from './layout/page';
 export * from './posthog-identifier';
 
-export { UserMenu } from './menu/user-menu';
-export { DocsMenu } from './menu/docs-menu';
-export { FeedbackMenu } from './menu/feedback-menu';
+export { UserMenu } from './menu/user/user-menu';
+export { DocsMenu } from './menu/docs/docs-menu';
+export { FeedbackMenu } from './menu/feedback/feedback-menu';
 export { NotificationsWrapper } from './menu/notifications/notifications-wrapper';
 export { NotificationsMenu } from './menu/notifications/notifications-menu';
 

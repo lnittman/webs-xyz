@@ -7,14 +7,16 @@ import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@repo/design/hooks/use-mobile';
-import { UserMenu } from '../menu/user-menu';
+import { useAuth, useUser } from '@repo/auth/client';
+import { UserMenu } from '../menu/user/user-menu';
 import { NotificationsWrapper } from '../menu/notifications/notifications-wrapper';
-import { DocsMenu } from '../menu/docs-menu';
-import { FeedbackMenu } from '../menu/feedback-menu';
-import { SpacesMenu } from '../menu/spaces-menu';
+import { DocsMenu } from '../menu/docs/docs-menu';
+import { FeedbackMenu } from '../menu/feedback/feedback-menu';
+import { SpacesMenu } from '../menu/spaces/spaces-menu';
 import { CreateSpaceModal } from '../modal/create-space-modal';
 import { WebsAsciiLogo } from '../ascii/webs-ascii';
 import { Skeleton } from '@repo/design/components/ui/skeleton';
+import { ChatCircle } from '@phosphor-icons/react/dist/ssr';
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -30,11 +32,10 @@ import { useSpaces } from '@/hooks/spaces';
 import { currentSpaceIdAtom, currentSpaceAtom } from '@/atoms/spaces';
 
 // Mobile menu components
-import { MobileUserMenu } from '../menu/mobile-user-menu';
-import { MobileNotificationsMenu } from '../menu/mobile-notifications-menu';
-import { MobileDocsMenu } from '../menu/mobile-docs-menu';
-import { MobileSpacesMenu } from '../menu/mobile-spaces-menu';
-import { MobileFeedbackMenu } from '../menu/mobile-feedback-menu';
+import { MobileUserMenu } from '../menu/user/mobile-user-menu';
+import { MobileNotificationsMenu } from '../menu/notifications/mobile-notifications-menu';
+import { MobileSpacesMenu } from '../menu/spaces/mobile-spaces-menu';
+import { MobileFeedbackMenu } from '../menu/feedback/mobile-feedback-menu';
 
 interface NavigationProps {
     webTitle?: string;
@@ -45,6 +46,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
     const pathname = usePathname();
     const router = useTransitionRouter();
     const isMobile = useIsMobile();
+    const { isLoaded, user } = useUser();
     const [createSpaceModalOpen, setCreateSpaceModalOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -109,34 +111,36 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
         }
     };
 
-    // Generate breadcrumb items based on current path
+    // Get user initials for avatar fallback
+    const userInitials = user?.fullName
+        ? user.fullName
+            .split(" ")
+            .map((name) => name[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2)
+        : user?.emailAddresses?.[0]?.emailAddress?.charAt(0).toUpperCase() || "?";
+
+    // Generate breadcrumb items based on current path - now showing user info instead of space
     const getBreadcrumbItems = () => {
         const items = [];
 
-        // Always start with current space (or fallback to Dashboard)
-        if (currentSpace) {
-            const spaceUrlName = currentSpace.name.toLowerCase().replace(/\s+/g, '-');
-            const isOnSpaceDashboard = pathname === `/${spaceUrlName}` || (pathname === '/' && currentSpace.isDefault);
+        // Always start with user info instead of space
+        const userDisplayName = user?.fullName || user?.firstName || "Dashboard";
+        const isOnDashboard = pathname === '/' || (currentSpace && pathname === `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}`);
 
-            items.push({
-                label: (
-                    <div className="flex items-center gap-2">
-                        {currentSpace.emoji && (
-                            <span className="text-sm">{currentSpace.emoji}</span>
-                        )}
-                        <span>{currentSpace.name}</span>
+        items.push({
+            label: (
+                <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 bg-foreground text-background flex items-center justify-center text-xs font-medium rounded-full">
+                        {userInitials}
                     </div>
-                ),
-                href: `/${spaceUrlName}`,
-                isActive: isOnSpaceDashboard
-            });
-        } else {
-            items.push({
-                label: 'Dashboard',
-                href: '/',
-                isActive: pathname === '/'
-            });
-        }
+                    <span>{userDisplayName}</span>
+                </div>
+            ),
+            href: currentSpace ? `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}` : '/',
+            isActive: isOnDashboard
+        });
 
         // If we're on a web detail page
         if (currentWebId) {
@@ -200,8 +204,8 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
         return pathname.startsWith(tab.href);
     };
 
-    // Show skeleton breadcrumbs while loading spaces
-    const showBreadcrumbSkeleton = spacesLoading || (!currentSpace && spaces.length === 0);
+    // Show skeleton breadcrumbs while loading user or spaces
+    const showBreadcrumbSkeleton = !isLoaded || spacesLoading || (!currentSpace && spaces.length === 0);
 
     return (
         <>
@@ -330,23 +334,46 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
                     {/* Right side - Responsive menu buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {isMobile ? (
-                            // Mobile menu buttons
-                            <>
-                                <MobileFeedbackMenu className="h-8" />
-                                <MobileDocsMenu />
-                                <MobileNotificationsMenu onNavigate={handleNavigate} />
-                                <MobileUserMenu />
-                            </>
-                        ) : (
-                            // Desktop menu buttons
-                            <>
+                        <AnimatePresence mode="wait">
+                            {mounted && isMobile ? (
+                                <motion.div
+                                    key="mobile-buttons"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex items-center gap-2"
+                                >
+                                    {/* Mobile feedback button - circular chat icon */}
+                                    <button
+                                        className={cn(
+                                            "h-8 w-8 bg-transparent text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200",
+                                            "hover:bg-accent hover:text-foreground hover:border-foreground/20",
+                                            "focus:outline-none"
+                                        )}
+                                        aria-label="Feedback"
+                                    >
+                                        <ChatCircle className="w-4 h-4" weight="duotone" />
+                                    </button>
+                                    <MobileNotificationsMenu onNavigate={handleNavigate} />
+                                    <MobileUserMenu />
+                                </motion.div>
+                            ) : (
+                                    <motion.div
+                                        key="desktop-buttons"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex items-center gap-2"
+                                    >
                                     <FeedbackMenu className="h-8" />
                                     <DocsMenu />
                                     <NotificationsWrapper onNavigate={handleNavigate} />
                                     <UserMenu />
-                            </>
-                        )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 

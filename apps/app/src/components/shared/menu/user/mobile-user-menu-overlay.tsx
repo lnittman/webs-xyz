@@ -5,104 +5,48 @@ import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
 import {
     SignOut,
     Gear,
-    Moon,
-    Sun,
-    Desktop,
     House,
     Users,
     Command,
     Palette,
     Plus,
+    Book,
+    ArrowUpRight,
 } from "@phosphor-icons/react/dist/ssr";
-import { useTheme } from "next-themes";
 import { useTransitionRouter } from "next-view-transitions";
 import { useAtom } from "jotai";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@repo/design/lib/utils";
 import { mobileUserMenuOpenAtom } from "@/atoms/mobile-menu";
+import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 
-// Theme selector component for mobile
-function MobileThemeSelector() {
-    const { setTheme: setNextTheme, theme } = useTheme();
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const handleThemeChange = (value: string) => {
-        setNextTheme(value);
-    };
-
-    if (!mounted) {
-        return (
-            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
-                <div className="flex items-center gap-3">
-                    <Palette className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                    <span className="text-base">Theme</span>
-                </div>
-                <div className="flex items-center gap-1 bg-background p-1 rounded-md">
-                    <button className="p-2 rounded text-muted-foreground">
-                        <Sun size={16} weight="duotone" />
-                    </button>
-                    <button className="p-2 rounded text-muted-foreground">
-                        <Moon size={16} weight="duotone" />
-                    </button>
-                    <button className="p-2 rounded text-muted-foreground">
-                        <Desktop size={16} weight="duotone" />
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
-            <div className="flex items-center gap-3">
-                <Palette className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                <span className="text-base">Theme</span>
-            </div>
-            <div className="flex items-center gap-1 bg-background p-1 rounded-md">
-                <button
-                    onClick={() => handleThemeChange('light')}
-                    className={cn(
-                        "p-2 rounded transition-all duration-200",
-                        theme === 'light'
-                            ? "bg-foreground text-background"
-                            : "text-muted-foreground hover:text-foreground"
-                    )}
-                    title="Light theme"
-                >
-                    <Sun size={16} weight="duotone" />
-                </button>
-                <button
-                    onClick={() => handleThemeChange('dark')}
-                    className={cn(
-                        "p-2 rounded transition-all duration-200",
-                        theme === 'dark'
-                            ? "bg-foreground text-background"
-                            : "text-muted-foreground hover:text-foreground"
-                    )}
-                    title="Dark theme"
-                >
-                    <Moon size={16} weight="duotone" />
-                </button>
-                <button
-                    onClick={() => handleThemeChange('system')}
-                    className={cn(
-                        "p-2 rounded transition-all duration-200",
-                        theme === 'system'
-                            ? "bg-foreground text-background"
-                            : "text-muted-foreground hover:text-foreground"
-                    )}
-                    title="System theme"
-                >
-                    <Desktop size={16} weight="duotone" />
-                </button>
-            </div>
-        </div>
-    );
+interface DocLink {
+    id: string;
+    title: string;
+    description: string;
+    url: string;
 }
+
+const docLinks: DocLink[] = [
+    {
+        id: '1',
+        title: 'Documentation',
+        description: 'Complete guide and API reference',
+        url: 'https://docs.example.com'
+    },
+    {
+        id: '2',
+        title: 'Changelog',
+        description: 'Latest updates and releases',
+        url: 'https://changelog.example.com'
+    },
+    {
+        id: '3',
+        title: 'Help Center',
+        description: 'Support articles and tutorials',
+        url: 'https://help.example.com'
+    }
+];
 
 // Main mobile user menu overlay content component
 function MobileUserMenuOverlayContent() {
@@ -134,6 +78,11 @@ function MobileUserMenuOverlayContent() {
     };
 
     const handleClose = () => {
+        setIsOpen(false);
+    };
+
+    const handleDocLinkClick = (url: string) => {
+        window.open(url, '_blank', 'noopener,noreferrer');
         setIsOpen(false);
     };
 
@@ -230,9 +179,33 @@ function MobileUserMenuOverlayContent() {
                                 </button>
                             </div>
 
-                            {/* Theme selector */}
+                            {/* Documentation links */}
                             <div className="mb-6">
-                                <MobileThemeSelector />
+                                <div className="flex items-center gap-3 mb-3 px-4">
+                                    <Book className="w-5 h-5 text-muted-foreground" weight="duotone" />
+                                    <span className="text-base font-medium">Documentation</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {docLinks.map((link) => (
+                                        <button
+                                            key={link.id}
+                                            onClick={() => handleDocLinkClick(link.url)}
+                                            className="w-full flex items-center justify-between p-3 bg-muted/10 rounded-lg transition-all duration-200 hover:bg-muted/30"
+                                        >
+                                            <span className="text-sm text-foreground">{link.title}</span>
+                                            <ArrowUpRight className="w-4 h-4 text-muted-foreground" weight="duotone" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Theme selector - now using the reusable ThemeSwitcher component */}
+                            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg mb-6">
+                                <div className="flex items-center gap-3">
+                                    <Palette className="w-5 h-5 text-muted-foreground" weight="duotone" />
+                                    <span className="text-base">Theme</span>
+                                </div>
+                                <ThemeSwitcher />
                             </div>
 
                             {/* Sign out button */}

@@ -9,11 +9,11 @@ import { Navigation } from '@/components/shared/layout/navigation';
 import { SearchModal } from '@/components/shared/modal/search-modal';
 import { FontLoader } from '@/components/shared/font-loader';
 import { ProgressBar } from '@/components/shared/layout/progress-bar';
-import { MobileUserMenuOverlay } from '@/components/shared/menu/mobile-user-menu-overlay';
-import { MobileNotificationsOverlay } from '@/components/shared/menu/mobile-notifications-overlay';
-import { MobileDocsOverlay } from '@/components/shared/menu/mobile-docs-overlay';
-import { MobileSpacesOverlay } from '@/components/shared/menu/mobile-spaces-overlay';
-import { MobileFeedbackOverlay } from '@/components/shared/menu/mobile-feedback-overlay';
+import { MobileUserMenuOverlay } from '@/components/shared/menu/user/mobile-user-menu-overlay';
+import { MobileNotificationsOverlay } from '@/components/shared/menu/notifications/mobile-notifications-overlay';
+import { MobileDocsOverlay } from '@/components/shared/menu/docs/mobile-docs-overlay';
+import { MobileSpacesOverlay } from '@/components/shared/menu/spaces/mobile-spaces-overlay';
+import { MobileFeedbackOverlay } from '@/components/shared/menu/feedback/mobile-feedback-overlay';
 import { useWebs } from '@/hooks/web/queries';
 import { useSpaces } from '@/hooks/spaces';
 import { currentSpaceIdAtom, currentSpaceAtom } from '@/atoms/spaces';
@@ -29,12 +29,12 @@ export function ClientLayout({
     webTitle,
     webId
 }: ClientLayoutProps) {
+    const router = useTransitionRouter();
+
+    const { webs } = useWebs();
+
     const [isSearchModalOpen, setIsSearchModalOpen] = useAtom(searchModalOpenAtom);
     const [currentSpaceId] = useAtom(currentSpaceIdAtom);
-    const [currentSpace] = useAtom(currentSpaceAtom);
-    const { webs } = useWebs();
-    const { spaces } = useSpaces();
-    const router = useTransitionRouter();
 
     // Handle command-k to open search modal
     useEffect(() => {
