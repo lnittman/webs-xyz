@@ -147,6 +147,7 @@ export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSetti
                             "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
                             "transition-colors"
                         )}
+                        style={{ fontSize: '16px' }}
                     />
                     {/* Clear button */}
                     <button

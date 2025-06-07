@@ -204,6 +204,7 @@ function MobileSpacesOverlayContent({ currentSpaceId, onNavigate, onCreateSpace 
             isOpen={isOpen}
             onClose={handleClose}
             title="Spaces & Webs"
+            spacing="sm"
             className="h-[80vh]"
         >
             <div className="flex flex-col h-full">
@@ -229,6 +230,7 @@ function MobileSpacesOverlayContent({ currentSpaceId, onNavigate, onCreateSpace 
                                 value={spacesSearch}
                                 onChange={(e) => setSpacesSearch(e.target.value)}
                                 className="w-full h-9 pl-10 pr-3 text-sm bg-background border border-border rounded text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/30"
+                                style={{ fontSize: '16px' }}
                             />
                         </div>
                     </div>
@@ -304,6 +306,7 @@ function MobileSpacesOverlayContent({ currentSpaceId, onNavigate, onCreateSpace 
                                 onChange={(e) => setWebsSearch(e.target.value)}
                                 className="w-full h-9 pl-10 pr-3 text-sm bg-background border border-border rounded text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/30"
                                 disabled={!selectedSpace}
+                                style={{ fontSize: '16px' }}
                             />
                         </div>
                     </div>

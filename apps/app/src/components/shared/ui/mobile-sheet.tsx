@@ -11,6 +11,7 @@ interface MobileSheetProps {
     title?: string;
     showCloseButton?: boolean;
     position?: 'top' | 'bottom';
+    spacing?: 'sm' | 'md' | 'lg';
     children: React.ReactNode;
     className?: string;
 }
@@ -21,6 +22,7 @@ export function MobileSheet({
     title,
     showCloseButton = false,
     position = 'bottom',
+    spacing = 'lg',
     children,
     className
 }: MobileSheetProps) {
@@ -28,6 +30,25 @@ export function MobileSheet({
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
+        }
+    };
+
+    // Define spacing values
+    const getSpacingClass = () => {
+        if (position === 'top') {
+            switch (spacing) {
+                case 'sm': return 'top-2';
+                case 'md': return 'top-4';
+                case 'lg': return 'top-8';
+                default: return 'top-8';
+            }
+        } else {
+            switch (spacing) {
+                case 'sm': return 'bottom-2';
+                case 'md': return 'bottom-4';
+                case 'lg': return 'bottom-8';
+                default: return 'bottom-8';
+            }
         }
     };
 
@@ -61,7 +82,7 @@ export function MobileSheet({
                         }}
                         className={cn(
                             "absolute left-6 right-6",
-                            position === 'top' ? "top-8" : "bottom-8"
+                            getSpacingClass()
                         )}
                         onClick={(e) => e.stopPropagation()}
                     >

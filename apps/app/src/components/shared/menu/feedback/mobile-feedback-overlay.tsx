@@ -55,17 +55,34 @@ function MobileFeedbackOverlayContent() {
     // Autofocus textarea when overlay opens, with mobile-friendly approach
     useEffect(() => {
         if (isOpen && textareaRef.current && !isSubmitted) {
-            // Use setTimeout to ensure the sheet animation completes first
-            const timeoutId = setTimeout(() => {
+            // Use multiple focus attempts for better mobile compatibility
+            const focusInput = () => {
                 if (textareaRef.current) {
                     textareaRef.current.focus();
-                    // On mobile Safari, we need to trigger focus after a small delay
-                    // and ensure the input has the right font size to prevent zoom
+                    textareaRef.current.click(); // Additional trigger for iOS
                     textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 300);
 
-            return () => clearTimeout(timeoutId);
+                    // Force keyboard on iOS Safari
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        textareaRef.current.setSelectionRange(0, 0);
+                    }
+                }
+            };
+
+            // Initial focus attempt
+            const timeoutId1 = setTimeout(focusInput, 100);
+
+            // Second attempt after animation
+            const timeoutId2 = setTimeout(focusInput, 300);
+
+            // Third attempt for stubborn mobile browsers
+            const timeoutId3 = setTimeout(focusInput, 500);
+
+            return () => {
+                clearTimeout(timeoutId1);
+                clearTimeout(timeoutId2);
+                clearTimeout(timeoutId3);
+            };
         }
     }, [isOpen, isSubmitted]);
 
@@ -125,6 +142,7 @@ function MobileFeedbackOverlayContent() {
             title="Feedback"
             showCloseButton={true}
             position="top"
+            spacing="sm"
         >
             <div className="p-6">
                 {isSubmitted ? (
@@ -228,6 +246,12 @@ function MobileFeedbackOverlayContent() {
                                 placeholder="Tell us what's on your mind..."
                                     className="w-full h-32 px-4 py-3 bg-background border border-border rounded-lg resize-none hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all duration-200 placeholder:text-muted-foreground font-mono text-base"
                                     style={{ fontSize: '16px' }} // Prevent zoom on iOS
+                                    onTouchStart={() => {
+                                        // Additional touch event for mobile browsers
+                                        if (textareaRef.current) {
+                                            textareaRef.current.focus();
+                                        }
+                                    }}
                                 required
                             />
                             <div className="flex items-center justify-end">
