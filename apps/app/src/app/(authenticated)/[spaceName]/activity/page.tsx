@@ -56,13 +56,6 @@ export default function SpaceActivityPage({ params }: SpaceActivityPageProps) {
         <div className="flex-1 py-8">
             <div className="w-full flex justify-center">
                 <div className="w-full max-w-4xl px-6">
-                    <div className="mb-8">
-                        <h1 className="text-2xl font-semibold mb-2">Activity</h1>
-                        <p className="text-muted-foreground">
-                            Recent activity in <span className="font-mono">{currentSpace.name}</span> space
-                        </p>
-                    </div>
-
                     <div className="border border-border rounded-lg p-8 text-center">
                         <div className="text-muted-foreground">
                             📈 Activity feed coming soon...

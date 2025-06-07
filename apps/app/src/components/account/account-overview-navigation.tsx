@@ -5,21 +5,12 @@ import { usePathname } from 'next/navigation';
 import { Link } from 'next-view-transitions';
 import { cn } from '@repo/design/lib/utils';
 import {
-    User,
     Folder,
     Globe
 } from '@phosphor-icons/react/dist/ssr';
 
-// Define account overview tabs
+// Define account overview tabs - only Spaces and Webs
 const accountOverviewTabs = [
-    {
-        id: 'general',
-        title: 'General',
-        href: '/account',
-        icon: User,
-        description: 'Profile and account information',
-        exact: true
-    },
     {
         id: 'spaces',
         title: 'Spaces',

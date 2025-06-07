@@ -56,13 +56,6 @@ export default function SpaceAnalyticsPage({ params }: SpaceAnalyticsPageProps) 
         <div className="flex-1 py-8">
             <div className="w-full flex justify-center">
                 <div className="w-full max-w-4xl px-6">
-                    <div className="mb-8">
-                        <h1 className="text-2xl font-semibold mb-2">Analytics</h1>
-                        <p className="text-muted-foreground">
-                            Analytics for <span className="font-mono">{currentSpace.name}</span> space
-                        </p>
-                    </div>
-
                     <div className="border border-border rounded-lg p-8 text-center">
                         <div className="text-muted-foreground">
                             📊 Analytics view coming soon...

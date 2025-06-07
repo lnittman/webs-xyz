@@ -182,7 +182,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
         // Check if we're on account pages
         if (pathname.startsWith('/account')) {
             return [
-                { label: 'Overview', href: '/account', exact: true },
+                { label: 'Overview', href: '/account/spaces', exact: false },
                 { label: 'Activity', href: '/account/activity' },
                 { label: 'Settings', href: '/account/settings' },
             ];
@@ -217,7 +217,7 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
     const isTabActive = (tab: { href: string; exact?: boolean; label?: string }) => {
         // Special logic for account Overview tab - should be active for account overview pages
-        if (pathname.startsWith('/account') && tab.href === '/account' && tab.label === 'Overview') {
+        if (pathname.startsWith('/account') && tab.label === 'Overview') {
             return pathname === '/account' || pathname === '/account/spaces' || pathname === '/account/webs';
         }
 
