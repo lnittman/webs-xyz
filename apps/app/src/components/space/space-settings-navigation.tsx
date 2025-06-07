@@ -128,7 +128,7 @@ export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSetti
     return (
         <div className="flex-1 flex flex-col">
             {/* Search Bar */}
-            <div className="px-4 pb-4">
+            <div className="px-4 py-4">
                 <div className="relative">
                     <MagnifyingGlass
                         size={16}
@@ -165,7 +165,7 @@ export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSetti
             </div>
 
             {/* Navigation Items */}
-            <nav className="flex-1 space-y-1 p-4 pt-0 overflow-y-auto">
+            <nav className="flex-1 space-y-1 px-4 pt-0 overflow-y-auto">
                 {filteredSettings.length === 0 ? (
                     <p className="text-sm text-muted-foreground font-mono px-3 py-2">
                         No settings found
@@ -173,7 +173,9 @@ export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSetti
                 ) : (
                     filteredSettings.map((item) => {
                         const href = buildHref(item.title);
-                        const isActive = pathname === href;
+                        // For General on mobile, when we're on the root settings page, we're showing navigation menu, not general content
+                        // So General should never appear active when on the root page showing navigation
+                        const isActive = false; // Never show any item as active in the navigation menu
                         const Icon = item.icon;
 
                         return (

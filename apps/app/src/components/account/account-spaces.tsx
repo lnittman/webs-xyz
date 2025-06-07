@@ -5,6 +5,7 @@ import { useSpaces } from '@/hooks/spaces';
 import { Link } from 'next-view-transitions';
 import { cn } from '@repo/design/lib/utils';
 import { Folder, Plus, Clock } from '@phosphor-icons/react/dist/ssr';
+import { MobileAccountHeader } from './mobile-account-header';
 
 export function AccountSpaces() {
     const { spaces, isLoading } = useSpaces();
@@ -12,9 +13,9 @@ export function AccountSpaces() {
     if (isLoading) {
         return (
             <div className="space-y-8">
+                <MobileAccountHeader title="Spaces" />
                 <div className="space-y-2">
                     <div className="h-6 bg-muted rounded w-1/3 animate-pulse" />
-                    <div className="h-4 bg-muted rounded w-2/3 animate-pulse" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[1, 2, 3].map((i) => (
@@ -27,9 +28,11 @@ export function AccountSpaces() {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div className="space-y-2">
-                <h1 className="text-xl font-semibold">Spaces</h1>
+            {/* Mobile header with back button */}
+            <MobileAccountHeader title="Spaces" />
+
+            {/* Header - subtitle only on desktop */}
+            <div className="hidden sm:block space-y-2">
                 <p className="text-muted-foreground">
                     Manage your spaces and their organization
                 </p>

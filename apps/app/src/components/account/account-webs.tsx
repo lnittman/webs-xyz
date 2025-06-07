@@ -5,6 +5,7 @@ import { useWebs } from '@/hooks/web/queries';
 import { Link } from 'next-view-transitions';
 import { cn } from '@repo/design/lib/utils';
 import { Globe, Clock, CheckCircle, XCircle, Hourglass } from '@phosphor-icons/react/dist/ssr';
+import { MobileAccountHeader } from './mobile-account-header';
 
 export function AccountWebs() {
     const { webs, isLoading } = useWebs();
@@ -12,9 +13,9 @@ export function AccountWebs() {
     if (isLoading) {
         return (
             <div className="space-y-8">
+                <MobileAccountHeader title="Webs" />
                 <div className="space-y-2">
                     <div className="h-6 bg-muted rounded w-1/3 animate-pulse" />
-                    <div className="h-4 bg-muted rounded w-2/3 animate-pulse" />
                 </div>
                 <div className="space-y-4">
                     {[1, 2, 3, 4].map((i) => (
@@ -53,9 +54,11 @@ export function AccountWebs() {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div className="space-y-2">
-                <h1 className="text-xl font-semibold">Webs</h1>
+            {/* Mobile header with back button */}
+            <MobileAccountHeader title="Webs" />
+
+            {/* Header - subtitle only on desktop */}
+            <div className="hidden sm:block space-y-2">
                 <p className="text-muted-foreground">
                     All your analyzed webs across all spaces
                 </p>

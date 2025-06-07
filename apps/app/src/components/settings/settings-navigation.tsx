@@ -179,9 +179,10 @@ export function SettingsNavigation() {
                     </p>
                 ) : (
                     filteredSettings.map((item) => {
-                        // Handle active state for General settings - active for both /account/settings and /account/settings/general
+                        // For General settings, only active when on the specific /account/settings/general page
+                        // The root /account/settings page shows navigation menu, not general content
                         const isActive = item.title === 'General'
-                            ? pathname === '/account/settings' || pathname === '/account/settings/general'
+                            ? pathname === '/account/settings/general'
                             : pathname === item.href;
                         const Icon = item.icon;
 

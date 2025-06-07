@@ -47,9 +47,9 @@ export function AccountOverviewNavigation() {
     };
 
     return (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col pt-4">
             {/* Navigation Items */}
-            <nav className="flex-1 space-y-1 p-4 pt-0 overflow-y-auto">
+            <nav className="flex-1 space-y-1 px-4 pt-0 overflow-y-auto">
                 {accountOverviewTabs.map((tab) => {
                     const isActive = isTabActive(tab);
                     const Icon = tab.icon;

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { useSpaces } from '@/hooks/spaces';
 import { currentSpaceIdAtom, currentSpaceAtom } from '@/atoms/spaces';
 import { SpaceSettings } from '@/components/space/space-settings';
+import { SpaceSettingsNavigation } from '@/components/space/space-settings-navigation';
 
 interface SpaceSettingsPageProps {
     params: Promise<{
@@ -46,5 +47,17 @@ export default function SpaceSettingsPage({ params }: SpaceSettingsPageProps) {
         return <div className="flex-1" />;
     }
 
-    return <SpaceSettings space={currentSpace} />;
+    return (
+        <>
+            {/* Mobile: Show navigation */}
+            <div className="block sm:hidden">
+                <SpaceSettingsNavigation spaceName={spaceName} />
+            </div>
+
+            {/* Desktop: Show general settings content */}
+            <div className="hidden sm:block">
+                <SpaceSettings space={currentSpace} />
+            </div>
+        </>
+    );
 } 

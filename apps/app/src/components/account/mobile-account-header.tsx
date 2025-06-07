@@ -4,15 +4,15 @@ import { useRouter } from 'next/navigation';
 import { CaretLeft } from '@phosphor-icons/react';
 import { cn } from '@repo/design/lib/utils';
 
-interface MobileSettingsHeaderProps {
+interface MobileAccountHeaderProps {
     title: string;
 }
 
-export function MobileSettingsHeader({ title }: MobileSettingsHeaderProps) {
+export function MobileAccountHeader({ title }: MobileAccountHeaderProps) {
     const router = useRouter();
 
     const handleBack = () => {
-        router.push('/account/settings');
+        router.push('/account');
     };
 
     return (
@@ -25,7 +25,7 @@ export function MobileSettingsHeader({ title }: MobileSettingsHeaderProps) {
                     "hover:bg-accent/40 hover:text-accent-foreground hover:border-accent/50",
                     "focus:outline-none"
                 )}
-                aria-label="Back to settings"
+                aria-label="Back to account"
             >
                 <CaretLeft className="w-3 h-3" weight="duotone" />
             </button>

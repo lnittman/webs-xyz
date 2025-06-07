@@ -120,26 +120,50 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
             .substring(0, 2)
         : user?.emailAddresses?.[0]?.emailAddress?.charAt(0).toUpperCase() || "?";
 
-    // Generate breadcrumb items based on current path - now showing user info instead of space
+    // Generate breadcrumb items based on current path
     const getBreadcrumbItems = () => {
         const items = [];
 
-        // Always start with user info instead of space
-        const userDisplayName = user?.fullName || user?.firstName || "Dashboard";
-        const isOnDashboard = pathname === '/' || (currentSpace && pathname === `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}`);
+        // Show user info for /account routes, space info for others
+        if (pathname.startsWith('/account')) {
+            // Account pages - show user info
+            const userDisplayName = user?.fullName || user?.firstName || "Dashboard";
+            const isOnAccountDashboard = pathname === '/account' || pathname === '/account/spaces' || pathname === '/account/webs';
 
-        items.push({
-            label: (
-                <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-transparent text-foreground flex items-center justify-center text-xs font-medium border border-border rounded-full">
-                        {userInitials}
+            items.push({
+                label: (
+                    <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 bg-transparent text-foreground flex items-center justify-center text-xs font-medium border border-border rounded-full">
+                            {userInitials}
+                        </div>
+                        <span>{userDisplayName}</span>
                     </div>
-                    <span>{userDisplayName}</span>
-                </div>
-            ),
-            href: currentSpace ? `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}` : '/',
-            isActive: isOnDashboard
-        });
+                ),
+                href: '/account',
+                isActive: isOnAccountDashboard
+            });
+        } else {
+            // Non-account pages - show space info
+            const spaceDisplayName = currentSpace?.name || "Dashboard";
+            const isOnSpaceDashboard = pathname === '/' || (currentSpace && pathname === `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}`);
+
+            items.push({
+                label: (
+                    <div className="flex items-center gap-2">
+                        {currentSpace?.emoji ? (
+                            <span className="text-lg">{currentSpace.emoji}</span>
+                        ) : (
+                            <div className="h-8 w-8 bg-transparent text-foreground flex items-center justify-center text-xs font-medium border border-border rounded-full">
+                                {spaceDisplayName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <span>{spaceDisplayName}</span>
+                    </div>
+                ),
+                href: currentSpace ? `/${currentSpace.name.toLowerCase().replace(/\s+/g, '-')}` : '/',
+                isActive: isOnSpaceDashboard
+            });
+        }
 
         // If we're on a web detail page
         if (currentWebId) {

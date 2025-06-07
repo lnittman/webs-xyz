@@ -11,6 +11,7 @@ import {
     Check,
     X
 } from '@phosphor-icons/react/dist/ssr';
+import { MobileSpaceSettingsHeader } from './mobile-space-settings-header';
 
 interface SpaceSettingsProps {
     space: Space;
@@ -66,8 +67,11 @@ export function SpaceSettings({ space }: SpaceSettingsProps) {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div className="space-y-2">
+            {/* Mobile Header */}
+            <MobileSpaceSettingsHeader title="General" />
+
+            {/* Desktop Header */}
+            <div className="hidden sm:block space-y-2">
                 <h1 className="text-xl font-semibold">General Settings</h1>
                 <p className="text-muted-foreground">
                     Basic configuration for <span className="font-mono">{space.name}</span>
