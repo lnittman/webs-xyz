@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'next-view-transitions';
 import { useWeb } from '@/hooks/web/queries';
 import { useUpdateWebEmoji } from '@/hooks/web/mutations';
-import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
+import { EmojiPickerButton } from '@/components/shared/ui/emoji-picker-button';
 import { cn } from '@repo/design/lib/utils';
 import { Brain, Clock, ChartLine, Hash, Sparkle, LinkIcon, Globe, CaretDown, CaretUp, DotsThree } from '@phosphor-icons/react/dist/ssr';
 import { useSetAtom } from 'jotai';

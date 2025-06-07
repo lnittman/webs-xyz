@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
+
+import { Sparkle, Shuffle } from '@phosphor-icons/react/dist/ssr';
 import { motion } from 'framer-motion';
 import { useTransitionRouter } from 'next-view-transitions';
+
+import { useUser } from '@repo/auth/client';
 import {
     Dialog,
     DialogContent,
@@ -14,11 +18,11 @@ import { Button } from '@repo/design/components/ui/button';
 import { Input } from '@repo/design/components/ui/input';
 import { Textarea } from '@repo/design/components/ui/textarea';
 import { Label } from '@repo/design/components/ui/label';
+import { toast } from '@repo/design/components/ui/sonner';
+
+import { EmojiPickerButton } from '@/components/shared/ui/emoji-picker-button';
 import { useCreateSpace } from '@/hooks/spaces';
 import { generateRandomSpaceData } from '@/lib/space-utils';
-import { Sparkle, Shuffle } from '@phosphor-icons/react/dist/ssr';
-import { toast } from '@repo/design/components/ui/sonner';
-import { EmojiPickerButton } from '../emoji-picker-button';
 
 interface CreateSpaceModalProps {
     open: boolean;
@@ -26,13 +30,14 @@ interface CreateSpaceModalProps {
 }
 
 export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) {
+    const { user } = useUser();
+    const { createSpace } = useCreateSpace();
+    const router = useTransitionRouter();
+
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [emoji, setEmoji] = useState('🚀');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const { createSpace } = useCreateSpace();
-    const router = useTransitionRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,6 +55,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
                 description: description.trim() || undefined,
                 emoji: emoji || undefined,
                 isDefault: false,
+                userId: user?.id || ''
             });
 
             toast.success('Space created successfully!');

@@ -118,8 +118,7 @@ function MobileFeedbackOverlayContent() {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Topic Selection */}
-                        <div className="space-y-3">
-                            <label className="text-sm font-medium text-foreground">Topic</label>
+                            <div className="space-y-3">
                             <div className="relative">
                                 <button
                                     type="button"
@@ -196,8 +195,7 @@ function MobileFeedbackOverlayContent() {
                         </div>
 
                         {/* Feedback Text */}
-                        <div className="space-y-3">
-                            <label className="text-sm font-medium text-foreground">Your feedback</label>
+                            <div className="space-y-3">
                             <textarea
                                 value={feedback}
                                 onChange={(e) => setFeedback(e.target.value)}

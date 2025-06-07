@@ -30,7 +30,7 @@ export {
 export { 
   userSettingsSchema,
   updateUserSettingsSchema 
-} from './schemas/userSettings';
+} from './schemas/user-settings';
 
 export { 
   spaceSchema,

@@ -1,9 +1,9 @@
 import { mutate } from 'swr';
 import { createSpace, assignWebToSpace } from '@/app/actions/spaces';
-import type { CreateSpaceInput, Space } from '@/types/space';
+import type { CreateSpace, Space } from '@repo/api/constants';
 
 export function useCreateSpace() {
-  const create = async (input: CreateSpaceInput): Promise<Space> => {
+  const create = async (input: CreateSpace): Promise<Space> => {
     const result = await createSpace(input);
     
     if ('error' in result) {

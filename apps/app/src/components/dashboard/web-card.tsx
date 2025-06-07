@@ -7,7 +7,7 @@ import { cn } from '@repo/design/lib/utils';
 import { toast } from '@repo/design/components/ui/sonner';
 
 import { ScrollFadeContainer } from '@/components/shared/layout/scroll-fade-container';
-import { EmojiPickerButton } from '@/components/shared/emoji-picker-button';
+import { EmojiPickerButton } from '@/components/shared/ui/emoji-picker-button';
 import { useUpdateWebEmoji } from '@/hooks/web/mutations';
 import { useWebStream } from '@/hooks/web/use-web-stream';
 import { extractDomain, formatRelativeTime } from '@/lib/dashboard-utils';
