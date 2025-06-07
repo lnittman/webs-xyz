@@ -177,7 +177,7 @@ function UserMenuContent() {
                         className={cn(
                             "h-8 w-8 bg-transparent text-foreground flex items-center justify-center text-xs font-medium flex-shrink-0 border border-border transition-all duration-200 rounded-full",
                             "hover:bg-accent hover:border-foreground/20",
-                            "focus:outline-none",
+                            "focus:outline-none select-none",
                             menuOpen ? "bg-accent/80 border-foreground/30" : ""
                         )}
                     >

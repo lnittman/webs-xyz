@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@repo/design/lib/utils";
@@ -11,9 +11,32 @@ interface MobileSheetProps {
     title?: string;
     showCloseButton?: boolean;
     position?: 'top' | 'bottom';
-    spacing?: 'sm' | 'md' | 'lg';
+    spacing?: 'sm' | 'md' | 'lg'; // sm=10px, md=18px, lg=26px from all edges
     children: React.ReactNode;
     className?: string;
+}
+
+// Hook to auto-close mobile overlays when transitioning to desktop
+function useAutoCloseOnDesktop(isOpen: boolean, onClose: () => void) {
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleResize = () => {
+            // Close immediately if screen becomes larger than mobile breakpoint (640px)
+            if (window.innerWidth >= 640) {
+                onClose();
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Check immediately in case we're already on desktop
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isOpen, onClose]);
 }
 
 export function MobileSheet({
@@ -26,6 +49,9 @@ export function MobileSheet({
     children,
     className
 }: MobileSheetProps) {
+    // Auto-close when transitioning to desktop
+    useAutoCloseOnDesktop(isOpen, onClose);
+
     // Close on backdrop click
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -35,21 +61,14 @@ export function MobileSheet({
 
     // Define spacing values
     const getSpacingClass = () => {
-        if (position === 'top') {
-            switch (spacing) {
-                case 'sm': return 'top-2';
-                case 'md': return 'top-4';
-                case 'lg': return 'top-8';
-                default: return 'top-8';
-            }
-        } else {
-            switch (spacing) {
-                case 'sm': return 'bottom-2';
-                case 'md': return 'bottom-4';
-                case 'lg': return 'bottom-8';
-                default: return 'bottom-8';
-            }
-        }
+        const horizontalSpacing = spacing === 'sm' ? 'left-2.5 right-2.5' :
+            spacing === 'md' ? 'left-4.5 right-4.5' : 'left-6.5 right-6.5';
+
+        const verticalSpacing = position === 'top'
+            ? (spacing === 'sm' ? 'top-2.5' : spacing === 'md' ? 'top-4.5' : 'top-6.5')
+            : (spacing === 'sm' ? 'bottom-2.5' : spacing === 'md' ? 'bottom-4.5' : 'bottom-6.5');
+
+        return `${horizontalSpacing} ${verticalSpacing}`;
     };
 
     return (
@@ -81,7 +100,7 @@ export function MobileSheet({
                             mass: 0.8
                         }}
                         className={cn(
-                            "absolute left-6 right-6",
+                            "absolute",
                             getSpacingClass()
                         )}
                         onClick={(e) => e.stopPropagation()}

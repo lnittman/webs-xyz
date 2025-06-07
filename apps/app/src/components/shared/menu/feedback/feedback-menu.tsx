@@ -103,7 +103,7 @@ export function FeedbackMenu({ className }: FeedbackMenuProps) {
                 <button
                     className={cn(
                         "flex h-8 items-center gap-2 px-3 py-1.5 text-sm font-medium font-mono text-muted-foreground hover:text-foreground transition-all duration-200 rounded-md border border-border hover:border-foreground/20 hover:bg-accent",
-                        "focus:outline-none",
+                        "focus:outline-none select-none",
                         isOpen && "bg-accent/80 border-foreground/30 text-foreground",
                         className
                     )}

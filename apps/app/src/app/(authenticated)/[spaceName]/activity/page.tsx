@@ -58,7 +58,7 @@ export default function SpaceActivityPage({ params }: SpaceActivityPageProps) {
                 <div className="w-full max-w-4xl px-6">
                     <div className="border border-border rounded-lg p-8 text-center">
                         <div className="text-muted-foreground">
-                            📈 Activity feed coming soon...
+                            📈 coming soon...
                         </div>
                     </div>
                 </div>

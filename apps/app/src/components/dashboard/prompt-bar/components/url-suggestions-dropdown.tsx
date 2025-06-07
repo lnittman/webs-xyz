@@ -170,7 +170,7 @@ export function UrlSuggestionsDropdown({
                         position: 'absolute',
                         top: position.top,
                         left: position.left,
-                        zIndex: 9999
+                        zIndex: 75
                     }}
                     className="bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-xl overflow-hidden"
                 >

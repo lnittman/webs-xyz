@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
 import {
     SignOut,
@@ -44,12 +44,38 @@ const docLinks: DocLink[] = [
     }
 ];
 
+// Hook to auto-close mobile overlays when transitioning to desktop
+function useAutoCloseOnDesktop(isOpen: boolean, onClose: () => void) {
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleResize = () => {
+            // Close immediately if screen becomes larger than mobile breakpoint (640px)
+            if (window.innerWidth >= 640) {
+                onClose();
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Check immediately in case we're already on desktop
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isOpen, onClose]);
+}
+
 // Main mobile user menu overlay content component
 function MobileUserMenuOverlayContent() {
     const { isLoaded } = useAuth();
     const { user } = useUser();
     const router = useTransitionRouter();
     const [isOpen, setIsOpen] = useAtom(mobileUserMenuOpenAtom);
+
+    // Auto-close when transitioning to desktop
+    useAutoCloseOnDesktop(isOpen, setIsOpen.bind(null, false));
 
     // Get user initials for avatar fallback
     const initials = user?.fullName
@@ -122,7 +148,7 @@ function MobileUserMenuOverlayContent() {
                             ease: [0.23, 1, 0.32, 1],
                             delay: 0.1
                         }}
-                        className="fixed inset-x-0 top-14 z-[61] p-6 font-mono"
+                        className="fixed left-2.5 right-2.5 top-18.5 z-[61] font-mono"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="w-full max-w-md mx-auto space-y-6">
