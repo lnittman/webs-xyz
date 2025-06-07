@@ -7,6 +7,7 @@ import { useSpaces } from '@/hooks/spaces';
 import { useWebs } from '@/hooks/web/queries';
 import { cn } from '@repo/design/lib/utils';
 import { User, Folder, Globe, Clock, Palette, Calendar } from '@phosphor-icons/react/dist/ssr';
+import { SPACE_DEFAULTS } from '@repo/api/constants';
 
 export function AccountOverview() {
     const { user } = useUser();
@@ -160,7 +161,7 @@ export function AccountOverview() {
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Default Model:</span>
                                             <span className="font-mono text-xs">
-                                                {settings?.defaultModel || 'claude-4-sonnet'}
+                                                {settings?.defaultModel || SPACE_DEFAULTS.DEFAULT_MODEL}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">

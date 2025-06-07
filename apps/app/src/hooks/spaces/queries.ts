@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import type { Space } from '@/types/space';
+import type { Space } from '@repo/api/services/space';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@repo/design/lib/utils';
+import { AVAILABLE_MODELS, SPACE_VISIBILITY, type Space } from '@repo/api/constants';
 import {
     User,
     Palette,
@@ -10,20 +11,6 @@ import {
     Check,
     X
 } from '@phosphor-icons/react/dist/ssr';
-
-interface Space {
-    id: string;
-    name: string;
-    defaultModel: string;
-    notifyWebComplete: boolean;
-    notifyWebFailed: boolean;
-    visibility: string;
-    createdAt: string;
-    updatedAt: string;
-    _count?: {
-        webs: number;
-    };
-}
 
 interface SpaceSettingsProps {
     space: Space;
@@ -119,10 +106,14 @@ export function SpaceSettings({ space }: SpaceSettingsProps) {
                             disabled={isUpdating}
                             className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-colors disabled:opacity-50"
                         >
-                            <option value="claude-4-sonnet">Claude 4 Sonnet</option>
-                            <option value="gpt-4o">GPT-4o</option>
-                            <option value="gpt-4o-mini">GPT-4o Mini</option>
-                            <option value="gemini-pro">Gemini Pro</option>
+                            {AVAILABLE_MODELS.map((model) => (
+                                <option key={model} value={model}>
+                                    {model === 'claude-4-sonnet' && 'Claude 4 Sonnet'}
+                                    {model === 'gpt-4o' && 'GPT-4o'}
+                                    {model === 'gpt-4o-mini' && 'GPT-4o Mini'}
+                                    {model === 'gemini-pro' && 'Gemini Pro'}
+                                </option>
+                            ))}
                         </select>
                         <p className="text-xs text-muted-foreground font-mono">
                             Default AI model for analyzing webs in this space
@@ -137,9 +128,13 @@ export function SpaceSettings({ space }: SpaceSettingsProps) {
                             disabled={isUpdating}
                             className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-colors disabled:opacity-50"
                         >
-                            <option value="PRIVATE">Private</option>
-                            <option value="SHARED">Shared</option>
-                            <option value="PUBLIC">Public</option>
+                            {SPACE_VISIBILITY.map((visibility) => (
+                                <option key={visibility} value={visibility}>
+                                    {visibility === 'PRIVATE' && 'Private'}
+                                    {visibility === 'SHARED' && 'Shared'}
+                                    {visibility === 'PUBLIC' && 'Public'}
+                                </option>
+                            ))}
                         </select>
                         <p className="text-xs text-muted-foreground font-mono">
                             Who can view and access this space

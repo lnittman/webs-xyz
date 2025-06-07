@@ -1,29 +1,11 @@
 import 'server-only';
 import { database } from '@repo/database';
 import type { Prisma } from '@repo/database';
-import { createSpaceSchema, updateSpaceSchema, updateSpaceSettingsSchema } from '../schemas/space';
+import { createSpaceSchema, updateSpaceSchema, updateSpaceSettingsSchema, type Space } from '../schemas/space';
+import { SPACE_DEFAULTS } from '../constants';
 
-// Types
-export interface Space {
-  id: string;
-  userId: string;
-  name: string;
-  description: string | null;
-  color: string | null;
-  emoji: string | null;
-  isDefault: boolean;
-  // Space settings
-  defaultModel: string;
-  notifyWebComplete: boolean;
-  notifyWebFailed: boolean;
-  visibility: string;
-  createdAt: string;
-  updatedAt: string;
-  webs?: Web[];
-  _count?: {
-    webs: number;
-  };
-}
+// Re-export the Space type from schema for convenience
+export type { Space } from '../schemas/space';
 
 export interface Web {
   id: string;
@@ -103,6 +85,11 @@ export class SpaceService {
           description: 'Default space for your web analyses',
           emoji: '🏠',
           isDefault: true,
+          // Use constants for defaults
+          defaultModel: SPACE_DEFAULTS.DEFAULT_MODEL,
+          notifyWebComplete: SPACE_DEFAULTS.NOTIFY_WEB_COMPLETE,
+          notifyWebFailed: SPACE_DEFAULTS.NOTIFY_WEB_FAILED,
+          visibility: SPACE_DEFAULTS.VISIBILITY,
         },
         include: {
           _count: {
@@ -140,6 +127,11 @@ export class SpaceService {
         color: data.color,
         emoji: data.emoji,
         isDefault: data.isDefault || false,
+        // Use constants for defaults, falling back to schema defaults if provided
+        defaultModel: data.defaultModel || SPACE_DEFAULTS.DEFAULT_MODEL,
+        notifyWebComplete: data.notifyWebComplete ?? SPACE_DEFAULTS.NOTIFY_WEB_COMPLETE,
+        notifyWebFailed: data.notifyWebFailed ?? SPACE_DEFAULTS.NOTIFY_WEB_FAILED,
+        visibility: data.visibility || SPACE_DEFAULTS.VISIBILITY,
       },
       include: {
         _count: {
@@ -178,6 +170,10 @@ export class SpaceService {
       color: data.color,
       emoji: data.emoji,
       isDefault: data.isDefault,
+      defaultModel: data.defaultModel,
+      notifyWebComplete: data.notifyWebComplete,
+      notifyWebFailed: data.notifyWebFailed,
+      visibility: data.visibility,
       updatedAt: new Date(),
     };
 
@@ -361,6 +357,11 @@ export class SpaceService {
           emoji: generateEmoji(),
           description: null,
           isDefault: true,
+          // Use constants for defaults
+          defaultModel: SPACE_DEFAULTS.DEFAULT_MODEL,
+          notifyWebComplete: SPACE_DEFAULTS.NOTIFY_WEB_COMPLETE,
+          notifyWebFailed: SPACE_DEFAULTS.NOTIFY_WEB_FAILED,
+          visibility: SPACE_DEFAULTS.VISIBILITY,
         },
         include: {
           _count: {

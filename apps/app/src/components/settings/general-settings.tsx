@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
+import { AVAILABLE_MODELS, SPACE_DEFAULTS } from '@repo/api/constants';
 import { useUserSettings } from '@/hooks/user-settings/queries';
 import { updateUserSettings } from '@/app/actions/user-settings';
 import type { UpdateUserSettingsInput, UserSettings } from '@/types/user-settings';
@@ -92,14 +93,18 @@ export function GeneralSettings() {
                 <div className="space-y-2">
                     <label className="text-sm font-medium font-mono">Default Model</label>
                     <select
-                        value={settings?.defaultModel || 'claude-4-sonnet'}
+                        value={settings?.defaultModel || SPACE_DEFAULTS.DEFAULT_MODEL}
                         onChange={(e) => handleDefaultModelChange(e.target.value)}
                         className="w-full h-9 px-3 bg-background border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-colors"
                     >
-                        <option value="claude-4-sonnet">Claude 4 Sonnet</option>
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gpt-4o-mini">GPT-4o Mini</option>
-                        <option value="gemini-pro">Gemini Pro</option>
+                        {AVAILABLE_MODELS.map((model) => (
+                            <option key={model} value={model}>
+                                {model === 'claude-4-sonnet' && 'Claude 4 Sonnet'}
+                                {model === 'gpt-4o' && 'GPT-4o'}
+                                {model === 'gpt-4o-mini' && 'GPT-4o Mini'}
+                                {model === 'gemini-pro' && 'Gemini Pro'}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </div>

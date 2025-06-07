@@ -9,4 +9,24 @@ export enum ResourceType {
   SPACE = 'Space'
 }
 
-export { ErrorType, ErrorMessage, ERROR_MESSAGES } from './error'; 
+export { ErrorType, ErrorMessage, ERROR_MESSAGES } from './error';
+export { 
+  SPACE_DEFAULTS, 
+  AVAILABLE_MODELS, 
+  SPACE_VISIBILITY, 
+  USER_SETTINGS_DEFAULTS 
+} from './defaults';
+
+// Re-export types and schemas that are safe for client use
+export type { Space } from '../schemas/space';
+export { 
+  spaceSchema,
+  createSpaceSchema,
+  updateSpaceSchema,
+  updateSpaceSettingsSchema,
+  spaceIdParamSchema,
+  assignWebToSpaceSchema,
+  type CreateSpace,
+  type UpdateSpace,
+  type UpdateSpaceSettings
+} from '../schemas/space'; 

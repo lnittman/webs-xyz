@@ -3,7 +3,7 @@ export { websService } from './services/web';
 export { userSettingsService } from './services/user-settings';
 export { feedbackService } from './services/feedback';
 export { messageService } from './services/message';
-export { spaceService } from './services/space';
+export { spaceService, type Space } from './services/space';
 
 // Export Mastra services
 export { 
@@ -36,12 +36,24 @@ export {
   spaceSchema,
   createSpaceSchema,
   updateSpaceSchema,
+  updateSpaceSettingsSchema,
   spaceIdParamSchema,
-  assignWebToSpaceSchema
+  assignWebToSpaceSchema,
+  type CreateSpace,
+  type UpdateSpace,
+  type UpdateSpaceSettings
 } from './schemas/space';
 
 // Export utilities
 export { withAuthenticatedUser } from './utils/auth';
 export { ApiResponse, withErrorHandling } from './utils/response';
 export { ApiError } from './utils/error';
-export { ErrorType } from './constants/error';
+
+// Export constants
+export { 
+  ErrorType,
+  SPACE_DEFAULTS,
+  AVAILABLE_MODELS,
+  SPACE_VISIBILITY,
+  USER_SETTINGS_DEFAULTS
+} from './constants';

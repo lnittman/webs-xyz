@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SPACE_DEFAULTS, AVAILABLE_MODELS, SPACE_VISIBILITY } from '../constants';
 
 /**
  * Schema for validating UUID ID parameter in routes
@@ -10,7 +11,7 @@ export const spaceIdParamSchema = z.object({
 export type SpaceIdParam = z.infer<typeof spaceIdParamSchema>;
 
 /**
- * Space schema
+ * Base space schema - represents the full space entity
  */
 export const spaceSchema = z.object({
   id: z.string().uuid(),
@@ -21,19 +22,25 @@ export const spaceSchema = z.object({
   emoji: z.string().max(10).nullable().optional(),
   isDefault: z.boolean(),
   // Space settings
-  defaultModel: z.string(),
+  defaultModel: z.enum(AVAILABLE_MODELS),
   notifyWebComplete: z.boolean(),
   notifyWebFailed: z.boolean(),
-  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]),
+  visibility: z.enum(SPACE_VISIBILITY),
   createdAt: z.string(),
   updatedAt: z.string(),
   webs: z.array(z.any()).optional(), // Will be Web[] when populated
+  _count: z.object({
+    webs: z.number()
+  }).optional(),
 });
 
+/**
+ * Inferred Space type from schema
+ */
 export type Space = z.infer<typeof spaceSchema>;
 
 /**
- * Request schemas for API operations
+ * Schema for creating a new space
  */
 export const createSpaceSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less"),
@@ -42,10 +49,10 @@ export const createSpaceSchema = z.object({
   emoji: z.string().max(10, "Emoji must be 10 characters or less").optional(),
   isDefault: z.boolean().optional(),
   // Space settings (optional during creation, will use defaults)
-  defaultModel: z.string().optional(),
-  notifyWebComplete: z.boolean().optional(),
-  notifyWebFailed: z.boolean().optional(),
-  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]).optional(),
+  defaultModel: z.enum(AVAILABLE_MODELS).default(SPACE_DEFAULTS.DEFAULT_MODEL).optional(),
+  notifyWebComplete: z.boolean().default(SPACE_DEFAULTS.NOTIFY_WEB_COMPLETE).optional(),
+  notifyWebFailed: z.boolean().default(SPACE_DEFAULTS.NOTIFY_WEB_FAILED).optional(),
+  visibility: z.enum(SPACE_VISIBILITY).default(SPACE_DEFAULTS.VISIBILITY).optional(),
   userId: z.string(),
 });
 
@@ -58,7 +65,8 @@ export const updateSpaceSchema = spaceSchema.partial().omit({
   id: true, 
   userId: true, 
   createdAt: true,
-  webs: true 
+  webs: true,
+  _count: true,
 });
 
 export type UpdateSpace = z.infer<typeof updateSpaceSchema>;
@@ -77,10 +85,10 @@ export type AssignWebToSpace = z.infer<typeof assignWebToSpaceSchema>;
  * Schema for updating space settings
  */
 export const updateSpaceSettingsSchema = z.object({
-  defaultModel: z.string().optional(),
+  defaultModel: z.enum(AVAILABLE_MODELS).optional(),
   notifyWebComplete: z.boolean().optional(),
   notifyWebFailed: z.boolean().optional(),
-  visibility: z.enum(["PRIVATE", "SHARED", "PUBLIC"]).optional(),
+  visibility: z.enum(SPACE_VISIBILITY).optional(),
 });
 
 export type UpdateSpaceSettings = z.infer<typeof updateSpaceSettingsSchema>;

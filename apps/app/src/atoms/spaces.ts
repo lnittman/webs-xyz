@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { Space } from '@/types/space';
+import type { Space } from '@repo/api/services/space';
 
 // Current selected space ID
 export const currentSpaceIdAtom = atom<string | null>(null);
