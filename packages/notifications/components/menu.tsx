@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import {
     Lightning,
     Check,
@@ -61,6 +62,14 @@ export function NotificationsMenu({ onNavigate }: NotificationsMenuProps) {
 
     // Unread count from Knock
     const unreadCount = metadata?.unread_count || 0;
+
+    // Close menu when transitioning to mobile to prevent UI issues
+    const isMobile = useIsMobile();
+    useEffect(() => {
+        if (menuOpen && isMobile) {
+            setMenuOpen(false);
+        }
+    }, [menuOpen, isMobile]);
 
     const markAsRead = async (item: any) => {
         if (!feed) return;

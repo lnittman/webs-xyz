@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTransitionRouter } from 'next-view-transitions';
 import { useAtom } from 'jotai';
+import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import {
     Folder,
     Plus,
@@ -118,6 +119,7 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
     const [spacesSearch, setSpacesSearch] = useState('');
     const [websSearch, setWebsSearch] = useState('');
     const [, setPromptFocused] = useAtom(promptFocusedAtom);
+    const [dropdownAlign, setDropdownAlign] = useState<'start' | 'end'>('start');
     const router = useTransitionRouter();
 
     // Use SWR hooks for data fetching - include webs with spaces
@@ -131,6 +133,40 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
 
     // Use hovered space if hovering, otherwise use selected space
     const displaySpace = hoveredSpace || selectedSpace;
+
+    // Close menu when transitioning to mobile to prevent UI issues
+    const isMobile = useIsMobile();
+    useEffect(() => {
+        if (menuOpen && isMobile) {
+            setMenuOpen(false);
+        }
+    }, [menuOpen, isMobile]);
+
+    // Check if dropdown should align to the end to avoid viewport edge
+    useEffect(() => {
+        if (menuOpen) {
+            const checkPosition = () => {
+                const button = document.querySelector('[aria-label="Spaces and webs"]') as HTMLElement;
+                if (button) {
+                    const buttonRect = button.getBoundingClientRect();
+                    const menuWidth = 480; // Fixed width of the menu
+                    const minRightPadding = 40; // Increased minimum padding from right edge
+                    const availableSpaceRight = window.innerWidth - buttonRect.left;
+
+                    // If the menu would extend too close to the right edge, align to end
+                    if (availableSpaceRight < menuWidth + minRightPadding) {
+                        setDropdownAlign('end');
+                    } else {
+                        setDropdownAlign('start');
+                    }
+                }
+            };
+
+            checkPosition();
+            window.addEventListener('resize', checkPosition);
+            return () => window.removeEventListener('resize', checkPosition);
+        }
+    }, [menuOpen]);
 
     // Filter spaces based on search
     const filteredSpaces = useMemo(() => {
@@ -263,7 +299,7 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
-                align="start"
+                align={dropdownAlign}
                 side="bottom"
                 sideOffset={8}
                 className="p-0 bg-popover border-border/50 rounded-lg font-mono overflow-hidden z-[90]"

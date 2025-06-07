@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 
 import { SignOutButton, useAuth, useUser } from "@repo/auth/client";
 import {
@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useTransitionRouter } from "next-view-transitions";
+import { useIsMobile } from '@repo/design/hooks/use-mobile';
 
 import {
     DropdownMenu,
@@ -138,6 +139,14 @@ function UserMenuContent() {
 
     const router = useTransitionRouter();
     const [menuOpen, setMenuOpen] = useState(false);
+
+    // Close menu when transitioning to mobile to prevent UI issues
+    const isMobile = useIsMobile();
+    useEffect(() => {
+        if (menuOpen && isMobile) {
+            setMenuOpen(false);
+        }
+    }, [menuOpen, isMobile]);
 
     // Get user initials for avatar fallback
     const initials = user?.fullName

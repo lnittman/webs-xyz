@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import {
     X,
     PaperPlaneTilt,
@@ -43,6 +44,14 @@ export function FeedbackMenu({ className }: FeedbackMenuProps) {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [showTopicDropdown, setShowTopicDropdown] = useState(false);
     const [sentiment, setSentiment] = useState<'positive' | 'negative' | null>(null);
+
+    // Close menu when transitioning to mobile to prevent UI issues
+    const isMobile = useIsMobile();
+    useEffect(() => {
+        if (isOpen && isMobile) {
+            setIsOpen(false);
+        }
+    }, [isOpen, isMobile]);
 
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);

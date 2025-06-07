@@ -174,9 +174,8 @@ export function SpaceSettingsNavigation({ spaceName: propSpaceName }: SpaceSetti
                 ) : (
                     filteredSettings.map((item) => {
                         const href = buildHref(item.title);
-                        // For General on mobile, when we're on the root settings page, we're showing navigation menu, not general content
-                        // So General should never appear active when on the root page showing navigation
-                        const isActive = false; // Never show any item as active in the navigation menu
+                        // Check if current pathname matches this navigation item's href
+                        const isActive = pathname === href;
                         const Icon = item.icon;
 
                         return (
