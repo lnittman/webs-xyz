@@ -5,23 +5,25 @@ import { useAtom } from "jotai";
 import { useAuth } from "@repo/auth/client";
 import { cn } from "@repo/design/lib/utils";
 import { Skeleton } from "@repo/design/components/ui/skeleton";
+import { ChatCircle } from "@phosphor-icons/react/dist/ssr";
 import { mobileFeedbackOpenAtom } from "@/atoms/mobile-menu";
 
 interface MobileFeedbackMenuProps {
     className?: string;
+    variant?: 'default' | 'circular';
 }
 
 // Skeleton component for the mobile feedback button
-function MobileFeedbackMenuSkeleton() {
+function MobileFeedbackMenuSkeleton({ variant = 'default' }: { variant?: 'default' | 'circular' }) {
     return (
-        <div className="h-8 flex-shrink-0">
-            <Skeleton className="h-8 w-20 rounded-md" />
+        <div className={cn("flex-shrink-0", variant === 'circular' ? "h-8 w-8" : "h-8")}>
+            <Skeleton className={cn(variant === 'circular' ? "h-8 w-8 rounded-full" : "h-8 w-20 rounded-md")} />
         </div>
     );
 }
 
 // Main mobile feedback menu content component
-function MobileFeedbackMenuContent({ className }: MobileFeedbackMenuProps) {
+function MobileFeedbackMenuContent({ className, variant = 'default' }: MobileFeedbackMenuProps) {
     const { isLoaded } = useAuth();
     const [isOpen, setIsOpen] = useAtom(mobileFeedbackOpenAtom);
 
@@ -30,7 +32,25 @@ function MobileFeedbackMenuContent({ className }: MobileFeedbackMenuProps) {
     };
 
     if (!isLoaded) {
-        return <MobileFeedbackMenuSkeleton />;
+        return <MobileFeedbackMenuSkeleton variant={variant} />;
+    }
+
+    if (variant === 'circular') {
+        return (
+            <button
+                onClick={handleOpen}
+                className={cn(
+                    "h-8 w-8 bg-transparent text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200",
+                    "hover:bg-accent hover:text-foreground hover:border-foreground/20",
+                    "focus:outline-none",
+                    isOpen && "bg-accent/80 border-foreground/30 text-foreground",
+                    className
+                )}
+                aria-label="Feedback"
+            >
+                <ChatCircle className="w-4 h-4" weight="duotone" />
+            </button>
+        );
     }
 
     return (
@@ -49,10 +69,10 @@ function MobileFeedbackMenuContent({ className }: MobileFeedbackMenuProps) {
 }
 
 // Main exported component with Suspense wrapper
-export function MobileFeedbackMenu({ className }: MobileFeedbackMenuProps) {
+export function MobileFeedbackMenu({ className, variant = 'default' }: MobileFeedbackMenuProps) {
     return (
-        <Suspense fallback={<MobileFeedbackMenuSkeleton />}>
-            <MobileFeedbackMenuContent className={className} />
+        <Suspense fallback={<MobileFeedbackMenuSkeleton variant={variant} />}>
+            <MobileFeedbackMenuContent className={className} variant={variant} />
         </Suspense>
     );
 } 

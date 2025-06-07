@@ -10,7 +10,6 @@ import {
     Command,
     Palette,
     Plus,
-    Book,
     ArrowUpRight,
 } from "@phosphor-icons/react/dist/ssr";
 import { useTransitionRouter } from "next-view-transitions";
@@ -100,31 +99,33 @@ function MobileUserMenuOverlayContent() {
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md"
-                    onClick={handleBackdropClick}
-                >
-                    {/* Bottom-aligned menu content */}
+                <>
+                    {/* Full page solid overlay */}
                     <motion.div
-                        initial={{ opacity: 0, y: 50 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="fixed inset-0 z-[100] bg-background"
+                        onClick={handleBackdropClick}
+                    />
+
+                    {/* Menu content - positioned from bottom */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
+                        exit={{ opacity: 0, y: 100 }}
                         transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 30,
-                            mass: 0.8
+                            duration: 0.4,
+                            ease: [0.23, 1, 0.32, 1], // Custom ease for smooth feel
+                            delay: 0.1
                         }}
-                        className="absolute bottom-8 left-6 right-6"
+                        className="fixed inset-x-0 bottom-0 z-[101] p-6 font-mono"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="bg-background border border-border rounded-2xl shadow-2xl p-6 font-mono">
+                        <div className="w-full max-w-md mx-auto space-y-4">
                             {/* User info */}
-                            <div className="mb-6 p-4 bg-muted/20 rounded-lg">
+                            <div className="bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 mb-6">
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 bg-foreground text-background flex items-center justify-center text-base font-medium rounded-full">
                                         {initials}
@@ -140,11 +141,11 @@ function MobileUserMenuOverlayContent() {
                                 </div>
                             </div>
 
-                            {/* Menu items */}
-                            <div className="space-y-3 mb-6">
+                            {/* Full width action buttons */}
+                            <div className="space-y-3">
                                 <button
                                     onClick={handleOpenDashboard}
-                                    className="w-full flex items-center gap-4 p-4 bg-muted/20 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                                    className="w-full flex items-center gap-4 p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
                                 >
                                     <House className="w-5 h-5 text-muted-foreground" weight="duotone" />
                                     <span className="text-base">Dashboard</span>
@@ -152,14 +153,14 @@ function MobileUserMenuOverlayContent() {
 
                                 <button
                                     onClick={handleOpenSettings}
-                                    className="w-full flex items-center gap-4 p-4 bg-muted/20 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                                    className="w-full flex items-center gap-4 p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
                                 >
                                     <Gear className="w-5 h-5 text-muted-foreground" weight="duotone" />
                                     <span className="text-base">Account Settings</span>
                                 </button>
 
                                 <button
-                                    className="w-full flex items-center justify-between p-4 bg-muted/20 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                                    className="w-full flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
                                 >
                                     <div className="flex items-center gap-4">
                                         <Users className="w-5 h-5 text-muted-foreground" weight="duotone" />
@@ -169,38 +170,32 @@ function MobileUserMenuOverlayContent() {
                                 </button>
 
                                 <button
-                                    className="w-full flex items-center justify-between p-4 bg-muted/20 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                                    className="w-full flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-200 hover:bg-background/90 hover:border-border"
                                 >
                                     <div className="flex items-center gap-4">
                                         <Command className="w-5 h-5 text-muted-foreground" weight="duotone" />
                                         <span className="text-base">Command Menu</span>
                                     </div>
-                                    <kbd className="text-sm bg-background px-2 py-1 rounded">⌘K</kbd>
+                                    <kbd className="text-sm bg-muted/50 px-2 py-1 rounded">⌘K</kbd>
                                 </button>
                             </div>
 
                             {/* Documentation links */}
-                            <div className="mb-6">
-                                <div className="flex items-center gap-3 mb-3 px-4">
-                                    <Book className="w-5 h-5 text-muted-foreground" weight="duotone" />
-                                    <span className="text-base font-medium">Documentation</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {docLinks.map((link) => (
-                                        <button
-                                            key={link.id}
-                                            onClick={() => handleDocLinkClick(link.url)}
-                                            className="w-full flex items-center justify-between p-3 bg-muted/10 rounded-lg transition-all duration-200 hover:bg-muted/30"
-                                        >
-                                            <span className="text-sm text-foreground">{link.title}</span>
-                                            <ArrowUpRight className="w-4 h-4 text-muted-foreground" weight="duotone" />
-                                        </button>
-                                    ))}
-                                </div>
+                            <div className="space-y-2 pt-3 border-t border-border/30">
+                                {docLinks.map((link) => (
+                                    <button
+                                        key={link.id}
+                                        onClick={() => handleDocLinkClick(link.url)}
+                                        className="w-full flex items-center justify-between p-3 bg-background/60 backdrop-blur-sm border border-border/30 rounded-lg transition-all duration-200 hover:bg-background/80 hover:border-border/50"
+                                    >
+                                        <span className="text-sm text-foreground">{link.title}</span>
+                                        <ArrowUpRight className="w-4 h-4 text-muted-foreground" weight="duotone" />
+                                    </button>
+                                ))}
                             </div>
 
-                            {/* Theme selector - now using the reusable ThemeSwitcher component */}
-                            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg mb-6">
+                            {/* Theme selector */}
+                            <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <Palette className="w-5 h-5 text-muted-foreground" weight="duotone" />
                                     <span className="text-base">Theme</span>
@@ -210,19 +205,19 @@ function MobileUserMenuOverlayContent() {
 
                             {/* Sign out button */}
                             <SignOutButton>
-                                <button className="w-full flex items-center gap-4 p-4 bg-red-500/10 text-red-600 rounded-lg transition-all duration-200 hover:bg-red-500/20 mb-6">
+                                <button className="w-full flex items-center gap-4 p-4 bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 rounded-xl transition-all duration-200 hover:bg-red-500/20 hover:border-red-500/30">
                                     <SignOut className="w-5 h-5" weight="duotone" />
                                     <span className="text-base">Sign Out</span>
                                 </button>
                             </SignOutButton>
 
                             {/* Upgrade section */}
-                            <button className="w-full bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 rounded-lg p-4 text-base font-medium">
+                            <button className="w-full bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 rounded-xl p-4 text-base font-medium">
                                 Upgrade to Pro
                             </button>
                         </div>
                     </motion.div>
-                </motion.div>
+                </>
             )}
         </AnimatePresence>
     );

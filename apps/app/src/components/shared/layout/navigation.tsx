@@ -334,33 +334,23 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
 
                     {/* Right side - Responsive menu buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Animated buttons that change between mobile/desktop */}
                         <AnimatePresence mode="wait">
                             {mounted && isMobile ? (
                                 <motion.div
-                                    key="mobile-buttons"
+                                    key="mobile-feedback"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.2 }}
                                     className="flex items-center gap-2"
                                 >
-                                    {/* Mobile feedback button - circular chat icon */}
-                                    <button
-                                        className={cn(
-                                            "h-8 w-8 bg-transparent text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200",
-                                            "hover:bg-accent hover:text-foreground hover:border-foreground/20",
-                                            "focus:outline-none"
-                                        )}
-                                        aria-label="Feedback"
-                                    >
-                                        <ChatCircle className="w-4 h-4" weight="duotone" />
-                                    </button>
-                                    <MobileNotificationsMenu onNavigate={handleNavigate} />
-                                    <MobileUserMenu />
+                                    {/* Mobile feedback button */}
+                                    <MobileFeedbackMenu variant="circular" />
                                 </motion.div>
                             ) : (
                                     <motion.div
-                                        key="desktop-buttons"
+                                        key="desktop-feedback-docs"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
@@ -368,12 +358,14 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
                                         className="flex items-center gap-2"
                                     >
                                     <FeedbackMenu className="h-8" />
-                                    <DocsMenu />
-                                    <NotificationsWrapper onNavigate={handleNavigate} />
-                                    <UserMenu />
+                                        <DocsMenu />
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        {/* Stable buttons that don't change between mobile/desktop */}
+                        {isMobile ? <MobileNotificationsMenu onNavigate={handleNavigate} /> : <NotificationsWrapper onNavigate={handleNavigate} />}
+                        {isMobile ? <MobileUserMenu /> : <UserMenu />}
                     </div>
                 </div>
 
