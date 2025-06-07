@@ -263,7 +263,7 @@ export function MobileNotificationsContent({ onNavigate }: MobileNotificationsCo
                         transition={{ duration: 0.2 }}
                         className="absolute inset-0 flex flex-col"
                     >
-                        {loading ? (
+                        {loading || (!items && !error) ? (
                             <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
                                 <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-6">
                                     <Lightning className="w-10 h-10 text-muted-foreground/50 animate-pulse" weight="duotone" />
@@ -398,23 +398,15 @@ export function MobileNotificationsContent({ onNavigate }: MobileNotificationsCo
                                                     )}
                                                 </div>
                                             </div>
-                                            {/* Archive button */}
+                                            {/* Archive button - always visible on mobile */}
                                             {activeTab === 'inbox' && (
-                                                <motion.button
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{
-                                                        opacity: hoveredNotification === notification.id ? 1 : 0
-                                                    }}
-                                                    transition={{ duration: 0.2 }}
+                                                <button
                                                     onClick={(e) => archiveNotification(notification, e)}
-                                                    className={cn(
-                                                        "absolute right-6 top-4 h-8 w-8 bg-muted/50 text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200 hover:bg-muted/80 hover:text-foreground",
-                                                        hoveredNotification !== notification.id && "pointer-events-none"
-                                                    )}
+                                                    className="absolute right-6 top-4 h-8 w-8 bg-muted/50 text-muted-foreground flex items-center justify-center rounded-full border border-border transition-all duration-200 hover:bg-muted/80 hover:text-foreground"
                                                     title="Archive notification"
                                                 >
                                                     <Archive className="w-4 h-4" weight="duotone" />
-                                                </motion.button>
+                                                </button>
                                             )}
                                         </div>
                                         {index < filteredNotifications.length - 1 && (

@@ -14,6 +14,7 @@ interface MobileSheetProps {
     spacing?: 'sm' | 'md' | 'lg'; // sm=10px, md=18px, lg=26px from all edges
     children: React.ReactNode;
     className?: string;
+    contentHeight?: 'auto' | 'fill'; // 'auto' for feedback, 'fill' for notifications
 }
 
 // Hook to auto-close mobile overlays when transitioning to desktop
@@ -47,7 +48,8 @@ export function MobileSheet({
     position = 'bottom',
     spacing = 'lg',
     children,
-    className
+    className,
+    contentHeight = 'auto'
 }: MobileSheetProps) {
     // Auto-close when transitioning to desktop
     useAutoCloseOnDesktop(isOpen, onClose);
@@ -134,7 +136,10 @@ export function MobileSheet({
                             )}
 
                             {/* Content */}
-                            <div className="max-h-[70vh] overflow-y-auto">
+                            <div className={cn(
+                                contentHeight === 'fill' ? "h-[70vh]" : "max-h-[60vh]",
+                                "overflow-y-auto"
+                            )}>
                                 {children}
                             </div>
                         </div>

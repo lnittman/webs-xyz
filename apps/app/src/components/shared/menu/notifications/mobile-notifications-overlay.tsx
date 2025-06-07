@@ -38,7 +38,7 @@ function MobileNotificationsOverlayContent({ onNavigate }: MobileNotificationsOv
             title="Notifications"
             showCloseButton={true}
             spacing="sm"
-            className="h-[70vh]"
+            contentHeight="fill"
         >
             <MobileNotificationsContent onNavigate={handleNavigate} />
         </MobileSheet>

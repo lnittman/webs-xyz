@@ -166,7 +166,7 @@ function MobileFeedbackOverlayContent() {
                                 <button
                                     type="button"
                                     onClick={() => setShowTopicDropdown(!showTopicDropdown)}
-                                    className="w-full h-11 px-4 pr-10 bg-background border border-border rounded-lg text-sm text-left flex items-center justify-between hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all duration-200 font-mono"
+                                        className="w-full h-11 px-4 pr-10 bg-background border border-border rounded-lg text-sm text-left flex items-center justify-between hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all duration-200 font-mono relative"
                                 >
                                     <div className="flex items-center gap-3">
                                         {selectedTopicData && (
@@ -184,6 +184,7 @@ function MobileFeedbackOverlayContent() {
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
                                                 transition={{ duration: 0.15 }}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2"
                                             >
                                                 <CaretUp size={14} weight="duotone" className="text-muted-foreground" />
                                             </motion.div>
@@ -194,6 +195,7 @@ function MobileFeedbackOverlayContent() {
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
                                                 transition={{ duration: 0.15 }}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2"
                                             >
                                                 <CaretDown size={14} weight="duotone" className="text-muted-foreground" />
                                             </motion.div>
@@ -264,12 +266,11 @@ function MobileFeedbackOverlayContent() {
                         {/* Sentiment and Submit */}
                         <div className="flex items-center justify-between pt-4 border-t border-border">
                             {/* Thumbs up/down buttons */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground mr-2">How was your experience?</span>
+                                <div className="flex items-center gap-1">
                                 <motion.button
                                     type="button"
                                     onClick={() => setSentiment(sentiment === 'positive' ? null : 'positive')}
-                                    className="p-3 rounded-full"
+                                        className="p-2 rounded-full"
                                     animate={{
                                         backgroundColor: sentiment === 'positive'
                                             ? 'rgba(34, 197, 94, 0.2)'
@@ -301,13 +302,13 @@ function MobileFeedbackOverlayContent() {
                                             color: { duration: 0.2 }
                                         }}
                                     >
-                                        <ThumbsUp size={18} weight="duotone" />
+                                            <ThumbsUp size={16} weight="duotone" />
                                     </motion.div>
                                 </motion.button>
                                 <motion.button
                                     type="button"
                                     onClick={() => setSentiment(sentiment === 'negative' ? null : 'negative')}
-                                    className="p-3 rounded-full"
+                                        className="p-2 rounded-full"
                                     animate={{
                                         backgroundColor: sentiment === 'negative'
                                             ? 'rgba(239, 68, 68, 0.2)'
@@ -339,7 +340,7 @@ function MobileFeedbackOverlayContent() {
                                             color: { duration: 0.2 }
                                         }}
                                     >
-                                        <ThumbsDown size={18} weight="duotone" />
+                                            <ThumbsDown size={16} weight="duotone" />
                                     </motion.div>
                                 </motion.button>
                             </div>
@@ -349,7 +350,7 @@ function MobileFeedbackOverlayContent() {
                                 type="submit"
                                 disabled={!selectedTopic || !feedback.trim() || isSubmitting}
                                 className={cn(
-                                    "px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 font-mono",
+                                    "px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 font-mono",
                                     "disabled:opacity-50 disabled:cursor-not-allowed",
                                     selectedTopic && feedback.trim() && !isSubmitting
                                         ? "bg-foreground text-background hover:bg-foreground/90"
@@ -366,7 +367,7 @@ function MobileFeedbackOverlayContent() {
                                         Sending...
                                     </span>
                                 ) : (
-                                    'Send Feedback'
+                                            'Send'
                                 )}
                             </button>
                         </div>
