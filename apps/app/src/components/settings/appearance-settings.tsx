@@ -7,6 +7,7 @@ import { useUserSettings } from '@/hooks/user-settings/queries';
 import { updateUserSettings } from '@/app/actions/user-settings';
 import { fonts, applyFont } from '@/lib/fonts';
 import type { UserSettings } from '@/types/user-settings';
+import { MobileSettingsHeader } from './mobile-settings-header';
 
 export function AppearanceSettings() {
     const { settings, isLoading, mutate } = useUserSettings();
@@ -75,9 +76,9 @@ export function AppearanceSettings() {
     if (isLoading) {
         return (
             <div className="space-y-6">
+                <MobileSettingsHeader title="Appearance" />
                 <div className="animate-pulse">
                     <div className="h-6 bg-muted rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
                 </div>
                 <div className="space-y-4">
                     <div className="h-20 bg-muted rounded animate-pulse"></div>
@@ -89,12 +90,8 @@ export function AppearanceSettings() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-lg font-semibold font-mono mb-2">Appearance</h2>
-                <p className="text-sm text-muted-foreground font-mono">
-                    Customize the look and feel of your workspace.
-                </p>
-            </div>
+            {/* Mobile header with back button */}
+            <MobileSettingsHeader title="Appearance" />
 
             <div className="space-y-6">
                 {/* Font Selection */}

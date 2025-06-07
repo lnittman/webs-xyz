@@ -5,6 +5,7 @@ import { AVAILABLE_MODELS, SPACE_DEFAULTS } from '@repo/api/constants';
 import { useUserSettings } from '@/hooks/user-settings/queries';
 import { updateUserSettings } from '@/app/actions/user-settings';
 import type { UpdateUserSettingsInput, UserSettings } from '@/types/user-settings';
+import { MobileSettingsHeader } from './mobile-settings-header';
 
 export function GeneralSettings() {
     const { settings, isLoading, mutate } = useUserSettings();
@@ -57,9 +58,9 @@ export function GeneralSettings() {
     if (isLoading) {
         return (
             <div className="space-y-6">
+                <MobileSettingsHeader title="General" />
                 <div className="animate-pulse">
                     <div className="h-6 bg-muted rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
                 </div>
                 <div className="space-y-4">
                     <div className="h-20 bg-muted rounded animate-pulse"></div>
@@ -71,12 +72,8 @@ export function GeneralSettings() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-lg font-semibold font-mono mb-2">General Settings</h2>
-                <p className="text-sm text-muted-foreground font-mono">
-                    Manage your account and workspace preferences.
-                </p>
-            </div>
+            {/* Mobile header with back button */}
+            <MobileSettingsHeader title="General" />
 
             <div className="space-y-4">
                 <div className="space-y-2">

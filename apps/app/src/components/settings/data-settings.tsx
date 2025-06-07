@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Download, Trash } from '@phosphor-icons/react/dist/ssr';
 import { exportUserData, clearAllUserData } from '@/app/actions/user-settings';
 import { useRouter } from 'next/navigation';
+import { MobileSettingsHeader } from './mobile-settings-header';
 
 export function DataSettings() {
     const router = useRouter();
@@ -62,12 +63,8 @@ export function DataSettings() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-lg font-semibold font-mono mb-2">Data Management</h2>
-                <p className="text-sm text-muted-foreground font-mono">
-                    Export, import, and manage your data.
-                </p>
-            </div>
+            {/* Mobile header with back button */}
+            <MobileSettingsHeader title="Data & Privacy" />
 
             <div className="space-y-4">
                 <div className="border border-border rounded-lg p-4 hover:border-foreground/20 transition-colors">

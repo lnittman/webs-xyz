@@ -5,7 +5,6 @@ import { Link } from 'next-view-transitions';
 import { useTransitionRouter } from 'next-view-transitions';
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import { useAuth, useUser } from '@repo/auth/client';
 import { UserMenu } from '../menu/user/user-menu';
@@ -213,159 +212,129 @@ export function Navigation({ webTitle, webId }: NavigationProps) {
                 {/* Top navigation bar */}
                 <div className="flex h-14 items-center justify-between px-4">
                     {/* Left side - Logo and Breadcrumbs */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={mounted && isMobile ? 'mobile' : 'desktop'}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="flex items-center gap-3 min-w-0 flex-1"
-                        >
-                            {mounted && !isMobile && (
-                                <>
-                                    {/* ASCII Logo - desktop only */}
-                                    <div className="flex-shrink-0 -ml-2">
-                                        <WebsAsciiLogo
-                                            size="small"
-                                            className="scale-75 -translate-x-1 hover:opacity-80 transition-opacity"
-                                            onClick={handleLogoClick}
-                                        />
-                                    </div>
-                                    {/* Separator */}
-                                    <span className="text-muted-foreground text-sm flex-shrink-0 ml-[-12px]">/</span>
-                                </>
-                            )}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {/* ASCII Logo - desktop only */}
+                        <div className="hidden sm:flex flex-shrink-0 -ml-2">
+                            <WebsAsciiLogo
+                                size="small"
+                                className="scale-75 -translate-x-1 hover:opacity-80 transition-opacity"
+                                onClick={handleLogoClick}
+                            />
+                        </div>
+                        {/* Separator - desktop only */}
+                        <span className="hidden sm:block text-muted-foreground text-sm flex-shrink-0 ml-[-12px]">/</span>
 
-                            {/* Breadcrumbs container */}
-                            <div className="relative min-w-0 flex-1 max-w-md">
-                                <div className="overflow-hidden">
-                                    <AnimatePresence mode="wait">
-                                        {showBreadcrumbSkeleton ? (
-                                            <motion.div
-                                                key="skeleton"
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                exit={{ opacity: 0 }}
-                                                transition={{ duration: 0.2 }}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Skeleton className="h-4 w-24" />
-                                                <Skeleton className="h-8 w-8 rounded-md" />
-                                            </motion.div>
-                                        ) : (
-                                                <motion.div
-                                                    key="breadcrumbs"
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    exit={{ opacity: 0 }}
-                                                    transition={{ duration: 0.2, delay: 0.1 }}
-                                                >
-                                                    <Breadcrumb>
-                                                        <BreadcrumbList>
-                                                            {breadcrumbItems.map((item, index) => (
-                                                                <React.Fragment key={item.href}>
-                                                                    <BreadcrumbItem>
-                                                                        {item.isActive ? (
-                                                                            <BreadcrumbPage className="text-foreground font-medium flex items-center gap-2">
-                                                                                {item.label}
-                                                                                {/* Always show spaces menu for first breadcrumb */}
-                                                                                {index === 0 && (
-                                                                                    mounted && isMobile ? (
-                                                                                        <MobileSpacesMenu
-                                                                                            currentSpaceId={web?.spaceId || currentSpace?.id || null}
-                                                                                            onNavigate={item.isActive ? undefined : handleNavigate}
-                                                                                            onCreateSpace={handleCreateSpace}
-                                                                                        />
-                                                                                    ) : (
-                                                                                            <SpacesMenu
-                                                                                                currentSpaceId={web?.spaceId || currentSpace?.id || null}
-                                                                                                onNavigate={item.isActive ? undefined : handleNavigate}
-                                                                                                onCreateSpace={handleCreateSpace}
-                                                                                            />
-                                                                                        )
-                                                                                )}
-                                                                            </BreadcrumbPage>
-                                                                        ) : (
-                                                                            <BreadcrumbLink asChild>
-                                                                                <Link
-                                                                                    href={item.href}
-                                                                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
-                                                                                >
-                                                                                    {item.label}
-                                                                                    {/* Always show spaces menu for first breadcrumb */}
-                                                                                    {index === 0 && (
-                                                                                            mounted && isMobile ? (
-                                                                                                <MobileSpacesMenu
-                                                                                                    currentSpaceId={web?.spaceId || currentSpace?.id || null}
-                                                                                                    onNavigate={handleNavigate}
-                                                                                                    onCreateSpace={handleCreateSpace}
-                                                                                                />
-                                                                                            ) : (
-                                                                                                    <SpacesMenu
-                                                                                                        currentSpaceId={web?.spaceId || currentSpace?.id || null}
-                                                                                                        onNavigate={handleNavigate}
-                                                                                                        onCreateSpace={handleCreateSpace}
-                                                                                                    />
-                                                                                                )
-                                                                                    )}
-                                                                                </Link>
-                                                                            </BreadcrumbLink>
-                                                                        )}
-                                                                    </BreadcrumbItem>
-                                                                    {index < breadcrumbItems.length - 1 && (
-                                                                        <BreadcrumbSeparator>
-                                                                            <span className="text-muted-foreground">/</span>
-                                                                        </BreadcrumbSeparator>
+                        {/* Breadcrumbs container */}
+                        <div className="relative min-w-0 flex-1 max-w-md">
+                            <div className="overflow-hidden">
+                                {showBreadcrumbSkeleton ? (
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-8 w-8 rounded-md" />
+                                    </div>
+                                ) : (
+                                        <Breadcrumb>
+                                            <BreadcrumbList>
+                                                {breadcrumbItems.map((item, index) => (
+                                                    <React.Fragment key={item.href}>
+                                                        <BreadcrumbItem>
+                                                            {item.isActive ? (
+                                                                <BreadcrumbPage className="text-foreground font-medium flex items-center gap-2">
+                                                                    {item.label}
+                                                                    {/* Always show spaces menu for first breadcrumb */}
+                                                                    {index === 0 && (
+                                                                        <div className="block sm:hidden">
+                                                                            <MobileSpacesMenu
+                                                                                currentSpaceId={web?.spaceId || currentSpace?.id || null}
+                                                                                onNavigate={item.isActive ? undefined : handleNavigate}
+                                                                                onCreateSpace={handleCreateSpace}
+                                                                            />
+                                                                        </div>
                                                                     )}
-                                                                </React.Fragment>
-                                                            ))}
-                                                        </BreadcrumbList>
-                                                    </Breadcrumb>
-                                                </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                                {/* Fade gradient overlay */}
-                                <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background/95 to-transparent pointer-events-none" />
+                                                                    {index === 0 && (
+                                                                        <div className="hidden sm:block">
+                                                                            <SpacesMenu
+                                                                                currentSpaceId={web?.spaceId || currentSpace?.id || null}
+                                                                                onNavigate={item.isActive ? undefined : handleNavigate}
+                                                                                onCreateSpace={handleCreateSpace}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+                                                                </BreadcrumbPage>
+                                                            ) : (
+                                                                <BreadcrumbLink asChild>
+                                                                    <Link
+                                                                        href={item.href}
+                                                                        className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                                                                    >
+                                                                        {item.label}
+                                                                        {/* Always show spaces menu for first breadcrumb */}
+                                                                        {index === 0 && (
+                                                                                <div className="block sm:hidden">
+                                                                                    <MobileSpacesMenu
+                                                                                        currentSpaceId={web?.spaceId || currentSpace?.id || null}
+                                                                                        onNavigate={handleNavigate}
+                                                                                        onCreateSpace={handleCreateSpace}
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+                                                                            {index === 0 && (
+                                                                                <div className="hidden sm:block">
+                                                                                    <SpacesMenu
+                                                                                        currentSpaceId={web?.spaceId || currentSpace?.id || null}
+                                                                                        onNavigate={handleNavigate}
+                                                                                        onCreateSpace={handleCreateSpace}
+                                                                                    />
+                                                                            </div>
+                                                                        )}
+                                                                    </Link>
+                                                                </BreadcrumbLink>
+                                                            )}
+                                                        </BreadcrumbItem>
+                                                        {index < breadcrumbItems.length - 1 && (
+                                                            <BreadcrumbSeparator>
+                                                                <span className="text-muted-foreground">/</span>
+                                                            </BreadcrumbSeparator>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))}
+                                            </BreadcrumbList>
+                                        </Breadcrumb>
+                                )}
                             </div>
-                        </motion.div>
-                    </AnimatePresence>
+                            {/* Fade gradient overlay */}
+                            <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background/95 to-transparent pointer-events-none" />
+                        </div>
+                    </div>
 
                     {/* Right side - Responsive menu buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Animated buttons that change between mobile/desktop */}
-                        <AnimatePresence mode="wait">
-                            {mounted && isMobile ? (
-                                <motion.div
-                                    key="mobile-feedback"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="flex items-center gap-2"
-                                >
-                                    {/* Mobile feedback button */}
-                                    <MobileFeedbackMenu variant="circular" />
-                                </motion.div>
-                            ) : (
-                                    <motion.div
-                                        key="desktop-feedback-docs"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="flex items-center gap-2"
-                                    >
-                                    <FeedbackMenu className="h-8" />
-                                        <DocsMenu />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {/* Mobile feedback button */}
+                        <div className="block sm:hidden">
+                            <MobileFeedbackMenu variant="circular" />
+                        </div>
 
-                        {/* Stable buttons that don't change between mobile/desktop */}
-                        {isMobile ? <MobileNotificationsMenu onNavigate={handleNavigate} /> : <NotificationsWrapper onNavigate={handleNavigate} />}
-                        {isMobile ? <MobileUserMenu /> : <UserMenu />}
+                        {/* Desktop feedback and docs buttons */}
+                        <div className="hidden sm:flex items-center gap-2">
+                            <FeedbackMenu className="h-8" />
+                            <DocsMenu />
+                        </div>
+
+                        {/* Notifications - responsive */}
+                        <div className="block sm:hidden">
+                            <MobileNotificationsMenu onNavigate={handleNavigate} />
+                        </div>
+                        <div className="hidden sm:block">
+                            <NotificationsWrapper onNavigate={handleNavigate} />
+                        </div>
+
+                        {/* User menu - responsive */}
+                        <div className="block sm:hidden">
+                            <MobileUserMenu />
+                        </div>
+                        <div className="hidden sm:block">
+                            <UserMenu />
+                        </div>
                     </div>
                 </div>
 

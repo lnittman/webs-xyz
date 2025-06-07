@@ -20,7 +20,7 @@ import { cn } from '@repo/design/lib/utils';
 const settingsData = [
     {
         title: 'General',
-        href: '/account/settings',
+        href: '/account/settings/general',
         icon: User,
         description: 'Personal information and preferences',
         subsections: [
@@ -135,7 +135,7 @@ export function SettingsNavigation() {
     return (
         <div className="flex-1 flex flex-col">
             {/* Search Bar */}
-            <div className="px-4 pb-4">
+            <div className="px-4 py-4">
                 <div className="relative">
                     <MagnifyingGlass
                         size={16}
@@ -172,14 +172,17 @@ export function SettingsNavigation() {
             </div>
 
             {/* Navigation Items */}
-            <nav className="flex-1 space-y-1 p-4 pt-0 overflow-y-auto">
+            <nav className="flex-1 space-y-1 px-4 pt-0 overflow-y-auto">
                 {filteredSettings.length === 0 ? (
                     <p className="text-sm text-muted-foreground font-mono px-3 py-2">
                         No settings found
                     </p>
                 ) : (
                     filteredSettings.map((item) => {
-                        const isActive = pathname === item.href;
+                        // Handle active state for General settings - active for both /account/settings and /account/settings/general
+                        const isActive = item.title === 'General'
+                            ? pathname === '/account/settings' || pathname === '/account/settings/general'
+                            : pathname === item.href;
                         const Icon = item.icon;
 
                         return (

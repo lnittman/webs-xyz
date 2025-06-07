@@ -4,6 +4,7 @@ import React, { useCallback } from 'react';
 import { useUserSettings } from '@/hooks/user-settings/queries';
 import { updateUserSettings } from '@/app/actions/user-settings';
 import type { UserSettings } from '@/types/user-settings';
+import { MobileSettingsHeader } from './mobile-settings-header';
 
 export function NotificationSettings() {
     const { settings, isLoading, mutate } = useUserSettings();
@@ -67,9 +68,9 @@ export function NotificationSettings() {
     if (isLoading) {
         return (
             <div className="space-y-6">
+                <MobileSettingsHeader title="Notifications" />
                 <div className="animate-pulse">
                     <div className="h-6 bg-muted rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
                 </div>
                 <div className="space-y-4">
                     {[1, 2, 3, 4].map((i) => (
@@ -82,12 +83,8 @@ export function NotificationSettings() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-lg font-semibold font-mono mb-2">Notifications</h2>
-                <p className="text-sm text-muted-foreground font-mono">
-                    Configure how and when you receive notifications.
-                </p>
-            </div>
+            {/* Mobile header with back button */}
+            <MobileSettingsHeader title="Notifications" />
 
             <div className="space-y-4">
                 {notifications.map((notification) => (
