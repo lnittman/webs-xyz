@@ -19,7 +19,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useTransitionRouter } from "next-view-transitions";
-import { useIsMobile } from '@repo/design/hooks/use-mobile';
 
 import {
     DropdownMenu,
@@ -140,13 +139,17 @@ function UserMenuContent() {
     const router = useTransitionRouter();
     const [menuOpen, setMenuOpen] = useState(false);
 
-    // Close menu when transitioning to mobile to prevent UI issues
-    const isMobile = useIsMobile();
+    // Close menu when resizing to mobile to prevent UI issues
     useEffect(() => {
-        if (menuOpen && isMobile) {
-            setMenuOpen(false);
-        }
-    }, [menuOpen, isMobile]);
+        const handleResize = () => {
+            if (menuOpen && window.innerWidth < 768) { // Close on mobile breakpoint
+                setMenuOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [menuOpen]);
 
     // Get user initials for avatar fallback
     const initials = user?.fullName

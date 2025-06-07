@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTransitionRouter } from 'next-view-transitions';
 import { useAtom } from 'jotai';
-import { useIsMobile } from '@repo/design/hooks/use-mobile';
 import {
     Folder,
     Plus,
@@ -134,14 +133,6 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
     // Use hovered space if hovering, otherwise use selected space
     const displaySpace = hoveredSpace || selectedSpace;
 
-    // Close menu when transitioning to mobile to prevent UI issues
-    const isMobile = useIsMobile();
-    useEffect(() => {
-        if (menuOpen && isMobile) {
-            setMenuOpen(false);
-        }
-    }, [menuOpen, isMobile]);
-
     // Check if dropdown should align to the end to avoid viewport edge
     useEffect(() => {
         if (menuOpen) {
@@ -166,6 +157,18 @@ export function SpacesMenu({ currentSpaceId, onNavigate, onCreateSpace }: Spaces
             window.addEventListener('resize', checkPosition);
             return () => window.removeEventListener('resize', checkPosition);
         }
+    }, [menuOpen]);
+
+    // Close menu when resizing to mobile to prevent UI issues
+    useEffect(() => {
+        const handleResize = () => {
+            if (menuOpen && window.innerWidth < 768) { // Close on mobile breakpoint
+                setMenuOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, [menuOpen]);
 
     // Filter spaces based on search
